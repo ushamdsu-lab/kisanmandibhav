@@ -1181,11 +1181,15 @@ class _MandiScreenState extends State<MandiScreen> {
                             fontSize: 18,
                             color: isVeg ? AppColors.mandiAccent : AppColors.primary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         // English subtitle
                         Text(
                           englishName,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (rate.variety.isNotEmpty && rate.variety != 'Other')
                           Text(
@@ -1194,6 +1198,8 @@ class _MandiScreenState extends State<MandiScreen> {
                               fontSize: 11,
                               color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                       ],
                     ),
@@ -1213,32 +1219,35 @@ class _MandiScreenState extends State<MandiScreen> {
               // Mandi & District Badge + Price Trend Chip
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          size: 14,
-                          color: isVeg ? AppColors.mandiAccent : AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            '${DistrictHelper.getHindiMarketName(rate.market, rate.district)} (${DistrictHelper.getHindiName(rate.district)})',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 14,
+                            color: isVeg ? AppColors.mandiAccent : AppColors.primary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${DistrictHelper.getHindiMarketName(rate.market, rate.district)} (${DistrictHelper.getHindiName(rate.district)})',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -1246,9 +1255,10 @@ class _MandiScreenState extends State<MandiScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          isUp ? '📈 तेजी' : (isDown ? '📉 मंदी' : '⏸️ भाव स्थिर'),
+                          isUp ? '📈 तेजी' : (isDown ? '📉 मंदी' : '⏸️ स्थिर'),
                           style: TextStyle(color: trendColor, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 4),
@@ -1344,20 +1354,28 @@ class _MandiScreenState extends State<MandiScreen> {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
-            textAlign: TextAlign.center,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
           const SizedBox(height: 2),
-          Text(
-            price,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              price,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

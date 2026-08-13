@@ -363,12 +363,16 @@ class NotificationCenterSheet extends StatelessWidget {
                                               const SizedBox(width: 8),
                                               const Text('•', style: TextStyle(color: Colors.grey, fontSize: 11)),
                                               const SizedBox(width: 8),
-                                              Text(
-                                                item.mandi,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.mandiAccent,
+                                              Flexible(
+                                                child: Text(
+                                                  item.mandi,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.mandiAccent,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],

@@ -55,11 +55,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         children: [
                           const Icon(Icons.verified_rounded, color: AppColors.primary, size: 20),
                           const SizedBox(width: 8),
-                          Text(
-                            '🏛️ भारत सरकार द्वारा तय नियंत्रित खाद MRP दरें',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                          Expanded(
+                            child: Text(
+                              '🏛️ भारत सरकार द्वारा तय नियंत्रित खाद MRP दरें',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -93,10 +97,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       ),
                       const SizedBox(height: 8),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
-                          Text('📞 शिकायत/ओवरचार्जिंग हेल्पलाइन: 1800-11-5501', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-                          Text('iFMS dbtfert.nic.in', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: Text(
+                              '📞 शिकायत हेल्पलाइन: 1800-11-5501',
+                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'iFMS dbtfert.nic.in',
+                            style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                     ],

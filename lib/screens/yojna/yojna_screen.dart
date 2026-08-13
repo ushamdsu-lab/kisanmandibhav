@@ -383,20 +383,28 @@ class _YojnaScreenState extends State<YojnaScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
                 ),
-                textAlign: TextAlign.center,
               ),
-              Text(
-                '($count योजनाएं)',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: isSelected ? Colors.white.withValues(alpha: 0.9) : Theme.of(context).textTheme.bodySmall?.color,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '($count योजनाएं)',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: isSelected ? Colors.white.withValues(alpha: 0.9) : Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                  maxLines: 1,
                 ),
               ),
             ],

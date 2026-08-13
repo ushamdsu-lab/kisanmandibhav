@@ -107,7 +107,7 @@ class _KhetiScreenState extends State<KhetiScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.9,
+                      childAspectRatio: 0.82,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -159,50 +159,61 @@ class _KhetiScreenState extends State<KhetiScreen> {
         borderRadius: BorderRadius.circular(18),
         onTap: () => context.go('/kheti/crop/${crop.id}'),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Crop icon
               Container(
-                width: 56,
-                height: 56,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: AppColors.khetiGradient),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.khetiAccent.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: Icon(_getCropIcon(crop.icon), color: Colors.white, size: 28),
-              ),
-              const SizedBox(height: 12),
-              // Crop name
-              Text(
-                crop.name,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                crop.nameEn,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                child: Icon(_getCropIcon(crop.icon), color: Colors.white, size: 24),
               ),
               const SizedBox(height: 8),
+              // Crop name
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  crop.name,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  crop.nameEn,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(height: 6),
               // Season badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: seasonColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  crop.season == 'kharif' ? 'खरीफ' : crop.season == 'rabi' ? 'रबी' : 'जायद',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: seasonColor),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    crop.season == 'kharif' ? 'खरीफ फसल' : (crop.season == 'rabi' ? 'रबी फसल' : 'जायद फसल'),
+                    style: TextStyle(color: seasonColor, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],

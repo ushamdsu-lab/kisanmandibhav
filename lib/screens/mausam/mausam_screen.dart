@@ -626,18 +626,23 @@ class _MausamScreenState extends State<MausamScreen> {
         children: [
           Icon(icon, color: Colors.white, size: 18),
           const SizedBox(height: 3),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
-          Text(
-            label,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 9),
-            textAlign: TextAlign.center,
-            maxLines: 1,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 9),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
         ],
       ),

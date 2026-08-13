@@ -214,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.1,
+                childAspectRatio: 1.25,
               ),
               delegate: SliverChildListDelegate([
                 _buildModuleCard(
@@ -292,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.15,
+                childAspectRatio: 1.25,
               ),
               delegate: SliverChildListDelegate([
                 _buildGovtFeatureCard(
@@ -512,12 +512,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      'खाद कैलकुलेटर व दरें',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
+                    Flexible(
+                      child: Text(
+                        'खाद कैलकुलेटर व दरें',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Container(
@@ -560,29 +564,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GlassCard(
       margin: EdgeInsets.zero,
       onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -1451,33 +1458,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GlassCard(
       margin: EdgeInsets.zero,
       onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: gradientColors),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
                   color: gradientColors[0].withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 26),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
