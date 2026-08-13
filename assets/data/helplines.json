@@ -1,0 +1,79 @@
+[
+  {
+    "id": "kisan_call_center",
+    "name": "किसान कॉल सेंटर",
+    "nameEn": "Kisan Call Center",
+    "number": "1800-180-1551",
+    "icon": "support_agent",
+    "description": "कृषि संबंधी किसी भी समस्या के लिए 24x7 निशुल्क हेल्पलाइन। हिंदी और क्षेत्रीय भाषाओं में सहायता।",
+    "timing": "24 घंटे, 7 दिन",
+    "tollFree": true,
+    "category": "कृषि सहायता"
+  },
+  {
+    "id": "pmkisan_helpline",
+    "name": "पीएम किसान हेल्पलाइन",
+    "nameEn": "PM Kisan Helpline",
+    "number": "155261",
+    "icon": "phone_in_talk",
+    "description": "पीएम किसान सम्मान निधि योजना से संबंधित शिकायत और जानकारी के लिए।",
+    "timing": "सुबह 9 बजे - शाम 6 बजे (सोम-शनि)",
+    "tollFree": true,
+    "category": "योजना सहायता"
+  },
+  {
+    "id": "crop_insurance",
+    "name": "फसल बीमा हेल्पलाइन",
+    "nameEn": "Crop Insurance Helpline",
+    "number": "1800-200-7710",
+    "icon": "shield",
+    "description": "पीएम फसल बीमा योजना से संबंधित क्लेम, पंजीकरण और शिकायत।",
+    "timing": "सुबह 10 बजे - शाम 6 बजे",
+    "tollFree": true,
+    "category": "बीमा"
+  },
+  {
+    "id": "soil_testing",
+    "name": "मृदा जांच हेल्पलाइन",
+    "nameEn": "Soil Testing Helpline",
+    "number": "1800-180-1100",
+    "icon": "science",
+    "description": "मिट्टी की जांच और मृदा स्वास्थ्य कार्ड से संबंधित जानकारी।",
+    "timing": "सुबह 9 बजे - शाम 5:30 बजे",
+    "tollFree": true,
+    "category": "तकनीकी सहायता"
+  },
+  {
+    "id": "animal_husbandry",
+    "name": "पशुपालन हेल्पलाइन",
+    "nameEn": "Animal Husbandry Helpline",
+    "number": "1800-180-1234",
+    "icon": "pets",
+    "description": "पशु रोग, टीकाकरण और पशुपालन संबंधी सलाह।",
+    "timing": "24 घंटे, 7 दिन",
+    "tollFree": true,
+    "category": "पशुपालन"
+  },
+  {
+    "id": "market_price",
+    "name": "मंडी भाव हेल्पलाइन",
+    "nameEn": "Market Price Helpline",
+    "number": "1800-270-0224",
+    "icon": "storefront",
+    "description": "मंडी भाव, बाजार दर और ई-नाम से संबंधित जानकारी।",
+    "timing": "सुबह 8 बजे - रात 8 बजे",
+    "tollFree": true,
+    "category": "बाजार"
+  },
+  {
+    "id": "weather_imd",
+    "name": "मौसम हेल्पलाइन (IMD)",
+    "nameEn": "Weather Helpline (IMD)",
+    "number": "1800-180-1717",
+    "icon": "cloud",
+    "description": "मौसम पूर्वानुमान, चेतावनी और कृषि मौसम सलाह।",
+    "timing": "24 घंटे, 7 दिन",
+    "tollFree": true,
+    "category": "मौसम"
+  }
+]

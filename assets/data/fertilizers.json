@@ -1,0 +1,80 @@
+[
+  {
+    "id": "urea",
+    "name": "यूरिया",
+    "nameEn": "Urea",
+    "nutrient": "नाइट्रोजन (N) - 46%",
+    "usage": "बढ़वार के समय, हरा रंग बढ़ाने के लिए",
+    "dosagePerHectare": "100-130 किलो",
+    "dosagePerBigha": "12-16 किलो",
+    "method": "खड़ी फसल में छिड़काव, सिंचाई से पहले",
+    "precaution": "एक बार में पूरी मात्रा न डालें, 2-3 बार में बांटें",
+    "price": "₹266.50/बोरी (45 किलो)",
+    "crops": ["wheat", "rice", "maize", "sugarcane", "potato"]
+  },
+  {
+    "id": "dap",
+    "name": "डीएपी",
+    "nameEn": "DAP (Di-Ammonium Phosphate)",
+    "nutrient": "नाइट्रोजन (N) - 18%, फास्फोरस (P) - 46%",
+    "usage": "बुवाई के समय, जड़ विकास के लिए",
+    "dosagePerHectare": "100-125 किलो",
+    "dosagePerBigha": "12-15 किलो",
+    "method": "बुवाई से पहले खेत में मिलाएं या कूड़ में डालें",
+    "precaution": "बीज के सीधे संपर्क में न आए",
+    "price": "₹1350/बोरी (50 किलो)",
+    "crops": ["wheat", "rice", "mustard", "potato", "maize"]
+  },
+  {
+    "id": "mop",
+    "name": "पोटाश (MOP)",
+    "nameEn": "Muriate of Potash",
+    "nutrient": "पोटैशियम (K) - 60%",
+    "usage": "फल/दाना बनने के समय, रोग प्रतिरोधक क्षमता बढ़ाने के लिए",
+    "dosagePerHectare": "50-80 किलो",
+    "dosagePerBigha": "6-10 किलो",
+    "method": "बुवाई के समय या खड़ी फसल में",
+    "precaution": "सही मात्रा में डालें, अधिक मात्रा हानिकारक",
+    "price": "₹1700/बोरी (50 किलो)",
+    "crops": ["potato", "sugarcane", "wheat", "rice"]
+  },
+  {
+    "id": "ssp",
+    "name": "सिंगल सुपर फॉस्फेट",
+    "nameEn": "SSP (Single Super Phosphate)",
+    "nutrient": "फास्फोरस (P) - 16%, सल्फर (S) - 11%",
+    "usage": "तिलहनी और दलहनी फसलों के लिए उत्तम",
+    "dosagePerHectare": "200-250 किलो",
+    "dosagePerBigha": "25-30 किलो",
+    "method": "बुवाई से पहले खेत में मिलाएं",
+    "precaution": "नमी से बचाकर रखें",
+    "price": "₹450/बोरी (50 किलो)",
+    "crops": ["mustard", "wheat", "rice"]
+  },
+  {
+    "id": "zinc_sulphate",
+    "name": "जिंक सल्फेट",
+    "nameEn": "Zinc Sulphate",
+    "nutrient": "जिंक (Zn) - 21%",
+    "usage": "जिंक की कमी दूर करने के लिए",
+    "dosagePerHectare": "25 किलो",
+    "dosagePerBigha": "3 किलो",
+    "method": "बुवाई से पहले मिट्टी में मिलाएं या 0.5% घोल का स्प्रे",
+    "precaution": "हर 2-3 साल में एक बार जरूर डालें",
+    "price": "₹55/किलो",
+    "crops": ["rice", "wheat", "maize"]
+  },
+  {
+    "id": "vermicompost",
+    "name": "वर्मीकम्पोस्ट",
+    "nameEn": "Vermicompost",
+    "nutrient": "जैविक खाद - N, P, K + सूक्ष्म तत्व",
+    "usage": "मिट्टी की उर्वरा शक्ति बढ़ाने के लिए",
+    "dosagePerHectare": "5-10 टन",
+    "dosagePerBigha": "600-1200 किलो",
+    "method": "बुवाई से पहले खेत में समान रूप से फैलाएं",
+    "precaution": "छाया में रखें, सीधी धूप से बचाएं",
+    "price": "₹8-12/किलो",
+    "crops": ["wheat", "rice", "potato", "sugarcane", "mustard", "maize"]
+  }
+]

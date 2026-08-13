@@ -1,0 +1,62 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+class StorageService {
+  static SharedPreferences? _prefs;
+
+  static Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  // Theme
+  static bool isDarkMode() => _prefs?.getBool('dark_mode') ?? false;
+  static Future<void> setDarkMode(bool value) async =>
+      await _prefs?.setBool('dark_mode', value);
+
+  // Favorite Commodities
+  static List<String> getFavoriteCommodities() =>
+      _prefs?.getStringList('fav_commodities') ?? [];
+  
+  static Future<void> toggleFavoriteCommodity(String commodity) async {
+    final list = getFavoriteCommodities();
+    if (list.contains(commodity)) {
+      list.remove(commodity);
+    } else {
+      list.add(commodity);
+    }
+    await _prefs?.setStringList('fav_commodities', list);
+  }
+
+  // Bookmarked Schemes
+  static List<String> getBookmarkedSchemes() =>
+      _prefs?.getStringList('bookmarked_schemes') ?? [];
+
+  static Future<void> toggleBookmarkScheme(String schemeId) async {
+    final list = getBookmarkedSchemes();
+    if (list.contains(schemeId)) {
+      list.remove(schemeId);
+    } else {
+      list.add(schemeId);
+    }
+    await _prefs?.setStringList('bookmarked_schemes', list);
+  }
+
+  // Location
+  static String getSavedCity() => _prefs?.getString('city') ?? '';
+  static double getSavedLatitude() => _prefs?.getDouble('latitude') ?? 0;
+  static double getSavedLongitude() => _prefs?.getDouble('longitude') ?? 0;
+  
+  static Future<void> saveLocation({
+    required String city,
+    required double lat,
+    required double lng,
+  }) async {
+    await _prefs?.setString('city', city);
+    await _prefs?.setDouble('latitude', lat);
+    await _prefs?.setDouble('longitude', lng);
+  }
+
+  // Mandi API Key
+  static String getMandiApiKey() => _prefs?.getString('mandi_api_key') ?? '';
+  static Future<void> setMandiApiKey(String key) async =>
+      await _prefs?.setString('mandi_api_key', key);
+}
