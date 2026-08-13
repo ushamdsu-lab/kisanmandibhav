@@ -5,6 +5,7 @@ import 'package:kisan_mitra/models/scheme.dart';
 import 'package:kisan_mitra/models/helpline.dart';
 import 'package:kisan_mitra/models/mandi_rate.dart';
 import 'package:kisan_mitra/models/notification_item.dart';
+import 'package:kisan_mitra/data/mandi_directory.dart';
 
 void main() {
   group('Model Tests', () {
@@ -134,6 +135,19 @@ void main() {
       expect(notif.id, 'notif_123');
       expect(notif.mandi, 'Bikaner (Grain) APMC');
       expect(notif.isRead, isFalse);
+    });
+
+    test('MandiDirectory resolves Jodhpur district mandis in both Hindi and English', () {
+      final englishMandis = MandiDirectory.getMandisForDistrict('Rajasthan', 'Jodhpur');
+      expect(englishMandis.contains('Jodhpur (Grain) APMC'), isTrue);
+      expect(englishMandis.contains('Bilara APMC'), isTrue);
+
+      final hindiMandis = MandiDirectory.getMandisForDistrict('Rajasthan', 'जोधपुर');
+      expect(hindiMandis.contains('Jodhpur (Grain) APMC'), isTrue);
+      expect(hindiMandis.contains('Bilara APMC'), isTrue);
+
+      expect(MandiDirectory.getStandardDistrictName('Rajasthan', 'जोधपुर'), 'Jodhpur');
+      expect(MandiDirectory.getStandardDistrictName('Rajasthan', 'Jodhpur'), 'Jodhpur');
     });
   });
 }

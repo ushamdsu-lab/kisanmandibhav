@@ -52,7 +52,11 @@ class MandiProvider extends ChangeNotifier {
       }
       result = combined;
     } else if (_selectedDistrict.isNotEmpty) {
-      final d = _selectedDistrict.toLowerCase();
+      final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, _selectedDistrict);
+      final distName = stdDistrict.isNotEmpty ? stdDistrict : _selectedDistrict;
+      final d = distName.toLowerCase();
+      final primaryMandi = _findFirstMandiForDistrict(distName);
+
       final liveDistrictRates = _allStateRates.where((r) =>
         r.district.toLowerCase().contains(d) ||
         d.contains(r.district.toLowerCase()) ||
@@ -60,8 +64,7 @@ class MandiProvider extends ChangeNotifier {
         d.contains(r.market.toLowerCase())
       ).toList();
       
-      final primaryMandi = _findFirstMandiForDistrict(_selectedDistrict);
-      final completeDistrictCrops = _generateComprehensiveCropList(primaryMandi, _selectedDistrict);
+      final completeDistrictCrops = _generateComprehensiveCropList(primaryMandi, distName);
       final Set<String> liveHindiNames = liveDistrictRates.map((r) => CommodityHelper.getHindiName(r.commodity)).toSet();
       
       final List<MandiRate> combined = List.from(liveDistrictRates);
@@ -73,8 +76,10 @@ class MandiProvider extends ChangeNotifier {
       }
       result = combined;
     } else {
-      final primaryMandi = MandiDirectory.getDefaultMandi(_selectedState);
-      final primaryDistrict = MandiDirectory.getDefaultDistrict(_selectedState);
+      final primaryDistrict = _userHomeDistrict.isNotEmpty
+          ? MandiDirectory.getStandardDistrictName(_selectedState, _userHomeDistrict)
+          : MandiDirectory.getDefaultDistrict(_selectedState);
+      final primaryMandi = _findFirstMandiForDistrict(primaryDistrict);
       
       final completeStateCrops = _generateComprehensiveCropList(primaryMandi, primaryDistrict);
       final Set<String> liveHindiNames = _allStateRates.map((r) => CommodityHelper.getHindiName(r.commodity)).toSet();
@@ -171,18 +176,14 @@ class MandiProvider extends ChangeNotifier {
 
   // All Mandis (Live + Full Directory) for current state & district
   List<String> get availableMarkets {
-    final Map<String, List<String>> dir = MandiDirectory.getDistrictMandis(_selectedState);
     final Set<String> markets = {};
 
     if (_selectedDistrict.isNotEmpty) {
-      for (final entry in dir.entries) {
-        if (entry.key.toLowerCase().contains(_selectedDistrict.toLowerCase()) ||
-            _selectedDistrict.toLowerCase().contains(entry.key.toLowerCase())) {
-          markets.addAll(entry.value);
-        }
-      }
+      final mandis = MandiDirectory.getMandisForDistrict(_selectedState, _selectedDistrict);
+      markets.addAll(mandis);
       for (final r in _allStateRates) {
-        if (r.district.toLowerCase().contains(_selectedDistrict.toLowerCase())) {
+        if (r.district.toLowerCase().contains(_selectedDistrict.toLowerCase()) ||
+            _selectedDistrict.toLowerCase().contains(r.district.toLowerCase())) {
           markets.add(r.market.trim());
         }
       }
@@ -231,10 +232,16 @@ class MandiProvider extends ChangeNotifier {
         limit: 5000,
       );
 
-      final defaultMandiName = MandiDirectory.getDefaultMandi(_selectedState);
-      final defaultDistrictName = MandiDirectory.getDefaultDistrict(_selectedState);
+      final targetDistrict = _selectedDistrict.isNotEmpty
+          ? MandiDirectory.getStandardDistrictName(_selectedState, _selectedDistrict)
+          : (_userHomeDistrict.isNotEmpty
+              ? MandiDirectory.getStandardDistrictName(_selectedState, _userHomeDistrict)
+              : MandiDirectory.getDefaultDistrict(_selectedState));
+      final targetMandi = _selectedMarket.isNotEmpty
+          ? _selectedMarket
+          : _findFirstMandiForDistrict(targetDistrict);
 
-      final stapleRates = _generateComprehensiveCropList(defaultMandiName, defaultDistrictName);
+      final stapleRates = _generateComprehensiveCropList(targetMandi, targetDistrict);
       
       final Set<String> existingCommodityKeys = liveRates.map((r) => r.commodity.toLowerCase()).toSet();
       final List<MandiRate> combined = List.from(liveRates);
@@ -247,7 +254,9 @@ class MandiProvider extends ChangeNotifier {
 
       _allStateRates = combined;
     } catch (e) {
-      _allStateRates = _generateComprehensiveCropList('Mandi APMC', _selectedState);
+      final targetDistrict = _selectedDistrict.isNotEmpty ? _selectedDistrict : _selectedState;
+      final targetMandi = _selectedMarket.isNotEmpty ? _selectedMarket : '$targetDistrict APMC';
+      _allStateRates = _generateComprehensiveCropList(targetMandi, targetDistrict);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -284,12 +293,8 @@ class MandiProvider extends ChangeNotifier {
     _userHomeState = matchedState;
 
     if (district != null && district.isNotEmpty) {
-      final available = availableDistricts;
-      final match = available.firstWhere(
-        (d) => d.toLowerCase().contains(district.toLowerCase()) || district.toLowerCase().contains(d.toLowerCase()),
-        orElse: () => '',
-      );
-      _selectedDistrict = match.isNotEmpty ? match : district;
+      final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, district);
+      _selectedDistrict = stdDistrict.isNotEmpty ? stdDistrict : district;
       _userHomeDistrict = _selectedDistrict;
     }
 
@@ -418,35 +423,24 @@ class MandiProvider extends ChangeNotifier {
       matches.add(targetRate);
     }
 
-    // If we have fewer than 5 mandis, add realistic benchmark mandis for comparison in the state
-    if (matches.length < 5) {
-      // Dynamically build benchmark mandis from the state's directory
-      final districtMandis = MandiDirectory.getDistrictMandis(_selectedState);
-      final Map<String, String> benchmarkMandis = {};
-      for (final entry in districtMandis.entries) {
-        if (benchmarkMandis.length >= 6) break;
-        if (entry.value.isNotEmpty) {
-          benchmarkMandis[entry.value.first] = entry.key;
-        }
-      }
+    // Include ALL mandis across ALL districts in the state for full comparison
+    final stateDistrictMandis = MandiDirectory.getDistrictMandis(_selectedState);
+    final basePrice = targetRate.modalPrice > 0 ? targetRate.modalPrice : 5000.0;
+    final baseMin = targetRate.minPrice > 0 ? targetRate.minPrice : basePrice * 0.92;
+    final baseMax = targetRate.maxPrice > 0 ? targetRate.maxPrice : basePrice * 1.08;
 
-      final basePrice = targetRate.modalPrice > 0 ? targetRate.modalPrice : 5000.0;
-      final baseMin = targetRate.minPrice > 0 ? targetRate.minPrice : basePrice * 0.92;
-      final baseMax = targetRate.maxPrice > 0 ? targetRate.maxPrice : basePrice * 1.08;
+    int idx = 0;
+    final seed = targetRate.commodity.hashCode.abs();
 
-      int idx = 0;
-      final seed = targetRate.commodity.hashCode.abs();
-
-      for (final entry in benchmarkMandis.entries) {
-        final marketName = entry.key;
-        final districtName = entry.value;
+    for (final entry in stateDistrictMandis.entries) {
+      final districtName = entry.key;
+      for (final marketName in entry.value) {
         final key = '${marketName}_$districtName'.toLowerCase();
-
         if (!addedMarkets.contains(key)) {
           addedMarkets.add(key);
           idx++;
-          // Deterministic minor variance across mandis (±2% to ±6%)
-          final factor = 1.0 + (sin((seed + idx * 17) * 0.3) * 0.05);
+          // Deterministic realistic variance across mandis (±1% to ±6%)
+          final factor = 1.0 + (sin((seed + idx * 19 + districtName.hashCode) * 0.3) * 0.05);
           final modal = (basePrice * factor / 10).round() * 10.0;
           final minP = (baseMin * factor / 10).round() * 10.0;
           final maxP = (baseMax * factor / 10).round() * 10.0;
@@ -493,12 +487,8 @@ class MandiProvider extends ChangeNotifier {
   }
 
   String _findFirstMandiForDistrict(String district) {
-    final dir = MandiDirectory.getDistrictMandis(_selectedState);
-    for (final entry in dir.entries) {
-      if (entry.key.toLowerCase().contains(district.toLowerCase()) || district.toLowerCase().contains(entry.key.toLowerCase())) {
-        if (entry.value.isNotEmpty) return entry.value.first;
-      }
-    }
+    final mandis = MandiDirectory.getMandisForDistrict(_selectedState, district);
+    if (mandis.isNotEmpty) return mandis.first;
     return '$district Mandi';
   }
 

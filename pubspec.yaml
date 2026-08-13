@@ -1,7 +1,7 @@
 name: kisan_mitra
 description: "KisanMitra - Kisan ke liye Smart App"
 publish_to: 'none'
-version: 1.0.3+4
+version: 1.0.4+5
 
 environment:
   sdk: ^3.11.5

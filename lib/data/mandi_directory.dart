@@ -1,3 +1,5 @@
+import '../utils/district_helper.dart';
+
 class MandiDirectory {
   // Complete APMC Mandis directory for All India
 
@@ -376,16 +378,54 @@ class MandiDirectory {
     return _getMandiMap(state);
   }
 
-  /// Get mandis for a specific district
+  /// Get mandis for a specific district (Supports both Hindi & English district names)
   static List<String> getMandisForDistrict(String state, String district) {
     final map = _getMandiMap(state);
-    final dLower = district.toLowerCase();
+    final dLower = district.toLowerCase().trim();
+    if (dLower.isEmpty) return [];
+
+    // 1. Direct English key match
     for (final entry in map.entries) {
-      if (entry.key.toLowerCase().contains(dLower) || dLower.contains(entry.key.toLowerCase())) {
+      final keyLower = entry.key.toLowerCase().trim();
+      if (keyLower == dLower || keyLower.contains(dLower) || dLower.contains(keyLower)) {
         return entry.value;
       }
     }
+
+    // 2. Hindi translated match
+    for (final entry in map.entries) {
+      final hindiName = DistrictHelper.getHindiName(entry.key).toLowerCase().trim();
+      if (hindiName == dLower || hindiName.contains(dLower) || dLower.contains(hindiName)) {
+        return entry.value;
+      }
+    }
+
     return [];
+  }
+
+  /// Get standard English district name from either Hindi or English input
+  static String getStandardDistrictName(String state, String district) {
+    final map = _getMandiMap(state);
+    final dLower = district.toLowerCase().trim();
+    if (dLower.isEmpty) return '';
+
+    // Direct English match
+    for (final entry in map.entries) {
+      final keyLower = entry.key.toLowerCase().trim();
+      if (keyLower == dLower || keyLower.contains(dLower) || dLower.contains(keyLower)) {
+        return entry.key;
+      }
+    }
+
+    // Hindi translated match
+    for (final entry in map.entries) {
+      final hindiName = DistrictHelper.getHindiName(entry.key).toLowerCase().trim();
+      if (hindiName == dLower || hindiName.contains(dLower) || dLower.contains(hindiName)) {
+        return entry.key;
+      }
+    }
+
+    return district;
   }
 
   /// Get default mandi name for a state

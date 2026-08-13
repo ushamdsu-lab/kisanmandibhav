@@ -127,7 +127,7 @@ class LocationService {
       final nearestCity = getNearestPopularCity(lat, lng);
       String cityName = nearestCity.name;
       String state = nearestCity.state;
-      String district = nearestCity.name.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
+      String district = nearestCity.effectiveDistrict;
       String mandi = '';
 
       // 6. Try Reverse Geocoding via OpenStreetMap Nominatim
@@ -175,7 +175,11 @@ class LocationService {
         debugPrint('Nominatim Reverse Geocoding error: $e');
       }
 
-      // 7. Resolve Mandi from Directory for this state/district
+      // 7. Resolve Standard District & Mandi from Directory for this state/district
+      final stdDistrict = MandiDirectory.getStandardDistrictName(state, district);
+      if (stdDistrict.isNotEmpty) {
+        district = stdDistrict;
+      }
       final mandis = MandiDirectory.getMandisForDistrict(state, district);
       if (mandis.isNotEmpty) {
         mandi = mandis.first;

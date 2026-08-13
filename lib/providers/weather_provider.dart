@@ -83,6 +83,9 @@ class WeatherProvider extends ChangeNotifier {
       city: _cityName,
       lat: _currentLat,
       lng: _currentLng,
+      state: _detectedState,
+      district: _detectedDistrict,
+      mandi: _detectedMandi,
     );
 
     if (mandiProvider != null) {

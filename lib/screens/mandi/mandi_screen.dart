@@ -1564,7 +1564,7 @@ class _MandiScreenState extends State<MandiScreen> {
     final highestRate = comparisonRates.isNotEmpty ? comparisonRates.first : rate;
     final lowestRate = comparisonRates.isNotEmpty ? comparisonRates.last : rate;
 
-    bool showAllMandis = false;
+    bool showAllMandis = true;
 
     showModalBottomSheet(
       context: context,
