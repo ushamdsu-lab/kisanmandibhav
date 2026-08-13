@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/price_alert.dart';
 
 class StorageService {
   static SharedPreferences? _prefs;
@@ -90,4 +91,27 @@ class StorageService {
   static String getMandiApiKey() => _prefs?.getString('mandi_api_key') ?? '';
   static Future<void> setMandiApiKey(String key) async =>
       await _prefs?.setString('mandi_api_key', key);
+
+  // Price Alerts
+  static List<PriceAlert> getPriceAlerts() {
+    final str = _prefs?.getString('price_alerts') ?? '';
+    return PriceAlert.decodeList(str);
+  }
+
+  static Future<void> savePriceAlert(PriceAlert alert) async {
+    final alerts = getPriceAlerts();
+    alerts.removeWhere((a) => a.id == alert.id);
+    alerts.insert(0, alert);
+    await _prefs?.setString('price_alerts', PriceAlert.encodeList(alerts));
+  }
+
+  static Future<void> deletePriceAlert(String alertId) async {
+    final alerts = getPriceAlerts();
+    alerts.removeWhere((a) => a.id == alertId);
+    await _prefs?.setString('price_alerts', PriceAlert.encodeList(alerts));
+  }
+
+  static Future<void> updatePriceAlerts(List<PriceAlert> alerts) async {
+    await _prefs?.setString('price_alerts', PriceAlert.encodeList(alerts));
+  }
 }

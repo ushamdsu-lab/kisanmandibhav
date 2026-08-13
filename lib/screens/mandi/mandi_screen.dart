@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../providers/mandi_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../utils/commodity_helper.dart';
 import '../../utils/district_helper.dart';
+import '../../utils/whatsapp_share_helper.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
@@ -772,6 +774,25 @@ class _MandiScreenState extends State<MandiScreen> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 10),
+                          // 🟢 WhatsApp Bhav Parchi Share Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.share_rounded, color: Colors.white, size: 16),
+                              label: const Text(
+                                '🟢 WhatsApp पर आज की भाव पर्ची शेयर करें',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              onPressed: () => _showMandiShareParchiModal(context, provider),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1373,13 +1394,46 @@ class _MandiScreenState extends State<MandiScreen> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      isFav ? Icons.star_rounded : Icons.star_border_rounded,
-                      color: isFav ? AppColors.secondary : AppColors.textSecondary,
-                    ),
-                    onPressed: () => provider.toggleFavorite(rate.commodity),
-                    iconSize: 24,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 🔔 Bell Price Target Alarm Button
+                      IconButton(
+                        icon: Icon(
+                          provider.hasActiveAlertFor(rate.commodity)
+                              ? Icons.notifications_active_rounded
+                              : Icons.notifications_none_rounded,
+                          color: provider.hasActiveAlertFor(rate.commodity)
+                              ? Colors.amber.shade700
+                              : AppColors.textSecondary,
+                          size: 22,
+                        ),
+                        tooltip: 'भाव अलार्म सेट करें',
+                        onPressed: () => _showPriceAlertDialog(context, rate, provider),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      // 🟢 WhatsApp Share Button
+                      IconButton(
+                        icon: const Icon(
+                          Icons.share_rounded,
+                          color: Color(0xFF25D366),
+                          size: 20,
+                        ),
+                        tooltip: 'WhatsApp शेयर',
+                        onPressed: () => _shareSingleCrop(context, rate, provider),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      // ⭐ Favorite Star Button
+                      IconButton(
+                        icon: Icon(
+                          isFav ? Icons.star_rounded : Icons.star_border_rounded,
+                          color: isFav ? AppColors.secondary : AppColors.textSecondary,
+                        ),
+                        onPressed: () => provider.toggleFavorite(rate.commodity),
+                        iconSize: 22,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -2291,6 +2345,288 @@ class _MandiScreenState extends State<MandiScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- WhatsApp & Price Alert Methods ---
+  void _showMandiShareParchiModal(BuildContext context, MandiProvider provider) {
+    final weatherProv = context.read<WeatherProvider>();
+    final weatherInfo = weatherProv.weatherData != null
+        ? '${weatherProv.weatherData!.current.temperature.round()}°C (${weatherProv.weatherData!.locationName})'
+        : '';
+    
+    final slipText = WhatsAppShareHelper.generateMandiParchiText(
+      state: provider.selectedState,
+      district: provider.selectedDistrict,
+      market: provider.selectedMarket,
+      rates: provider.rates,
+      weatherInfo: weatherInfo,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.share_rounded, color: Color(0xFF25D366), size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('दैनिक मंडी भाव पर्ची', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        Text('WhatsApp ग्रुप्स व किसान भाइयों को शेयर करें', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Slip Preview Box
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                constraints: const BoxConstraints(maxHeight: 250),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                ),
+                child: SingleChildScrollView(
+                  child: Text(
+                    slipText,
+                    style: const TextStyle(fontSize: 12, height: 1.4, fontFamily: 'monospace'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                      label: const Text('🟢 WhatsApp पर भेजें', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        final sent = await WhatsAppShareHelper.shareToWhatsApp(slipText);
+                        if (!sent && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('📋 भाव पर्ची कॉपी हो गई है! WhatsApp में पेस्ट करें।')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.copy_rounded, size: 18),
+                    label: const Text('कॉपी', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: slipText));
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('📋 भाव पर्ची क्लिपबोर्ड पर कॉपी हो गई है!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _shareSingleCrop(BuildContext context, MandiRate rate, MandiProvider provider) async {
+    final comparisonRates = provider.getRatesForCommodity(rate);
+    final slipText = WhatsAppShareHelper.generateSingleCropParchiText(
+      rate: rate,
+      topOtherMandis: comparisonRates,
+    );
+    final sent = await WhatsAppShareHelper.shareToWhatsApp(slipText);
+    if (!sent && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('📋 ${CommodityHelper.getHindiName(rate.commodity)} का भाव कॉपी हो गया है! WhatsApp में पेस्ट करें।')),
+      );
+    }
+  }
+
+  void _showPriceAlertDialog(BuildContext context, MandiRate rate, MandiProvider provider) {
+    final hindiName = CommodityHelper.getHindiName(rate.commodity);
+    final activeAlert = provider.getActiveAlertFor(rate.commodity);
+    final textCtrl = TextEditingController(
+      text: activeAlert != null ? activeAlert.targetPrice.toInt().toString() : ((rate.modalPrice * 1.05 / 10).round() * 10).toInt().toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.notifications_active_rounded, color: Colors.amber, size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('🔔 $hindiName भाव अलार्म', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      DistrictHelper.getHindiMarketName(rate.market, rate.district),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('आज का मॉडल भाव:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(
+                      '₹${rate.modalPrice.toInt()}/Qtl',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'टारगेट भाव (₹ प्रति क्विंटल) दर्ज करें:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: textCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  prefixText: '₹ ',
+                  hintText: 'उदा. 28000',
+                  filled: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'जैसे ही ${DistrictHelper.getHindiMarketName(rate.market, rate.district)} में भाव इस मूल्य पर पहुंचेगा, आपको तुरंत फोन पर नोटिफिकेशन मिल जाएगा।',
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          actions: [
+            if (activeAlert != null)
+              TextButton.icon(
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                label: const Text('अलर्ट हटाएं', style: TextStyle(color: Colors.red, fontSize: 12)),
+                onPressed: () {
+                  provider.removePriceAlert(activeAlert.id);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('🗑️ $hindiName का भाव अलर्ट हटा दिया गया है')),
+                  );
+                },
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('रद्द करें'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+              label: const Text('अलर्ट सेट करें', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                final target = double.tryParse(textCtrl.text.trim());
+                if (target == null || target <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('कृपया सही टारगेट भाव दर्ज करें')),
+                  );
+                  return;
+                }
+                provider.setPriceAlert(
+                  commodity: rate.commodity,
+                  targetPrice: target,
+                  market: rate.market,
+                  district: rate.district,
+                );
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('🔔 $hindiName के लिए ₹${target.toInt()} का अलर्ट सेट हो गया है!'),
+                    backgroundColor: Colors.green.shade700,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

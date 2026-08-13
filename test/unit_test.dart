@@ -5,6 +5,8 @@ import 'package:kisan_mitra/models/scheme.dart';
 import 'package:kisan_mitra/models/helpline.dart';
 import 'package:kisan_mitra/models/mandi_rate.dart';
 import 'package:kisan_mitra/models/notification_item.dart';
+import 'package:kisan_mitra/models/price_alert.dart';
+import 'package:kisan_mitra/utils/whatsapp_share_helper.dart';
 import 'package:kisan_mitra/data/mandi_directory.dart';
 
 void main() {
@@ -148,6 +150,55 @@ void main() {
 
       expect(MandiDirectory.getStandardDistrictName('Rajasthan', 'जोधपुर'), 'Jodhpur');
       expect(MandiDirectory.getStandardDistrictName('Rajasthan', 'Jodhpur'), 'Jodhpur');
+    });
+
+    test('PriceAlert model parses and encodes correctly', () {
+      final alert = PriceAlert(
+        id: 'alert_1',
+        commodity: 'Jeera',
+        market: 'Jodhpur (Grain) APMC',
+        district: 'Jodhpur',
+        targetPrice: 28000,
+      );
+
+      expect(alert.commodity, 'Jeera');
+      expect(alert.targetPrice, 28000.0);
+      expect(alert.isTriggered, isFalse);
+
+      final encoded = PriceAlert.encodeList([alert]);
+      final decoded = PriceAlert.decodeList(encoded);
+      expect(decoded.length, 1);
+      expect(decoded.first.commodity, 'Jeera');
+      expect(decoded.first.targetPrice, 28000.0);
+    });
+
+    test('WhatsAppShareHelper generates valid formatted text slip', () {
+      final rate = MandiRate(
+        state: 'Rajasthan',
+        district: 'Jodhpur',
+        market: 'Jodhpur (Grain) APMC',
+        commodity: 'Jeera',
+        variety: 'FAQ',
+        grade: 'FAQ',
+        minPrice: 25000,
+        maxPrice: 29000,
+        modalPrice: 27500,
+        arrivalDate: '14/08/2026',
+      );
+
+      final singleSlip = WhatsAppShareHelper.generateSingleCropParchiText(rate: rate);
+      expect(singleSlip.contains('जीरा'), isTrue);
+      expect(singleSlip.contains('27500'), isTrue);
+      expect(singleSlip.contains('जोधपुर'), isTrue);
+
+      final mandiSlip = WhatsAppShareHelper.generateMandiParchiText(
+        state: 'Rajasthan',
+        district: 'Jodhpur',
+        market: 'Jodhpur (Grain) APMC',
+        rates: [rate],
+      );
+      expect(mandiSlip.contains('किसान मंडी भाव'), isTrue);
+      expect(mandiSlip.contains('27500'), isTrue);
     });
   });
 }

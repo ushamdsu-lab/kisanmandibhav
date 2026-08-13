@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/mandi_rate.dart';
+import '../models/price_alert.dart';
 import '../services/mandi_service.dart';
 import '../services/storage_service.dart';
 import '../utils/commodity_helper.dart';
@@ -22,6 +23,7 @@ class MandiProvider extends ChangeNotifier {
   String _selectedCropFilter = ''; // Specific Crop shortcut (e.g. moong, til, moth, groundnut)
   String _searchQuery = '';
   List<String> _favoriteCommodities = [];
+  List<PriceAlert> _priceAlerts = [];
 
   List<MandiRate> get rates {
     List<MandiRate> result;
@@ -134,6 +136,7 @@ class MandiProvider extends ChangeNotifier {
   String get selectedCropFilter => _selectedCropFilter;
   String get searchQuery => _searchQuery;
   List<String> get favoriteCommodities => _favoriteCommodities;
+  List<PriceAlert> get priceAlerts => _priceAlerts;
 
   // Counts for tabs based on current context
   int get totalCropsCount {
@@ -201,6 +204,7 @@ class MandiProvider extends ChangeNotifier {
 
   MandiProvider() {
     _favoriteCommodities = StorageService.getFavoriteCommodities();
+    _priceAlerts = StorageService.getPriceAlerts();
     final savedState = StorageService.getSavedState();
     final savedDistrict = StorageService.getSavedDistrict();
     final savedMandi = StorageService.getSavedMandi();
@@ -391,6 +395,58 @@ class MandiProvider extends ChangeNotifier {
   Future<void> toggleFavorite(String commodity) async {
     await StorageService.toggleFavoriteCommodity(commodity);
     _favoriteCommodities = StorageService.getFavoriteCommodities();
+    notifyListeners();
+  }
+
+  // --- Price Alert Management ---
+  bool hasActiveAlertFor(String commodity) {
+    final cLower = commodity.toLowerCase();
+    final cHindi = CommodityHelper.getHindiName(commodity).toLowerCase();
+    return _priceAlerts.any((a) {
+      final aLower = a.commodity.toLowerCase();
+      final aHindi = CommodityHelper.getHindiName(a.commodity).toLowerCase();
+      return !a.isTriggered && (aLower == cLower || aHindi == cHindi || aLower.contains(cLower));
+    });
+  }
+
+  PriceAlert? getActiveAlertFor(String commodity) {
+    final cLower = commodity.toLowerCase();
+    final cHindi = CommodityHelper.getHindiName(commodity).toLowerCase();
+    try {
+      return _priceAlerts.firstWhere((a) {
+        final aLower = a.commodity.toLowerCase();
+        final aHindi = CommodityHelper.getHindiName(a.commodity).toLowerCase();
+        return !a.isTriggered && (aLower == cLower || aHindi == cHindi || aLower.contains(cLower));
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> setPriceAlert({
+    required String commodity,
+    required double targetPrice,
+    String? market,
+    String? district,
+    String condition = 'above',
+  }) async {
+    final id = 'alert_${commodity}_${DateTime.now().millisecondsSinceEpoch}';
+    final alert = PriceAlert(
+      id: id,
+      commodity: commodity,
+      market: market ?? _selectedMarket,
+      district: district ?? _selectedDistrict,
+      targetPrice: targetPrice,
+      condition: condition,
+    );
+    await StorageService.savePriceAlert(alert);
+    _priceAlerts = StorageService.getPriceAlerts();
+    notifyListeners();
+  }
+
+  Future<void> removePriceAlert(String alertId) async {
+    await StorageService.deletePriceAlert(alertId);
+    _priceAlerts = StorageService.getPriceAlerts();
     notifyListeners();
   }
 
