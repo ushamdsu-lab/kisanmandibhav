@@ -136,16 +136,31 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  void selectCity(CityLocation loc) {
+  void selectCity(CityLocation loc, {MandiProvider? mandiProvider}) {
     _isGpsLocation = false;
     _cityName = loc.name;
     _currentLat = loc.latitude;
     _currentLng = loc.longitude;
+    _detectedState = loc.state;
+    _detectedDistrict = loc.effectiveDistrict;
+    
     StorageService.saveLocation(
       city: loc.name,
       lat: loc.latitude,
       lng: loc.longitude,
+      state: loc.state,
+      district: loc.effectiveDistrict,
+      mandi: loc.mandi,
     );
+
+    if (mandiProvider != null) {
+      mandiProvider.syncLocationContext(
+        state: loc.state,
+        district: loc.effectiveDistrict,
+        market: loc.mandi.isNotEmpty ? loc.mandi : null,
+      );
+    }
+
     fetchWeather(latitude: loc.latitude, longitude: loc.longitude, city: loc.name);
   }
 

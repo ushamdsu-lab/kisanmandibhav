@@ -15,6 +15,9 @@ class MandiProvider extends ChangeNotifier {
   String _selectedState = 'Rajasthan'; // Default state; updated by GPS detection
   String _selectedDistrict = '';
   String _selectedMarket = ''; // Specific Mandi
+  String _userHomeState = 'Rajasthan';
+  String _userHomeDistrict = '';
+  String _userHomeMarket = '';
   String _selectedCategory = 'all'; // Default to 'all' (सभी फसलें व सब्जियां) so no crops are hidden
   String _selectedCropFilter = ''; // Specific Crop shortcut (e.g. moong, til, moth, groundnut)
   String _searchQuery = '';
@@ -117,6 +120,11 @@ class MandiProvider extends ChangeNotifier {
   String get selectedState => _selectedState;
   String get selectedDistrict => _selectedDistrict;
   String get selectedMarket => _selectedMarket;
+  String get userHomeState => _userHomeState;
+  String get userHomeDistrict => _userHomeDistrict;
+  String get userHomeMarket => _userHomeMarket;
+  bool get isViewingHomeDistrict => _selectedDistrict.isNotEmpty && _selectedDistrict.toLowerCase() == _userHomeDistrict.toLowerCase();
+  bool get isViewingAllMandis => _selectedDistrict.isEmpty && _selectedMarket.isEmpty;
   String get selectedCategory => _selectedCategory;
   String get selectedCropFilter => _selectedCropFilter;
   String get searchQuery => _searchQuery;
@@ -192,6 +200,21 @@ class MandiProvider extends ChangeNotifier {
 
   MandiProvider() {
     _favoriteCommodities = StorageService.getFavoriteCommodities();
+    final savedState = StorageService.getSavedState();
+    final savedDistrict = StorageService.getSavedDistrict();
+    final savedMandi = StorageService.getSavedMandi();
+    if (savedState.isNotEmpty) {
+      _selectedState = savedState;
+      _userHomeState = savedState;
+    }
+    if (savedDistrict.isNotEmpty) {
+      _selectedDistrict = savedDistrict;
+      _userHomeDistrict = savedDistrict;
+    }
+    if (savedMandi.isNotEmpty) {
+      _selectedMarket = savedMandi;
+      _userHomeMarket = savedMandi;
+    }
   }
 
   Future<void> fetchRates({String? state, String? district, String? market}) async {
@@ -238,6 +261,11 @@ class MandiProvider extends ChangeNotifier {
     _selectedMarket = '';
     _selectedCropFilter = '';
     _searchQuery = '';
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: _selectedDistrict,
+      mandi: _selectedMarket,
+    );
     fetchRates(state: state);
   }
 
@@ -253,6 +281,7 @@ class MandiProvider extends ChangeNotifier {
     }
 
     _selectedState = matchedState;
+    _userHomeState = matchedState;
 
     if (district != null && district.isNotEmpty) {
       final available = availableDistricts;
@@ -261,13 +290,49 @@ class MandiProvider extends ChangeNotifier {
         orElse: () => '',
       );
       _selectedDistrict = match.isNotEmpty ? match : district;
+      _userHomeDistrict = _selectedDistrict;
     }
 
     if (market != null && market.isNotEmpty) {
       _selectedMarket = market;
+      _userHomeMarket = market;
     }
 
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: _selectedDistrict,
+      mandi: _selectedMarket,
+    );
+
     fetchRates(state: _selectedState, district: _selectedDistrict, market: _selectedMarket);
+  }
+
+  void viewAllMandis() {
+    _selectedDistrict = '';
+    _selectedMarket = '';
+    _selectedCropFilter = '';
+    _searchQuery = '';
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: '',
+      mandi: '',
+    );
+    notifyListeners();
+  }
+
+  void resetToHomeDistrict() {
+    if (_userHomeDistrict.isNotEmpty) {
+      _selectedDistrict = _userHomeDistrict;
+      _selectedMarket = '';
+      _selectedCropFilter = '';
+      _searchQuery = '';
+      StorageService.saveMandiLocation(
+        state: _userHomeState,
+        district: _userHomeDistrict,
+        mandi: '',
+      );
+      notifyListeners();
+    }
   }
 
   void selectCategory(String category) {
@@ -280,11 +345,21 @@ class MandiProvider extends ChangeNotifier {
   void selectDistrict(String district) {
     _selectedDistrict = (_selectedDistrict == district) ? '' : district;
     _selectedMarket = '';
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: _selectedDistrict,
+      mandi: _selectedMarket,
+    );
     notifyListeners();
   }
 
   void selectMarket(String market) {
     _selectedMarket = (_selectedMarket == market) ? '' : market;
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: _selectedDistrict,
+      mandi: _selectedMarket,
+    );
     notifyListeners();
   }
 

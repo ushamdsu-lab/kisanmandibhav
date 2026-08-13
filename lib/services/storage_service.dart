@@ -44,15 +44,46 @@ class StorageService {
   static String getSavedCity() => _prefs?.getString('city') ?? '';
   static double getSavedLatitude() => _prefs?.getDouble('latitude') ?? 0;
   static double getSavedLongitude() => _prefs?.getDouble('longitude') ?? 0;
+  static String getSavedState() => _prefs?.getString('saved_state') ?? '';
+  static String getSavedDistrict() => _prefs?.getString('saved_district') ?? '';
+  static String getSavedMandi() => _prefs?.getString('saved_mandi') ?? '';
   
   static Future<void> saveLocation({
     required String city,
     required double lat,
     required double lng,
+    String? state,
+    String? district,
+    String? mandi,
   }) async {
     await _prefs?.setString('city', city);
     await _prefs?.setDouble('latitude', lat);
     await _prefs?.setDouble('longitude', lng);
+    if (state != null && state.isNotEmpty) {
+      await _prefs?.setString('saved_state', state);
+    }
+    if (district != null) {
+      await _prefs?.setString('saved_district', district);
+    }
+    if (mandi != null) {
+      await _prefs?.setString('saved_mandi', mandi);
+    }
+  }
+
+  static Future<void> saveMandiLocation({
+    required String state,
+    String? district,
+    String? mandi,
+  }) async {
+    if (state.isNotEmpty) {
+      await _prefs?.setString('saved_state', state);
+    }
+    if (district != null) {
+      await _prefs?.setString('saved_district', district);
+    }
+    if (mandi != null) {
+      await _prefs?.setString('saved_mandi', mandi);
+    }
   }
 
   // Mandi API Key

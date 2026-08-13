@@ -1,6 +1,8 @@
 class CityLocation {
   final String name;
   final String state;
+  final String district;
+  final String mandi;
   final double latitude;
   final double longitude;
   final String icon;
@@ -8,10 +10,21 @@ class CityLocation {
   const CityLocation({
     required this.name,
     required this.state,
+    this.district = '',
+    this.mandi = '',
     required this.latitude,
     required this.longitude,
     this.icon = '📍',
   });
+
+  String get effectiveDistrict {
+    if (district.isNotEmpty) return district;
+    if (name.contains('(') && name.contains(')')) {
+      final inside = name.substring(name.indexOf('(') + 1, name.indexOf(')')).trim();
+      return inside;
+    }
+    return name.split(' ').first.trim();
+  }
 }
 
 class CityDatabase {

@@ -12,6 +12,7 @@ import '../../data/msp_data.dart';
 import '../../data/fertilizer_stock_data.dart';
 import '../../data/soil_lab_data.dart';
 import '../../utils/district_helper.dart';
+import '../../utils/commodity_helper.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/notification_center_sheet.dart';
@@ -44,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final weatherProvider = context.watch<WeatherProvider>();
+    final mandiProvider = context.watch<MandiProvider>();
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
@@ -184,10 +186,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 .slideY(begin: 0.1, end: 0),
           ),
 
+          // --- Live Mandi Quick Card ---
+          SliverToBoxAdapter(
+            child: _buildMandiQuickCard(mandiProvider).animate()
+                .fadeIn(delay: 200.ms, duration: 400.ms)
+                .slideY(begin: 0.1, end: 0),
+          ),
+
           // --- Fertilizer Calculator Quick Card ---
           SliverToBoxAdapter(
             child: _buildFertilizerQuickCard().animate()
-                .fadeIn(delay: 200.ms, duration: 400.ms)
+                .fadeIn(delay: 250.ms, duration: 400.ms)
                 .slideY(begin: 0.1, end: 0),
           ),
 
@@ -478,6 +487,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
           const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMandiQuickCard(MandiProvider provider) {
+    final distName = provider.selectedDistrict.isNotEmpty 
+        ? '${DistrictHelper.getHindiName(provider.selectedDistrict)} (${provider.selectedDistrict})'
+        : 'राजस्थान (सभी मंडियां)';
+    final topRates = provider.rates.take(3).toList();
+
+    return GlassCard(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      onTap: () => context.go('/mandi'),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: AppColors.mandiGradient),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.storefront_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '📍 $distName',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.mandiAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'लाइव भाव',
+                        style: TextStyle(color: AppColors.mandiAccent, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                if (topRates.isNotEmpty)
+                  Text(
+                    topRates.map((r) => '${CommodityHelper.getHindiName(r.commodity)}: ₹${r.modalPrice.toInt()}').join(' • '),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                else
+                  Text(
+                    'अपने जिले की सभी मंडियों के ताज़ा भाव देखें →',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
         ],
       ),
     );

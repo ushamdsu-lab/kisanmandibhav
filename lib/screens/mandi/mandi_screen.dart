@@ -647,10 +647,141 @@ class _MandiScreenState extends State<MandiScreen> {
                   ],
                 ),
 
-                // --- Location / State / District / Mandi Filter Bar ---
+                // --- 1. 📍 Local District / Mandi Context Hero Card ---
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary.withValues(alpha: 0.12),
+                            AppColors.mandiAccent.withValues(alpha: 0.08),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            provider.selectedDistrict.isNotEmpty
+                                                ? '📍 जिला: ${DistrictHelper.getHindiName(provider.selectedDistrict)} (${provider.selectedDistrict})'
+                                                : '📍 राज्य: ${_primaryStates.firstWhere((s) => s['name']!.toLowerCase() == provider.selectedState.toLowerCase(), orElse: () => {'label': provider.selectedState})['label']!}',
+                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (provider.isViewingHomeDistrict) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Text('आपका जिला', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      provider.selectedDistrict.isNotEmpty
+                                          ? 'आपके जिले की मंडियों (${provider.availableMarkets.length} मंडियां) के आज के ताज़ा भाव'
+                                          : 'पूरे राज्य की सभी मंडियों के भाव दिखाए जा रहे हैं',
+                                      style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              if (provider.selectedDistrict.isNotEmpty) ...[
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    icon: const Icon(Icons.explore_rounded, size: 15),
+                                    label: const Text('🔍 अन्य मंडियों के भाव देखें', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                      side: const BorderSide(color: AppColors.primary),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    onPressed: () => provider.viewAllMandis(),
+                                  ),
+                                ),
+                              ] else if (provider.userHomeDistrict.isNotEmpty) ...[
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.home_rounded, size: 15, color: Colors.white),
+                                    label: Text(
+                                      '📍 वापस अपने जिले (${DistrictHelper.getHindiName(provider.userHomeDistrict)}) के भाव देखें',
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    onPressed: () => provider.resetToHomeDistrict(),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.tune_rounded, size: 15),
+                                label: const Text('जिला बदलें', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: () => _showDistrictPicker(context, provider),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // --- 2. Location / State / District / Mandi Filter Bar ---
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -831,6 +962,44 @@ class _MandiScreenState extends State<MandiScreen> {
                             ),
                           ],
                         ),
+
+                        // Quick Mandi Filter Chips for currently selected District
+                        if (provider.selectedDistrict.isNotEmpty && provider.availableMarkets.length > 1) ...[
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 34,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: ChoiceChip(
+                                    label: const Text('सभी मंडियां', style: TextStyle(fontSize: 11)),
+                                    selected: provider.selectedMarket.isEmpty,
+                                    onSelected: (_) => provider.selectMarket(''),
+                                    selectedColor: AppColors.mandiAccent.withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                ...provider.availableMarkets.map((mandi) {
+                                  final isSel = provider.selectedMarket == mandi;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 6),
+                                    child: ChoiceChip(
+                                      label: Text(
+                                        DistrictHelper.getHindiMarketName(mandi, provider.selectedDistrict),
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      selected: isSel,
+                                      onSelected: (_) => provider.selectMarket(mandi),
+                                      selectedColor: AppColors.mandiAccent.withValues(alpha: 0.2),
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 10),
 
                         // Quick Clean State Text Chips (No emojis)

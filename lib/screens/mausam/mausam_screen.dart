@@ -176,7 +176,8 @@ class _MausamScreenState extends State<MausamScreen> {
                                     ? const Icon(Icons.check_circle_rounded, color: AppColors.mausamAccent)
                                     : null,
                                 onTap: () {
-                                  provider.selectCity(city);
+                                  final mandiProv = context.read<MandiProvider>();
+                                  provider.selectCity(city, mandiProvider: mandiProv);
                                   Navigator.pop(ctx);
                                 },
                               );
@@ -328,7 +329,10 @@ class _MausamScreenState extends State<MausamScreen> {
                                 avatar: Text(city.icon, style: const TextStyle(fontSize: 13)),
                                 label: Text(city.name.split(' ').first, style: const TextStyle(fontSize: 12)),
                                 selected: isSelected,
-                                onSelected: (_) => provider.selectCity(city),
+                                onSelected: (_) {
+                                  final mandiProv = context.read<MandiProvider>();
+                                  provider.selectCity(city, mandiProvider: mandiProv);
+                                },
                                 selectedColor: AppColors.mausamAccent.withValues(alpha: 0.2),
                                 checkmarkColor: AppColors.mausamAccent,
                               ),
