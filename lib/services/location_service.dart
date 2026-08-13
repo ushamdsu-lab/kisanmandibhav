@@ -53,97 +53,91 @@ class LocationService {
     return nearest;
   }
 
-  /// Fetch user location via GPS (or fallback to nearest city)
+  /// Fetch user location via GPS -> LastKnown -> IP Geolocation -> Default City
   static Future<LocationResult> getCurrentLocation() async {
     try {
-      bool serviceEnabled = false;
-      try {
-        serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      } catch (e) {
-        debugPrint('Geolocator check error: $e');
+      // 1. Check & Request Permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
       }
 
-      if (!serviceEnabled) {
-        return LocationResult(
-          latitude: 28.0229,
-          longitude: 73.3119,
-          cityName: 'बीकानेर (Bikaner)',
-          state: 'Rajasthan',
-          district: 'Bikaner',
-          mandi: 'Bikaner (Grain) APMC',
-          isGps: false,
-          errorMessage: 'लोकेशन सर्विस बंद है। डिफ़ॉल्ट स्थान सेट है।',
-        );
-      }
+      double? lat;
+      double? lng;
+      bool isGpsSuccess = false;
 
-      LocationPermission permission = LocationPermission.denied;
-      try {
-        permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
+      // 2. If permission granted, attempt GPS / LastKnown
+      if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+        try {
+          // Fast check: Last Known Position (instant cached fix)
+          final lastKnown = await Geolocator.getLastKnownPosition();
+          if (lastKnown != null) {
+            lat = lastKnown.latitude;
+            lng = lastKnown.longitude;
+            isGpsSuccess = true;
+          }
+        } catch (e) {
+          debugPrint('Geolocator lastKnown error: $e');
         }
-      } catch (e) {
-        debugPrint('Geolocator permission error: $e');
+
+        // If no cached fix, request fresh low-latency fix
+        if (lat == null || lng == null) {
+          try {
+            final position = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.low,
+                timeLimit: Duration(seconds: 5),
+              ),
+            );
+            lat = position.latitude;
+            lng = position.longitude;
+            isGpsSuccess = true;
+          } catch (e) {
+            debugPrint('Geolocator currentPosition error: $e');
+          }
+        }
       }
 
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        return LocationResult(
-          latitude: 28.0229,
-          longitude: 73.3119,
-          cityName: 'बीकानेर (Bikaner)',
-          state: 'Rajasthan',
-          district: 'Bikaner',
-          mandi: 'Bikaner (Grain) APMC',
-          isGps: false,
-          errorMessage: 'लोकेशन की अनुमति नहीं मिली। डिफ़ॉल्ट स्थान सेट है।',
-        );
+      // 3. If GPS failed or disabled, use network IP Geolocation fallback
+      if (lat == null || lng == null) {
+        try {
+          final ipRes = await http
+              .get(Uri.parse('http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon'))
+              .timeout(const Duration(seconds: 3));
+          if (ipRes.statusCode == 200) {
+            final ipData = json.decode(ipRes.body);
+            if (ipData['status'] == 'success' && ipData['lat'] != null) {
+              lat = (ipData['lat'] as num).toDouble();
+              lng = (ipData['lon'] as num).toDouble();
+              isGpsSuccess = true;
+            }
+          }
+        } catch (e) {
+          debugPrint('IP Geolocation fallback error: $e');
+        }
       }
 
-      // Fetch Position with timeout
-      Position? position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 8),
-          ),
-        );
-      } catch (e) {
-        debugPrint('Geolocator position fetch error: $e');
+      // 4. Default fallback if everything failed
+      if (lat == null || lng == null) {
+        lat = 28.6139; // Delhi default
+        lng = 77.2090;
       }
 
-      if (position == null) {
-        return LocationResult(
-          latitude: 28.0229,
-          longitude: 73.3119,
-          cityName: 'बीकानेर (Bikaner)',
-          state: 'Rajasthan',
-          district: 'Bikaner',
-          mandi: 'Bikaner (Grain) APMC',
-          isGps: false,
-          errorMessage: 'GPS सिग्नल प्राप्त नहीं हुआ।',
-        );
-      }
-
-      final double lat = position.latitude;
-      final double lng = position.longitude;
-
-      // Find nearest predefined city
+      // 5. Find nearest predefined city
       final nearestCity = getNearestPopularCity(lat, lng);
-
       String cityName = nearestCity.name;
       String state = nearestCity.state;
       String district = nearestCity.name.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
       String mandi = '';
 
-      // Try Reverse Geocoding via OpenStreetMap Nominatim
+      // 6. Try Reverse Geocoding via OpenStreetMap Nominatim
       try {
         final url = Uri.parse(
           'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=hi,en',
         );
         final response = await http.get(
           url,
-          headers: {'User-Agent': 'KisanMitraApp/1.0'},
+          headers: {'User-Agent': 'KisanMandiBhavApp/1.0'},
         ).timeout(const Duration(seconds: 4));
 
         if (response.statusCode == 200) {
@@ -168,8 +162,7 @@ class LocationService {
               final s = stName.toString().trim();
               String matched = s;
               for (final st in MandiDirectory.allStates) {
-                if (s.toLowerCase().contains(st.toLowerCase()) ||
-                    st.toLowerCase().contains(s.toLowerCase())) {
+                if (s.toLowerCase().contains(st.toLowerCase()) || st.toLowerCase().contains(s.toLowerCase())) {
                   matched = st;
                   break;
                 }
@@ -179,11 +172,16 @@ class LocationService {
           }
         }
       } catch (e) {
-        debugPrint('Nominatim reverse geocode error: $e');
+        debugPrint('Nominatim Reverse Geocoding error: $e');
       }
 
-      // Match nearest Mandi from MandiDirectory
-      mandi = _findNearestMandi(state, district, nearestCity.name);
+      // 7. Resolve Mandi from Directory for this state/district
+      final mandis = MandiDirectory.getMandisForDistrict(state, district);
+      if (mandis.isNotEmpty) {
+        mandi = mandis.first;
+      } else {
+        mandi = MandiDirectory.getDefaultMandi(state);
+      }
 
       return LocationResult(
         latitude: lat,
@@ -192,43 +190,20 @@ class LocationService {
         state: state,
         district: district,
         mandi: mandi,
-        isGps: true,
+        isGps: isGpsSuccess,
       );
     } catch (e) {
-      debugPrint('Location error: $e');
+      debugPrint('LocationService unexpected error: $e');
       return LocationResult(
         latitude: 28.6139,
         longitude: 77.2090,
-        cityName: 'दिल्ली (Delhi)',
+        cityName: 'नई दिल्ली (Delhi)',
         state: 'Delhi',
-        district: 'Delhi',
-        mandi: 'Delhi Mandi APMC',
+        district: 'Central Delhi',
+        mandi: 'Azadpur APMC',
         isGps: false,
-        errorMessage: 'लोकेशन प्राप्त करने में समस्या आई: $e',
+        errorMessage: 'स्थान प्राप्त करने में समस्या हुई।',
       );
     }
-  }
-
-  static String _findNearestMandi(String state, String district, String cityName) {
-    final Map<String, List<String>> districtMandis = MandiDirectory.getDistrictMandis(state);
-    
-    // First attempt: match district directly
-    for (final entry in districtMandis.entries) {
-      if (entry.key.toLowerCase().contains(district.toLowerCase()) ||
-          district.toLowerCase().contains(entry.key.toLowerCase())) {
-        if (entry.value.isNotEmpty) return entry.value.first;
-      }
-    }
-
-    // Second attempt: match city name
-    final cleanCity = cityName.replaceAll(RegExp(r'[^\w\s]'), '').toLowerCase();
-    for (final entry in districtMandis.entries) {
-      if (entry.key.toLowerCase().contains(cleanCity) || cleanCity.contains(entry.key.toLowerCase())) {
-        if (entry.value.isNotEmpty) return entry.value.first;
-      }
-    }
-
-    // Dynamic fallback per state from MandiDirectory
-    return MandiDirectory.getDefaultMandi(state);
   }
 }

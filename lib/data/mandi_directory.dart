@@ -376,6 +376,18 @@ class MandiDirectory {
     return _getMandiMap(state);
   }
 
+  /// Get mandis for a specific district
+  static List<String> getMandisForDistrict(String state, String district) {
+    final map = _getMandiMap(state);
+    final dLower = district.toLowerCase();
+    for (final entry in map.entries) {
+      if (entry.key.toLowerCase().contains(dLower) || dLower.contains(entry.key.toLowerCase())) {
+        return entry.value;
+      }
+    }
+    return [];
+  }
+
   /// Get default mandi name for a state
   static String getDefaultMandi(String state) {
     final s = state.toLowerCase();

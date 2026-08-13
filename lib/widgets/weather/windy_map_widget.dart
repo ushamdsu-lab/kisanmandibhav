@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../config/theme.dart';
 import '../common/glass_card.dart';
-
 import '../../utils/web_iframe.dart';
 
 class WindyMapWidget extends StatefulWidget {
@@ -24,11 +24,13 @@ class WindyMapWidget extends StatefulWidget {
 class _WindyMapWidgetState extends State<WindyMapWidget> {
   String _selectedOverlay = 'rain'; // 'rain', 'wind', 'temp', 'clouds'
   late String _viewId;
+  WebViewController? _webViewController;
+  bool _isLoadingMobile = true;
 
   @override
   void initState() {
     super.initState();
-    _registerIframe();
+    _initMap();
   }
 
   @override
@@ -36,17 +38,38 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.latitude != widget.latitude ||
         oldWidget.longitude != widget.longitude) {
-      _registerIframe();
+      _initMap();
     }
   }
 
-  void _registerIframe() {
+  void _initMap() {
     _viewId = 'windy-iframe-${widget.latitude}-${widget.longitude}-$_selectedOverlay-${DateTime.now().millisecondsSinceEpoch}';
     final embedUrl = _buildEmbedUrl(_selectedOverlay);
 
     if (kIsWeb) {
       registerWindyIframe(_viewId, embedUrl);
+    } else {
+      _initMobileWebView(embedUrl);
     }
+  }
+
+  void _initMobileWebView(String embedUrl) {
+    _isLoadingMobile = true;
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0xFF1E293B))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) {
+            if (mounted) {
+              setState(() {
+                _isLoadingMobile = false;
+              });
+            }
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(embedUrl));
   }
 
   String _buildEmbedUrl(String overlay) {
@@ -63,7 +86,7 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
   void _changeOverlay(String overlay) {
     setState(() {
       _selectedOverlay = overlay;
-      _registerIframe();
+      _initMap();
     });
   }
 
@@ -72,116 +95,119 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
         ? widget.locationName.split('(').first.trim()
         : widget.locationName;
 
+    WebViewController? fullScreenController;
+    if (!kIsWeb) {
+      final fullUrl = _buildEmbedUrl(_selectedOverlay);
+      fullScreenController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(Colors.black)
+        ..loadRequest(Uri.parse(fullUrl));
+    }
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Windy In-App Fullscreen Map',
       pageBuilder: (context, anim1, anim2) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '🗺️ $cleanName लाइव राडार नक्शा',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        return StatefulBuilder(
+          builder: (context, setFullState) {
+            return Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                const Text(
-                  'Windy Interactive Radar • 100% In-App View',
-                  style: TextStyle(fontSize: 10, color: Colors.white70),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🗺️ $cleanName लाइव राडार नक्शा',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'Windy Interactive Radar • 100% In-App View',
+                      style: TextStyle(fontSize: 10, color: Colors.white70),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.close_rounded, size: 26, color: Colors.amberAccent),
-                onPressed: () => Navigator.pop(context),
-                tooltip: 'बंद करें ✕',
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                    tooltip: 'नक्शा रीलोड करें',
+                    onPressed: () {
+                      _initMap();
+                      if (!kIsWeb && fullScreenController != null) {
+                        fullScreenController.loadRequest(Uri.parse(_buildEmbedUrl(_selectedOverlay)));
+                      }
+                      setFullState(() {});
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-          body: StatefulBuilder(
-            builder: (context, setFullState) {
-              final fullViewId = 'windy-full-iframe-${widget.latitude}-${widget.longitude}-$_selectedOverlay-${DateTime.now().millisecondsSinceEpoch}';
-              final embedUrl = _buildEmbedUrl(_selectedOverlay);
-
-              if (kIsWeb) {
-                registerWindyIframe(fullViewId, embedUrl);
-              }
-
-              return Column(
+              body: Column(
                 children: [
+                  // Overlays Selector in Fullscreen Modal
                   Container(
-                    color: Colors.grey.shade900,
+                    color: Colors.black,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildFullLayerChip('rain', 'बारिश व राडार', Icons.water_drop_rounded, Colors.blue, setFullState),
+                          _buildFullLayerChip('rain', 'बारिश व राडार', Icons.water_drop_rounded, Colors.blue, setFullState, fullScreenController),
                           const SizedBox(width: 8),
-                          _buildFullLayerChip('wind', 'हवा का बहाव', Icons.air_rounded, Colors.teal, setFullState),
+                          _buildFullLayerChip('wind', 'हवा का बहाव', Icons.air_rounded, Colors.teal, setFullState, fullScreenController),
                           const SizedBox(width: 8),
-                          _buildFullLayerChip('temp', 'तापमान मैप', Icons.thermostat_rounded, Colors.orange, setFullState),
+                          _buildFullLayerChip('temp', 'तापमान मैप', Icons.thermostat_rounded, Colors.orange, setFullState, fullScreenController),
                           const SizedBox(width: 8),
-                          _buildFullLayerChip('clouds', 'बादल सैटेलाइट', Icons.cloud_rounded, Colors.purple, setFullState),
+                          _buildFullLayerChip('clouds', 'बादल सैटेलाइट', Icons.cloud_rounded, Colors.purple, setFullState, fullScreenController),
                         ],
                       ),
                     ),
                   ),
+
+                  // Fullscreen Map Rendering (Web / Mobile)
                   Expanded(
                     child: kIsWeb
                         ? HtmlElementView(
-                            key: ValueKey(fullViewId),
-                            viewType: fullViewId,
+                            key: ValueKey('fullscreen-$_viewId'),
+                            viewType: _viewId,
                           )
-                        : Container(
-                            color: Colors.black,
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.satellite_alt_rounded, size: 64, color: Colors.amberAccent),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    '📍 $cleanName लाइव राडार नक्शा',
-                                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    '100% ऐप के अंदर लाइव सैटेलाइट व्यू',
-                                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                        : (fullScreenController != null
+                            ? WebViewWidget(controller: fullScreenController)
+                            : const Center(child: CircularProgressIndicator())),
                   ),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildFullLayerChip(String value, String label, IconData icon, Color color, StateSetter setFullState) {
+  Widget _buildFullLayerChip(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+    StateSetter setFullState,
+    WebViewController? fullScreenController,
+  ) {
     final isSelected = _selectedOverlay == value;
     return InkWell(
       onTap: () {
         setState(() {
           _selectedOverlay = value;
-          _registerIframe();
+          _initMap();
         });
+        if (!kIsWeb && fullScreenController != null) {
+          fullScreenController.loadRequest(Uri.parse(_buildEmbedUrl(value)));
+        }
         setFullState(() {});
       },
       borderRadius: BorderRadius.circular(20),
@@ -218,7 +244,7 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
               label,
               style: TextStyle(
                 color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.85),
-                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 12,
               ),
             ),
@@ -235,11 +261,11 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
         : widget.locationName;
 
     return GlassCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -283,7 +309,7 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
                       Icon(Icons.fullscreen_rounded, color: Colors.white, size: 14),
                       SizedBox(width: 3),
                       Text(
-                        'ऐप में फुल स्क्रीन ⛶',
+                        'फुल स्क्रीन ⛶',
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -311,14 +337,14 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
           ),
           const SizedBox(height: 12),
 
-          // Dynamic Interactive Embedded Map (Web / Mobile Container)
+          // Dynamic Interactive Embedded Map (Web / Mobile Native WebView)
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
               height: 320,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.mausamAccent.withValues(alpha: 0.2)),
               ),
@@ -327,39 +353,37 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
                       key: ValueKey(_viewId),
                       viewType: _viewId,
                     )
-                  : Stack(
-                      children: [
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.satellite_alt_rounded, size: 48, color: AppColors.mausamAccent),
-                              const SizedBox(height: 8),
-                              Text(
-                                '📍 $cleanName लाइव राडार नक्शा',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'लाइव विंड और बारिश सैटेलाइट मैप देखें',
-                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                              ),
-                              const SizedBox(height: 12),
-                              ElevatedButton.icon(
-                                onPressed: () => _openInAppFullScreen(context),
-                                icon: const Icon(Icons.fullscreen_rounded, size: 16),
-                                label: const Text('ऐप में फुल स्क्रीन देखें ⛶'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.mausamAccent,
-                                  foregroundColor: Colors.white,
+                  : (_webViewController != null
+                      ? Stack(
+                          children: [
+                            WebViewWidget(controller: _webViewController!),
+                            if (_isLoadingMobile)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.mausamAccent,
                                 ),
                               ),
-                            ],
+                          ],
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.mausamAccent,
                           ),
-                        ),
-                      ],
-                    ),
+                        )),
             ),
+          ),
+          const SizedBox(height: 8),
+
+          // Footer info
+          Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                'नक्शे को ज़ूम और ड्रैग करके अपने खेत के बादल व हवा देख सकते हैं',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
           ),
         ],
       ),
@@ -373,9 +397,9 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
       borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : Theme.of(context).cardTheme.color ?? Colors.grey.withValues(alpha: 0.1),
+          color: isSelected ? color.withValues(alpha: 0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? color : Colors.grey.withValues(alpha: 0.3),
@@ -385,17 +409,13 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isSelected ? Icons.check_circle_rounded : icon,
-              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-              size: 13,
-            ),
-            const SizedBox(width: 5),
+            Icon(icon, color: isSelected ? color : Colors.grey, size: 14),
+            const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? color : Colors.grey,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 11,
               ),
             ),
