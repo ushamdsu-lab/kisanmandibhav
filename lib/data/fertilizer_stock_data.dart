@@ -36,7 +36,29 @@ class DistrictFertilizerStock {
   });
 }
 
+class FertilizerMrpItem {
+  final String nameHindi;
+  final String nutrient;
+  final String mrpPrice;
+  final String nationalStockStatus;
+
+  const FertilizerMrpItem({
+    required this.nameHindi,
+    required this.nutrient,
+    required this.mrpPrice,
+    required this.nationalStockStatus,
+  });
+}
+
 class FertilizerStockDatabase {
+  static const List<FertilizerMrpItem> fertilizers = [
+    FertilizerMrpItem(nameHindi: 'यूरिया (Urea 45kg)', nutrient: 'N - 46%', mrpPrice: '₹266.50 / बोरी', nationalStockStatus: '🟢 प्रचुर बफर स्टॉक उपलब्ध'),
+    FertilizerMrpItem(nameHindi: 'DAP (डाई-अमोनियम फॉस्फेट 50kg)', nutrient: 'N-18%, P-46%', mrpPrice: '₹1,350 / बोरी', nationalStockStatus: '🟢 पर्याप्त स्टॉक उपलब्ध'),
+    FertilizerMrpItem(nameHindi: 'NPK (12:32:16 / 10:26:26 50kg)', nutrient: 'N, P, K संतुलित', mrpPrice: '₹1,470 / बोरी', nationalStockStatus: '🟢 प्रचुर स्टॉक उपलब्ध'),
+    FertilizerMrpItem(nameHindi: 'MOP (म्यूरिएट ऑफ पोटाश 50kg)', nutrient: 'K2O - 60%', mrpPrice: '₹1,700 / बोरी', nationalStockStatus: '🟢 उपलब्ध'),
+    FertilizerMrpItem(nameHindi: 'SSP (सिंगल सुपर फॉस्फेट 50kg)', nutrient: 'P-16%, Sulphur-11%', mrpPrice: '₹450 / बोरी', nationalStockStatus: '🟢 प्रचुर स्थानीय उपलब्धता'),
+  ];
+
   static final Map<String, DistrictFertilizerStock> _baseMap = {
     'Bikaner': const DistrictFertilizerStock(
       districtEng: 'Bikaner',

@@ -26,6 +26,7 @@ class MandiRate {
   final double maxPrice;
   final double modalPrice;
   final String arrivalDate;
+  final bool isLive; // True if from Govt APMC Data.gov.in Live API
 
   MandiRate({
     required this.state,
@@ -38,6 +39,7 @@ class MandiRate {
     required this.maxPrice,
     required this.modalPrice,
     required this.arrivalDate,
+    this.isLive = true,
   });
 
   factory MandiRate.fromJson(Map<String, dynamic> json) {
@@ -48,10 +50,11 @@ class MandiRate {
       commodity: json['commodity'] ?? '',
       variety: json['variety'] ?? '',
       grade: json['grade'] ?? '',
-      minPrice: _parseDouble(json['min_price']),
-      maxPrice: _parseDouble(json['max_price']),
-      modalPrice: _parseDouble(json['modal_price']),
-      arrivalDate: json['arrival_date'] ?? '',
+      minPrice: _parseDouble(json['min_price'] ?? json['minPrice']),
+      maxPrice: _parseDouble(json['max_price'] ?? json['maxPrice']),
+      modalPrice: _parseDouble(json['modal_price'] ?? json['modalPrice']),
+      arrivalDate: json['arrival_date'] ?? json['arrivalDate'] ?? '',
+      isLive: json['isLive'] ?? true,
     );
   }
 
@@ -73,6 +76,7 @@ class MandiRate {
     'max_price': maxPrice,
     'modal_price': modalPrice,
     'arrival_date': arrivalDate,
+    'isLive': isLive,
   };
 
   /// Generate 7-day historical price points for trend analysis & chart

@@ -2,40 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../config/theme.dart';
 
-class ShellScreen extends StatefulWidget {
-  final Widget child;
+class ShellScreen extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
 
-  const ShellScreen({super.key, required this.child});
-
-  @override
-  State<ShellScreen> createState() => _ShellScreenState();
-}
-
-class _ShellScreenState extends State<ShellScreen> {
-  int _currentIndex = 0;
-
-  static const _routes = ['/', '/mandi', '/mausam', '/kheti', '/yojna'];
+  const ShellScreen({super.key, required this.navigationShell});
 
   void _onTabTapped(int index) {
-    if (_currentIndex != index) {
-      setState(() => _currentIndex = index);
-      context.go(_routes[index]);
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Sync tab with current route
-    final location = GoRouterState.of(context).uri.toString();
-    for (int i = 0; i < _routes.length; i++) {
-      if (location == _routes[i] || (i > 0 && location.startsWith(_routes[i]))) {
-        if (_currentIndex != i) {
-          setState(() => _currentIndex = i);
-        }
-        break;
-      }
-    }
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
@@ -43,7 +19,7 @@ class _ShellScreenState extends State<ShellScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: widget.child,
+      body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -55,7 +31,7 @@ class _ShellScreenState extends State<ShellScreen> {
           ],
         ),
         child: NavigationBar(
-          selectedIndex: _currentIndex,
+          selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: _onTabTapped,
           backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
           indicatorColor: AppColors.primary.withValues(alpha: 0.15),

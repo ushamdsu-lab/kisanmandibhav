@@ -3,20 +3,23 @@ class AppConstants {
   static const String appName = 'KisanMandiBhav';
   static const String appNameHindi = 'किसान मंडी भाव';
   static const String appTagline = 'ताज़ा मंडी भाव व कृषि मौसम अपडेट';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.5';
+
+  // Network & Timeout
+  static const Duration networkTimeout = Duration(seconds: 10);
 
   // API URLs
   static const String mandiResourceId = '9ef84268-d588-465a-a308-a864a43d0070';
   static const String mandiBaseUrl = 'https://api.data.gov.in/resource/$mandiResourceId';
   static const String weatherBaseUrl = 'https://api.open-meteo.com/v1/forecast';
 
-  // Default Location (Delhi as default)
+  // Default Location (Delhi / Jaipur as reference)
   static const double defaultLatitude = 28.6139;
   static const double defaultLongitude = 77.2090;
   static const String defaultCity = 'दिल्ली';
   static const String defaultState = 'Delhi';
 
-  // API Keys
+  // API Keys (Configurable via Storage or Environment)
   static String mandiApiKey = '579b464db66ec23bdd000001592db4fa842b480f7171a34c0956c64d';
 
   // Open-Meteo params
@@ -37,9 +40,10 @@ class AppConstants {
   };
 
   // Area conversions
-  static const double hectareToBigha = 8.0; // approx UP/MP standard
-  static const double hectareToAcre = 2.471;
-  static const double bighaToHectare = 0.125;
+  static const double hectareToAcre = 2.47105;
+  static const double acreToHectare = 0.404686;
+  static const double hectareToBigha = 4.0; // Standard 1 Hectare approx 4 Pucca Bigha / 6.25-8 Kaccha Bigha
+  static const double bighaToHectare = 0.25;
 
   // Weather codes to Hindi descriptions
   static const Map<int, Map<String, String>> weatherCodes = {

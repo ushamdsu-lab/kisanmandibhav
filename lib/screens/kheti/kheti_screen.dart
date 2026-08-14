@@ -16,6 +16,9 @@ class KhetiScreen extends StatefulWidget {
 }
 
 class _KhetiScreenState extends State<KhetiScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -25,10 +28,26 @@ class _KhetiScreenState extends State<KhetiScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Consumer<KhetiProvider>(
         builder: (context, provider, _) {
+          final allSeasonCrops = provider.crops;
+          final filteredCrops = _searchQuery.isEmpty
+              ? allSeasonCrops
+              : allSeasonCrops.where((c) {
+                  final q = _searchQuery.toLowerCase();
+                  return c.name.toLowerCase().contains(q) ||
+                      c.nameEn.toLowerCase().contains(q) ||
+                      c.pests.any((p) => p.name.toLowerCase().contains(q) || p.remedy.toLowerCase().contains(q) || p.symptom.toLowerCase().contains(q));
+                }).toList();
+
           return CustomScrollView(
             slivers: [
               // --- App Bar ---
@@ -70,18 +89,78 @@ class _KhetiScreenState extends State<KhetiScreen> {
                 ],
               ),
 
-              // --- Season Filter ---
+              // --- Search Bar ---
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val.trim();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: '🔍 फसल या कीट खोजें (उदा: गेहूं, जीरा, तना छेदक)...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+
+              // --- Season Filter Chips ---
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 50,
+                  height: 48,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     children: [
                       _buildSeasonChip(provider, 'all', 'सभी फसलें', Icons.grid_view_rounded),
-                      _buildSeasonChip(provider, 'kharif', 'खरीफ', Icons.water_drop_rounded),
-                      _buildSeasonChip(provider, 'rabi', 'रबी', Icons.ac_unit_rounded),
-                      _buildSeasonChip(provider, 'zaid', 'जायद', Icons.wb_sunny_rounded),
+                      _buildSeasonChip(provider, 'kharif', 'खरीफ फसलें', Icons.water_drop_rounded),
+                      _buildSeasonChip(provider, 'rabi', 'रबी फसलें', Icons.ac_unit_rounded),
+                      _buildSeasonChip(provider, 'zaid', 'जायद फसलें', Icons.wb_sunny_rounded),
+                    ],
+                  ),
+                ),
+              ),
+
+              // --- Results Counter ---
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'कुल ${filteredCrops.length} फसलें उपलब्ध',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const Spacer(),
+                      if (_searchQuery.isNotEmpty || provider.selectedSeason != 'all')
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                            provider.setSeasonFilter('all');
+                          },
+                          child: const Text(
+                            'फ़िल्टर हटाएं ✕',
+                            style: TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w600),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -98,6 +177,47 @@ class _KhetiScreenState extends State<KhetiScreen> {
                     onRetry: () => provider.loadData(),
                   ),
                 )
+              else if (filteredCrops.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.search_off_rounded, size: 56, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'कोई फसल नहीं मिली',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '‘$_searchQuery’ से संबंधित कोई फसल नहीं मिली। नीचे दिए गए सुझावों में से चुनें:',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            'गेहूं', 'सरसों', 'चना', 'जीरा', 'कपास', 'धान', 'ग्वार'
+                          ].map((suggestion) {
+                            return ActionChip(
+                              avatar: const Icon(Icons.search_rounded, size: 14),
+                              label: Text(suggestion),
+                              onPressed: () {
+                                _searchController.text = suggestion;
+                                setState(() {
+                                  _searchQuery = suggestion;
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               else ...[
                 // --- Crop Grid ---
                 SliverPadding(
@@ -111,10 +231,10 @@ class _KhetiScreenState extends State<KhetiScreen> {
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final crop = provider.crops[index];
+                        final crop = filteredCrops[index];
                         return _buildCropCard(crop, index);
                       },
-                      childCount: provider.crops.length,
+                      childCount: filteredCrops.length,
                     ),
                   ),
                 ),

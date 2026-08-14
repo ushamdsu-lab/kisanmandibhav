@@ -52,8 +52,19 @@ class DistrictHelper {
     'chirawa': 'चिड़ावा',
     'jodhpur': 'जोधपुर',
     'mathania': 'मथानिया',
+    'mataniya': 'मथानिया',
+    'osian': 'ओसियां',
+    'bhopalgarh': 'भोपालगढ़',
+    'luni': 'लूणी',
+    'mandore': 'मंडोर',
+    'balesar': 'बालेसर',
+    'shergarh': 'शेरगढ़',
+    'bilara': 'बिलाड़ा',
     'phalodi': 'फलोदी',
+    'pipar': 'पीपाड़ शहर',
     'piparcity': 'पीपाड़ शहर',
+    'pipar city': 'पीपाड़ शहर',
+    'tinwari': 'तिंवरी',
     'karauli': 'करौली',
     'hindaun': 'हिंडौन',
     'kota': 'कोटा',
@@ -422,5 +433,31 @@ class DistrictHelper {
     }
 
     return marketClean.isEmpty ? '$distHindi मंडी' : '$marketClean मंडी';
+  }
+
+  /// Returns Hindi state name
+  static String getHindiStateName(String state) {
+    const map = {
+      'rajasthan': 'राजस्थान',
+      'madhya pradesh': 'मध्य प्रदेश',
+      'gujarat': 'गुजरात',
+      'punjab': 'पंजाब',
+      'haryana': 'हरियाणा',
+      'uttar pradesh': 'उत्तर प्रदेश',
+      'maharashtra': 'महाराष्ट्र',
+      'karnataka': 'कर्नाटक',
+      'tamil nadu': 'तमिलनाडु',
+      'andhra pradesh': 'आंध्र प्रदेश',
+      'telangana': 'तेलंगाना',
+      'bihar': 'बिहार',
+      'west bengal': 'पश्चिम बंगाल',
+      'odisha': 'ओडिशा',
+      'chhattisgarh': 'छत्तीसगढ़',
+      'jharkhand': 'झारखंड',
+      'uttarakhand': 'उत्तराखंड',
+      'himachal pradesh': 'हिमाचल प्रदेश',
+      'delhi': 'दिल्ली',
+    };
+    return map[state.toLowerCase().trim()] ?? state;
   }
 }

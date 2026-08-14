@@ -242,6 +242,19 @@ class CommodityHelper {
     if (clean.contains('potato') || clean.contains('aloo')) return 'potato';
     return null;
   }
+
+  /// Get emoji for commodity
+  static String getEmoji(String rawCommodity) {
+    final clean = rawCommodity.toLowerCase();
+    for (final c in popularCrops) {
+      if (clean.contains(c['key']!)) return c['icon']!;
+    }
+    for (final v in popularVegetables) {
+      if (clean.contains(v['key']!)) return v['icon']!;
+    }
+    if (isVegetableOrFruit(rawCommodity)) return '🥬';
+    return '🌾';
+  }
 }
 
 class _CropInfo {

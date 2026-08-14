@@ -17,26 +17,26 @@ class MandiDirectory {
     'Churu': ['Churu APMC', 'Sadulpur APMC', 'Sujangarh APMC', 'Ratangarh APMC', 'Sardarshahar APMC', 'Taranagar APMC'],
     'Dausa': ['Dausa APMC', 'Bandikui APMC', 'Lalsot APMC', 'Mahwa APMC', 'Mandawar APMC'],
     'Dholpur': ['Dholpur APMC', 'Bari APMC', 'Rajakhera APMC', 'Baseri APMC'],
-    'Dungarpur': ['Dungarpur APMC', 'Sagwara APMC'],
-    'Ganganagar': ['Sriganganagar (Grain) APMC', 'Sriganganagar (F&V) APMC', 'Gajsinghpur APMC', 'Gharsana APMC', 'Suratgarh APMC', 'Anupgarh APMC'],
-    'Hanumangarh': ['Hanumangarh Town APMC', 'Hanumangarh Junction APMC', 'Nohar APMC', 'Pilibanga APMC'],
-    'Jaipur': ['Jaipur (Grain) APMC', 'Jaipur (F&V) APMC', 'Bassi APMC', 'Chaksu APMC', 'Chomu APMC', 'Kotputli APMC'],
-    'Jaisalmer': ['Jaisalmer APMC', 'Pokaran APMC'],
-    'Jalore': ['Jalore APMC', 'Bhinmal APMC', 'Raniwara APMC', 'Sanchore APMC'],
-    'Jhalawar': ['Jhalawar APMC', 'Bhawani Mandi APMC', 'Jhalrapatan APMC', 'Aklera APMC'],
-    'Jhunjhunu': ['Jhunjhunu APMC', 'Nawalgarh APMC', 'Chirawa APMC', 'Khetri APMC'],
-    'Jodhpur': ['Jodhpur (Grain) APMC', 'Jodhpur (F&V) APMC', 'Bilara APMC', 'Phalodi APMC'],
-    'Karauli': ['Karauli APMC', 'Hindaun City APMC'],
-    'Kota': ['Kota APMC', 'Ramganjmandi APMC', 'Sangod APMC'],
-    'Nagaur': ['Nagaur APMC', 'Merta City APMC', 'Didwana APMC', 'Kuchaman City APMC', 'Ladnun APMC', 'Makrana APMC'],
-    'Pali': ['Pali APMC', 'Jaitaran APMC', 'Sojat Road APMC', 'Sumerpur APMC', 'Falna APMC'],
-    'Pratapgarh': ['Pratapgarh APMC', 'Chhoti Sadri APMC'],
-    'Rajsamand': ['Rajsamand APMC', 'Nathdwara APMC', 'Amet APMC'],
-    'Sawai Madhopur': ['Sawai Madhopur APMC', 'Gangapur City APMC'],
-    'Sikar': ['Sikar APMC', 'Fatehpur APMC', 'Neem Ka Thana APMC', 'Laxmangarh APMC'],
-    'Sirohi': ['Sirohi APMC', 'Abu Road APMC', 'Pindwara APMC'],
-    'Tonk': ['Tonk APMC', 'Malpura APMC', 'Niwai APMC', 'Deoli APMC'],
-    'Udaipur': ['Udaipur (Grain) APMC', 'Udaipur (F&V) APMC', 'Salumber APMC'],
+    'Dungarpur': ['Dungarpur APMC', 'Sagwara APMC', 'Aspur APMC'],
+    'Ganganagar': ['Sriganganagar (Grain) APMC', 'Sriganganagar (F&V) APMC', 'Gajsinghpur APMC', 'Gharsana APMC', 'Suratgarh APMC', 'Anupgarh APMC', 'Padampur APMC', 'Raisinghnagar APMC', 'Sadulshahar APMC', 'Rawla APMC'],
+    'Hanumangarh': ['Hanumangarh Town APMC', 'Hanumangarh Junction APMC', 'Nohar APMC', 'Pilibanga APMC', 'Bhadra APMC', 'Rawatsar APMC', 'Sangaria APMC'],
+    'Jaipur': ['Jaipur (Grain) APMC', 'Jaipur (F&V) APMC', 'Bassi APMC', 'Chaksu APMC', 'Chomu APMC', 'Kotputli APMC', 'Sambhar Lake APMC', 'Shahpura APMC'],
+    'Jaisalmer': ['Jaisalmer APMC', 'Pokaran APMC', 'Mohangarh APMC'],
+    'Jalore': ['Jalore APMC', 'Bhinmal APMC', 'Raniwara APMC', 'Sanchore APMC', 'Ahore APMC'],
+    'Jhalawar': ['Jhalawar APMC', 'Bhawani Mandi APMC', 'Jhalrapatan APMC', 'Aklera APMC', 'Khanpur APMC', 'Pirawa APMC'],
+    'Jhunjhunu': ['Jhunjhunu APMC', 'Nawalgarh APMC', 'Chirawa APMC', 'Khetri APMC', 'Surajgarh APMC', 'Udaipurwati APMC'],
+    'Jodhpur': ['Jodhpur (Grain) APMC', 'Jodhpur (F&V) APMC', 'Mathania APMC', 'Bilara APMC', 'Phalodi APMC', 'Pipar City APMC', 'Bhopalgarh APMC', 'Osian APMC', 'Balesar APMC', 'Luni APMC'],
+    'Karauli': ['Karauli APMC', 'Hindaun City APMC', 'Todabhim APMC'],
+    'Kota': ['Kota APMC', 'Ramganjmandi APMC', 'Sangod APMC', 'Itawa APMC', 'Sultanpur APMC'],
+    'Nagaur': ['Nagaur APMC', 'Merta City APMC', 'Didwana APMC', 'Kuchaman City APMC', 'Ladnun APMC', 'Makrana APMC', 'Degana APMC', 'Parbatsar APMC', 'Jayal APMC'],
+    'Pali': ['Pali APMC', 'Jaitaran APMC', 'Sojat Road APMC', 'Sumerpur APMC', 'Falna APMC', 'Bali APMC', 'Rani APMC'],
+    'Pratapgarh': ['Pratapgarh APMC', 'Chhoti Sadri APMC', 'Dhariawad APMC'],
+    'Rajsamand': ['Rajsamand APMC', 'Nathdwara APMC', 'Amet APMC', 'Devgarh APMC', 'Kumbhalgarh APMC'],
+    'Sawai Madhopur': ['Sawai Madhopur APMC', 'Gangapur City APMC', 'Bamanwas APMC'],
+    'Sikar': ['Sikar APMC', 'Fatehpur APMC', 'Neem Ka Thana APMC', 'Laxmangarh APMC', 'Sri Madhopur APMC', 'Danta Ramgarh APMC', 'Reengus APMC'],
+    'Sirohi': ['Sirohi APMC', 'Abu Road APMC', 'Pindwara APMC', 'Sheoganj APMC'],
+    'Tonk': ['Tonk APMC', 'Malpura APMC', 'Niwai APMC', 'Deoli APMC', 'Uniara APMC', 'Todaraisingh APMC'],
+    'Udaipur': ['Udaipur (Grain) APMC', 'Udaipur (F&V) APMC', 'Salumber APMC', 'Fatehnagar APMC', 'Kherwara APMC', 'Mavli APMC', 'Bhinder APMC'],
   };
 
   static const Map<String, List<String>> mpMandis = {
@@ -359,7 +359,374 @@ class MandiDirectory {
     if (s.contains('himachal')) return hpMandis;
     if (s.contains('assam')) return assamMandis;
     if (s.contains('kerala')) return keralaMandis;
-    return {};
+    return rajasthanMandis; // Default fallback to Rajasthan mandis
+  }
+
+  /// Comprehensive sub-district / tehsil / town / mandi to standard district mapping
+  static const Map<String, String> _subDistrictToDistrict = {
+    // --- Rajasthan (Jodhpur) ---
+    'mathania': 'Jodhpur',
+    'mataniya': 'Jodhpur',
+    'मथानिया': 'Jodhpur',
+    'mathania mandi': 'Jodhpur',
+    'osian': 'Jodhpur',
+    'ओसियां': 'Jodhpur',
+    'mandore': 'Jodhpur',
+    'मंडोर': 'Jodhpur',
+    'bhopalgarh': 'Jodhpur',
+    'भोपालगढ़': 'Jodhpur',
+    'pipar': 'Jodhpur',
+    'piparcity': 'Jodhpur',
+    'pipar city': 'Jodhpur',
+    'पीपाड़': 'Jodhpur',
+    'पीपाड़ शहर': 'Jodhpur',
+    'luni': 'Jodhpur',
+    'लूणी': 'Jodhpur',
+    'bilara': 'Jodhpur',
+    'बिलाड़ा': 'Jodhpur',
+    'balesar': 'Jodhpur',
+    'बालेसर': 'Jodhpur',
+    'shergarh': 'Jodhpur',
+    'शेरगढ़': 'Jodhpur',
+    'phalodi': 'Jodhpur',
+    'फलोदी': 'Jodhpur',
+    'baori': 'Jodhpur',
+    'तिंवरी': 'Jodhpur',
+    'tinwari': 'Jodhpur',
+    'tiwari': 'Jodhpur',
+    'chamu': 'Jodhpur',
+    'jodhpur rural': 'Jodhpur',
+    'jodhpur urban': 'Jodhpur',
+    'जोधपुर ग्रामीण': 'Jodhpur',
+    'जोधपुर शहर': 'Jodhpur',
+
+    // --- Rajasthan (Ajmer) ---
+    'beawar': 'Ajmer',
+    'ब्यावर': 'Ajmer',
+    'kekri': 'Ajmer',
+    'केकड़ी': 'Ajmer',
+    'kishangarh': 'Ajmer',
+    'किशनगढ़': 'Ajmer',
+    'bijainagar': 'Ajmer',
+    'विजयनगर': 'Ajmer',
+    'pushkar': 'Ajmer',
+    'sarwar': 'Ajmer',
+    'nasirabad': 'Ajmer',
+
+    // --- Rajasthan (Alwar) ---
+    'khairthal': 'Alwar',
+    'खैरथल': 'Alwar',
+    'kherli': 'Alwar',
+    'tijara': 'Alwar',
+    'तिजारा': 'Alwar',
+    'ramgarh': 'Alwar',
+    'bhiwadi': 'Alwar',
+    'behror': 'Alwar',
+    'बहरोड़': 'Alwar',
+    'neemrana': 'Alwar',
+    'kotkasim': 'Alwar',
+
+    // --- Rajasthan (Barmer) ---
+    'balotra': 'Barmer',
+    'बालोतरा': 'Barmer',
+    'chohtan': 'Barmer',
+    'चौहटन': 'Barmer',
+    'baytu': 'Barmer',
+    'बायतु': 'Barmer',
+    'siwana': 'Barmer',
+    'सिवाना': 'Barmer',
+    'gudamalani': 'Barmer',
+    'pachpadra': 'Barmer',
+    'पचपदरा': 'Barmer',
+    'samdari': 'Barmer',
+
+    // --- Rajasthan (Bharatpur) ---
+    'deeg': 'Bharatpur',
+    'डीग': 'Bharatpur',
+    'kaman': 'Bharatpur',
+    'कामां': 'Bharatpur',
+    'nadbai': 'Bharatpur',
+    'नदबई': 'Bharatpur',
+    'nagar': 'Bharatpur',
+    'नगर': 'Bharatpur',
+    'weir': 'Bharatpur',
+    'वैर': 'Bharatpur',
+    'bayana': 'Bharatpur',
+    'बयाना': 'Bharatpur',
+    'bhusawar': 'Bharatpur',
+    'भुसावर': 'Bharatpur',
+
+    // --- Rajasthan (Bhilwara) ---
+    'shahpura': 'Bhilwara',
+    'शाहपुरा': 'Bhilwara',
+    'gulabpura': 'Bhilwara',
+    'गुलाबपुरा': 'Bhilwara',
+    'mandalgarh': 'Bhilwara',
+    'मांडलगढ़': 'Bhilwara',
+    'asind': 'Bhilwara',
+    'आसींद': 'Bhilwara',
+    'jahazpur': 'Bhilwara',
+
+    // --- Rajasthan (Bikaner) ---
+    'nokha': 'Bikaner',
+    'नोखा': 'Bikaner',
+    'lunkaransar': 'Bikaner',
+    'लूणकरणसर': 'Bikaner',
+    'khajuwala': 'Bikaner',
+    'खाजूवाला': 'Bikaner',
+    'sridungargarh': 'Bikaner',
+    'sri dungargarh': 'Bikaner',
+    'dungargarh': 'Bikaner',
+    'श्रीडूंगरगढ़': 'Bikaner',
+    'kolayat': 'Bikaner',
+    'कोलायत': 'Bikaner',
+    'deshnoke': 'Bikaner',
+    'देशनोक': 'Bikaner',
+
+    // --- Rajasthan (Ganganagar) ---
+    'anupgarh': 'Ganganagar',
+    'अनूपगढ़': 'Ganganagar',
+    'suratgarh': 'Ganganagar',
+    'सूरतगढ़': 'Ganganagar',
+    'gharsana': 'Ganganagar',
+    'घड़साना': 'Ganganagar',
+    'gajsinghpur': 'Ganganagar',
+    'गजासिंहपुर': 'Ganganagar',
+    'padampur': 'Ganganagar',
+    'पदमपुर': 'Ganganagar',
+    'raisinghnagar': 'Ganganagar',
+    'रायसिंहनगर': 'Ganganagar',
+    'sadulshahar': 'Ganganagar',
+    'सादुलशहर': 'Ganganagar',
+    'rawla': 'Ganganagar',
+    'rawla mandi': 'Ganganagar',
+    'sriganganagar': 'Ganganagar',
+    'sri ganganagar': 'Ganganagar',
+    'श्रीगंगानगर': 'Ganganagar',
+
+    // --- Rajasthan (Hanumangarh) ---
+    'nohar': 'Hanumangarh',
+    'नोहर': 'Hanumangarh',
+    'bhadra': 'Hanumangarh',
+    'भादरा': 'Hanumangarh',
+    'pilibanga': 'Hanumangarh',
+    'पीलीबंगा': 'Hanumangarh',
+    'rawatsar': 'Hanumangarh',
+    'रावतसर': 'Hanumangarh',
+    'sangaria': 'Hanumangarh',
+    'संगरिया': 'Hanumangarh',
+
+    // --- Rajasthan (Jaipur) ---
+    'chomu': 'Jaipur',
+    'चौमू': 'Jaipur',
+    'bassi': 'Jaipur',
+    'बस्सी': 'Jaipur',
+    'chaksu': 'Jaipur',
+    'चाकसू': 'Jaipur',
+    'kotputli': 'Jaipur',
+    'कोटपूतली': 'Jaipur',
+    'sambhar': 'Jaipur',
+    'सांभर': 'Jaipur',
+    'dudu': 'Jaipur',
+    'दूदू': 'Jaipur',
+    'bagru': 'Jaipur',
+    'phulera': 'Jaipur',
+    'amer': 'Jaipur',
+    'sanganer': 'Jaipur',
+    'jaipur rural': 'Jaipur',
+    'jaipur urban': 'Jaipur',
+
+    // --- Rajasthan (Jaisalmer) ---
+    'pokaran': 'Jaisalmer',
+    'pokhran': 'Jaisalmer',
+    'पोकरण': 'Jaisalmer',
+    'mohangarh': 'Jaisalmer',
+    'मोहनगढ़': 'Jaisalmer',
+    'ramdevra': 'Jaisalmer',
+
+    // --- Rajasthan (Jalore) ---
+    'sanchore': 'Jalore',
+    'सांचौर': 'Jalore',
+    'bhinmal': 'Jalore',
+    'भीनमाल': 'Jalore',
+    'raniwara': 'Jalore',
+    'रानीवाड़ा': 'Jalore',
+    'ahore': 'Jalore',
+    'आहोर': 'Jalore',
+
+    // --- Rajasthan (Jhalawar) ---
+    'bhawanimandi': 'Jhalawar',
+    'bhawani mandi': 'Jhalawar',
+    'भवानी मंडी': 'Jhalawar',
+    'jhalrapatan': 'Jhalawar',
+    'झालरापाटन': 'Jhalawar',
+    'aklera': 'Jhalawar',
+    'अकलेरा': 'Jhalawar',
+    'pirawa': 'Jhalawar',
+    'खानपुर': 'Jhalawar',
+    'khanpur': 'Jhalawar',
+
+    // --- Rajasthan (Jhunjhunu) ---
+    'nawalgarh': 'Jhunjhunu',
+    'नवलगढ़': 'Jhunjhunu',
+    'chirawa': 'Jhunjhunu',
+    'चिड़ावा': 'Jhunjhunu',
+    'khetri': 'Jhunjhunu',
+    'खेतड़ी': 'Jhunjhunu',
+    'surajgarh': 'Jhunjhunu',
+    'udaipurwati': 'Jhunjhunu',
+    'pilani': 'Jhunjhunu',
+
+    // --- Rajasthan (Karauli) ---
+    'hindaun': 'Karauli',
+    'hindaun city': 'Karauli',
+    'हिंडौन': 'Karauli',
+    'todabhim': 'Karauli',
+
+    // --- Rajasthan (Kota) ---
+    'ramganjmandi': 'Kota',
+    'ramganj mandi': 'Kota',
+    'रामगंज मंडी': 'Kota',
+    'sangod': 'Kota',
+    'सांगोद': 'Kota',
+    'itawa': 'Kota',
+    'इटावा': 'Kota',
+    'sultanpur': 'Kota',
+
+    // --- Rajasthan (Nagaur) ---
+    'merta': 'Nagaur',
+    'merta city': 'Nagaur',
+    'मेड़ता': 'Nagaur',
+    'मेड़ता सिटी': 'Nagaur',
+    'didwana': 'Nagaur',
+    'डीडवाना': 'Nagaur',
+    'kuchaman': 'Nagaur',
+    'kuchaman city': 'Nagaur',
+    'कुचामन': 'Nagaur',
+    'makrana': 'Nagaur',
+    'मकराना': 'Nagaur',
+    'ladnun': 'Nagaur',
+    'लाडनूं': 'Nagaur',
+    'degana': 'Nagaur',
+    'parbatsar': 'Nagaur',
+    'jayal': 'Nagaur',
+    'khinvsar': 'Nagaur',
+    'khimsar': 'Nagaur',
+
+    // --- Rajasthan (Pali) ---
+    'sumerpur': 'Pali',
+    'सुमेरपुर': 'Pali',
+    'sojat': 'Pali',
+    'sojat road': 'Pali',
+    'सोजत': 'Pali',
+    'jaitaran': 'Pali',
+    'जैतारण': 'Pali',
+    'falna': 'Pali',
+    'फालना': 'Pali',
+    'bali': 'Pali',
+    'बाली': 'Pali',
+    'rani': 'Pali',
+
+    // --- Rajasthan (Pratapgarh) ---
+    'chhoti sadri': 'Pratapgarh',
+    'chhotisadri': 'Pratapgarh',
+    'छोटी सादड़ी': 'Pratapgarh',
+    'dhariawad': 'Pratapgarh',
+
+    // --- Rajasthan (Rajsamand) ---
+    'nathdwara': 'Rajsamand',
+    'नाथद्वारा': 'Rajsamand',
+    'amet': 'Rajsamand',
+    'आमेट': 'Rajsamand',
+    'devgarh': 'Rajsamand',
+    'kumbhalgarh': 'Rajsamand',
+
+    // --- Rajasthan (Sawai Madhopur) ---
+    'gangapur': 'Sawai Madhopur',
+    'gangapur city': 'Sawai Madhopur',
+    'gangapurcity': 'Sawai Madhopur',
+    'गंगापुर सिटी': 'Sawai Madhopur',
+    'bamanwas': 'Sawai Madhopur',
+
+    // --- Rajasthan (Sikar) ---
+    'neem ka thana': 'Sikar',
+    'neemkathana': 'Sikar',
+    'नीमकाथाना': 'Sikar',
+    'fatehpur': 'Sikar',
+    'फतेहपुर': 'Sikar',
+    'laxmangarh': 'Sikar',
+    'लक्ष्मणगढ़': 'Sikar',
+    'sri madhopur': 'Sikar',
+    'srimadhopur': 'Sikar',
+    'श्रीमाधोपुर': 'Sikar',
+    'danta ramgarh': 'Sikar',
+    'reengus': 'Sikar',
+    'ringas': 'Sikar',
+    'रींगस': 'Sikar',
+
+    // --- Rajasthan (Sirohi) ---
+    'abu road': 'Sirohi',
+    'aburoad': 'Sirohi',
+    'आबू रोड': 'Sirohi',
+    'pindwara': 'Sirohi',
+    'sheoganj': 'Sirohi',
+
+    // --- Rajasthan (Tonk) ---
+    'niwai': 'Tonk',
+    'newai': 'Tonk',
+    'निवाई': 'Tonk',
+    'malpura': 'Tonk',
+    'मालपुरा': 'Tonk',
+    'deoli': 'Tonk',
+    'देवली': 'Tonk',
+    'uniara': 'Tonk',
+    'todaraisingh': 'Tonk',
+
+    // --- Rajasthan (Udaipur) ---
+    'salumber': 'Udaipur',
+    'सलूंबर': 'Udaipur',
+    'fatehnagar': 'Udaipur',
+    'kherwara': 'Udaipur',
+    'mavli': 'Udaipur',
+    'bhinder': 'Udaipur',
+
+    // --- Other States common mandis & tehsils ---
+    'mhow': 'Indore', 'sanwer': 'Indore', 'depalpur': 'Indore',
+    'nagda': 'Ujjain', 'khachrod': 'Ujjain', 'mahidpur': 'Ujjain',
+    'jaora': 'Ratlam', 'sailana': 'Ratlam',
+    'pipliya': 'Mandsaur', 'garoth': 'Mandsaur', 'shamgarh': 'Mandsaur',
+    'manasa': 'Neemuch', 'jawad': 'Neemuch',
+    'itarsi': 'Hoshangabad', 'pipariya': 'Hoshangabad',
+    'gondal': 'Rajkot', 'jetpur': 'Rajkot', 'dhoraji': 'Rajkot', 'upleta': 'Rajkot',
+    'unjha': 'Mehsana', 'visnagar': 'Mehsana', 'kadi': 'Mehsana',
+    'deesa': 'Banaskantha', 'palanpur': 'Banaskantha', 'tharad': 'Banaskantha',
+    'siddhpur': 'Patan', 'radhanpur': 'Patan',
+    'khanna': 'Ludhiana', 'jagraon': 'Ludhiana',
+    'abohar': 'Ferozepur', 'fazilka': 'Ferozepur',
+    'malout': 'Muktsar',
+    'hansi': 'Hisar', 'barwala': 'Hisar',
+    'dabwali': 'Sirsa', 'ellenabad': 'Sirsa',
+    'indri': 'Karnal', 'gharaunda': 'Karnal',
+    'narnaul': 'Mahendragarh',
+    'charkhi dadri': 'Bhiwani',
+    'malihabad': 'Lucknow', 'firozabad': 'Agra', 'fatehpur sikri': 'Agra',
+    'vrindavan': 'Mathura', 'chhata': 'Mathura',
+    'hapur': 'Meerut', 'ghaziabad': 'Meerut',
+    'kasganj': 'Aligarh', 'hathras': 'Aligarh',
+    'sambhal': 'Moradabad',
+    'muzaffarnagar': 'Saharanpur', 'shamli': 'Saharanpur',
+    'lasalgaon': 'Nashik', 'manmad': 'Nashik', 'malegaon': 'Nashik',
+    'baramati': 'Pune', 'pimpri': 'Pune',
+    'sangli': 'Kolhapur', 'miraj': 'Kolhapur', 'satara': 'Kolhapur',
+    'jalna': 'Aurangabad',
+    'shrirampur': 'Ahmednagar', 'rahuri': 'Ahmednagar',
+    'osmanabad': 'Latur', 'nanded': 'Latur',
+  };
+
+  /// Check if a district exists in the given state
+  static bool hasDistrict(String state, String district) {
+    final map = _getMandiMap(state);
+    return map.containsKey(district);
   }
 
   /// Get all mandis for a given state name
@@ -378,13 +745,91 @@ class MandiDirectory {
     return _getMandiMap(state);
   }
 
-  /// Get mandis for a specific district (Supports both Hindi & English district names)
+  /// Returns all district names for a given state (sorted in Hindi alphabetical order)
+  static List<String> getDistrictsForState(String state) {
+    final map = _getMandiMap(state);
+    final list = map.keys.toList();
+    list.sort((a, b) => DistrictHelper.getHindiName(a).compareTo(DistrictHelper.getHindiName(b)));
+    return list;
+  }
+
+  /// Get standard English district name from either Hindi, English, or sub-district/tehsil/mandi input
+  static String getStandardDistrictName(String state, String district) {
+    if (district.trim().isEmpty) return '';
+    final map = _getMandiMap(state);
+    final dLower = district.toLowerCase().trim();
+    final dNoSpace = dLower.replaceAll(' ', '').replaceAll('-', '');
+
+    // 1. Direct English key match
+    for (final entry in map.entries) {
+      final keyLower = entry.key.toLowerCase().trim();
+      if (keyLower == dLower || keyLower.replaceAll(' ', '') == dNoSpace) {
+        return entry.key;
+      }
+    }
+
+    // 2. Hindi translated match
+    for (final entry in map.entries) {
+      final hindiName = DistrictHelper.getHindiName(entry.key).toLowerCase().trim();
+      if (hindiName == dLower || hindiName.replaceAll(' ', '') == dNoSpace) {
+        return entry.key;
+      }
+    }
+
+    // 3. Sub-district / Tehsil / Town / Mandi alias mapping
+    if (_subDistrictToDistrict.containsKey(dLower)) {
+      final parent = _subDistrictToDistrict[dLower]!;
+      if (map.containsKey(parent)) {
+        return parent;
+      }
+      return parent;
+    }
+    if (_subDistrictToDistrict.containsKey(dNoSpace)) {
+      final parent = _subDistrictToDistrict[dNoSpace]!;
+      return parent;
+    }
+
+    // 4. Partial check in sub-district mapping
+    for (final entry in _subDistrictToDistrict.entries) {
+      if (dLower.contains(entry.key) || entry.key.contains(dLower)) {
+        return entry.value;
+      }
+    }
+
+    // 5. Check if any mandi in any district in this state matches or contains the district input
+    for (final entry in map.entries) {
+      for (final mandi in entry.value) {
+        final mLower = mandi.toLowerCase();
+        if (mLower.contains(dLower) || dLower.contains(mLower.replaceAll('apmc', '').trim())) {
+          return entry.key;
+        }
+      }
+    }
+
+    // 6. Substring contains in keys
+    for (final entry in map.entries) {
+      final keyLower = entry.key.toLowerCase().trim();
+      if (keyLower.contains(dLower) || dLower.contains(keyLower)) {
+        return entry.key;
+      }
+    }
+
+    return district;
+  }
+
+  /// Get mandis for a specific district (Supports both Hindi, English & sub-district/tehsil/mandi names)
   static List<String> getMandisForDistrict(String state, String district) {
     final map = _getMandiMap(state);
     final dLower = district.toLowerCase().trim();
     if (dLower.isEmpty) return [];
 
-    // 1. Direct English key match
+    // First resolve to standard district name
+    final stdDistrict = getStandardDistrictName(state, district);
+    if (map.containsKey(stdDistrict)) {
+      return map[stdDistrict]!;
+    }
+
+    // Direct English key match
     for (final entry in map.entries) {
       final keyLower = entry.key.toLowerCase().trim();
       if (keyLower == dLower || keyLower.contains(dLower) || dLower.contains(keyLower)) {
@@ -392,7 +837,7 @@ class MandiDirectory {
       }
     }
 
-    // 2. Hindi translated match
+    // Hindi translated match
     for (final entry in map.entries) {
       final hindiName = DistrictHelper.getHindiName(entry.key).toLowerCase().trim();
       if (hindiName == dLower || hindiName.contains(dLower) || dLower.contains(hindiName)) {
@@ -401,31 +846,6 @@ class MandiDirectory {
     }
 
     return [];
-  }
-
-  /// Get standard English district name from either Hindi or English input
-  static String getStandardDistrictName(String state, String district) {
-    final map = _getMandiMap(state);
-    final dLower = district.toLowerCase().trim();
-    if (dLower.isEmpty) return '';
-
-    // Direct English match
-    for (final entry in map.entries) {
-      final keyLower = entry.key.toLowerCase().trim();
-      if (keyLower == dLower || keyLower.contains(dLower) || dLower.contains(keyLower)) {
-        return entry.key;
-      }
-    }
-
-    // Hindi translated match
-    for (final entry in map.entries) {
-      final hindiName = DistrictHelper.getHindiName(entry.key).toLowerCase().trim();
-      if (hindiName == dLower || hindiName.contains(dLower) || dLower.contains(hindiName)) {
-        return entry.key;
-      }
-    }
-
-    return district;
   }
 
   /// Get default mandi name for a state

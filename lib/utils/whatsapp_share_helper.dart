@@ -113,6 +113,12 @@ class WhatsAppShareHelper {
     }
   }
 
+  /// Convenience method to share a single rate slip
+  static Future<bool> shareRateSlip({required MandiRate rate, List<MandiRate>? topOtherMandis}) async {
+    final text = generateSingleCropParchiText(rate: rate, topOtherMandis: topOtherMandis);
+    return await shareToWhatsApp(text);
+  }
+
   static String _getHindiMonth(int month) {
     const months = [
       '', 'जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून',

@@ -175,39 +175,54 @@ class _YojnaScreenState extends State<YojnaScreen> {
               // --- 1. Government Type Switcher (केंद्र vs राज्य vs सभी) ---
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardTheme.color,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
                         _buildGovtTab(
                           context: context,
-                          label: '🏛️ केंद्र सरकार',
+                          label: 'केंद्र सरकार',
+                          icon: Icons.account_balance_rounded,
+                          subtitle: 'PM-किसान, KCC..',
                           count: provider.centralCount,
                           isSelected: provider.selectedGovtType == 'central',
                           onTap: () => provider.selectGovtType('central'),
                           activeColor: AppColors.yojnaAccent,
                         ),
+                        const SizedBox(width: 6),
                         _buildGovtTab(
                           context: context,
-                          label: '🏰 राज्य सरकार',
+                          label: 'राज्य सरकार',
+                          icon: Icons.castle_rounded,
+                          subtitle: 'सब्सिडी, तारबंदी..',
                           count: provider.stateCount,
                           isSelected: provider.selectedGovtType == 'state',
                           onTap: () => provider.selectGovtType('state'),
                           activeColor: AppColors.primary,
                         ),
+                        const SizedBox(width: 6),
                         _buildGovtTab(
                           context: context,
-                          label: '🌐 सभी योजनाएं',
+                          label: 'सभी योजनाएं',
+                          icon: Icons.grid_view_rounded,
+                          subtitle: 'सभी योजनाएं',
                           count: provider.totalCount,
                           isSelected: provider.selectedGovtType == 'all',
                           onTap: () => provider.selectGovtType('all'),
-                          activeColor: AppColors.secondary,
+                          activeColor: const Color(0xFF1E88E5),
                         ),
                       ],
                     ),
@@ -356,58 +371,110 @@ class _YojnaScreenState extends State<YojnaScreen> {
   Widget _buildGovtTab({
     required BuildContext context,
     required String label,
+    required IconData icon,
+    required String subtitle,
     required int count,
     required bool isSelected,
     required VoidCallback onTap,
     required Color activeColor,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: activeColor.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? LinearGradient(
+                      colors: [
+                        activeColor,
+                        activeColor.withValues(alpha: 0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: isSelected
+                  ? null
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.grey.shade100),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
+                    ? activeColor
+                    : (isDark ? Colors.white24 : Colors.grey.shade300),
+                width: isSelected ? 1.8 : 1.2,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: activeColor.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 14,
+                      color: isSelected ? Colors.white : activeColor,
                     ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                          color: isSelected
+                              ? Colors.white
+                              : theme.textTheme.bodyLarge?.color,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '($count योजनाएं)',
+                const SizedBox(height: 2),
+                Text(
+                  count > 0 ? '$count योजनाएं' : subtitle,
                   style: TextStyle(
-                    fontSize: 9,
-                    color: isSelected ? Colors.white.withValues(alpha: 0.9) : Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 9.5,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.92)
+                        : theme.textTheme.bodySmall?.color,
                   ),
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

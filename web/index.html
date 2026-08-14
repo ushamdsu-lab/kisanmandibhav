@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="किसान मंडी भाव - ताज़ा सरकारी मंडी भाव व कृषि मौसम अपडेट ऐप">
 
   <!-- iOS meta tags & icons -->
@@ -31,16 +18,72 @@
 
   <title>किसान मंडी भाव - Kisan Mandi Bhav</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #F5F7F0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1B5E20, #2E7D32, #4CAF50);
+      color: white;
+      z-index: 99999;
+      transition: opacity 0.4s ease-out;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #FFFFFF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .sub-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="logo-text">🌾 किसान मंडी भाव</div>
+    <div class="sub-text">लोड हो रहा है, कृपया प्रतीक्षा करें...</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loader = document.getElementById('loading');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(function () {
+          loader.remove();
+        }, 400);
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

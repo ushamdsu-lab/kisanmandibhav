@@ -98,17 +98,17 @@ class LocationService {
         }
       }
 
-      // 3. If GPS failed or disabled, use network IP Geolocation fallback
+      // 3. If GPS failed or disabled, use network IP Geolocation fallback (HTTPS)
       if (lat == null || lng == null) {
         try {
           final ipRes = await http
-              .get(Uri.parse('http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon'))
-              .timeout(const Duration(seconds: 3));
+              .get(Uri.parse('https://ipapi.co/json/'))
+              .timeout(const Duration(seconds: 2));
           if (ipRes.statusCode == 200) {
             final ipData = json.decode(ipRes.body);
-            if (ipData['status'] == 'success' && ipData['lat'] != null) {
-              lat = (ipData['lat'] as num).toDouble();
-              lng = (ipData['lon'] as num).toDouble();
+            if (ipData['latitude'] != null && ipData['longitude'] != null) {
+              lat = (ipData['latitude'] as num).toDouble();
+              lng = (ipData['longitude'] as num).toDouble();
               isGpsSuccess = true;
             }
           }
@@ -123,12 +123,15 @@ class LocationService {
         lng = 77.2090;
       }
 
-      // 5. Find nearest predefined city
+      // 5. Find nearest predefined city from coordinates
       final nearestCity = getNearestPopularCity(lat, lng);
       String cityName = nearestCity.name;
       String state = nearestCity.state;
       String district = nearestCity.effectiveDistrict;
-      String mandi = '';
+      String mandi = nearestCity.mandi;
+
+      String? detectedPlace;
+      String? detectedDistrict;
 
       // 6. Try Reverse Geocoding via OpenStreetMap Nominatim
       try {
@@ -144,20 +147,39 @@ class LocationService {
           final data = json.decode(response.body);
           final addr = data['address'] as Map<String, dynamic>?;
           if (addr != null) {
-            final place = addr['suburb'] ?? addr['city'] ?? addr['town'] ?? addr['village'] ?? addr['municipality'];
-            final distName = addr['state_district'] ?? addr['county'] ?? addr['city'];
+            final place = addr['suburb'] ??
+                addr['town'] ??
+                addr['village'] ??
+                addr['city'] ??
+                addr['subdistrict'] ??
+                addr['municipality'] ??
+                addr['hamlet'] ??
+                addr['neighbourhood'];
+            final distName = addr['state_district'] ??
+                addr['county'] ??
+                addr['city_district'] ??
+                addr['district'];
             final stName = addr['state'];
 
             if (place != null && place.toString().trim().isNotEmpty) {
-              final pStr = place.toString().trim();
-              final dStr = distName != null ? distName.toString().trim() : '';
-              if (dStr.isNotEmpty && dStr != pStr) {
-                cityName = '$pStr, $dStr';
-              } else {
-                cityName = pStr;
-              }
-              district = dStr.isNotEmpty ? dStr : pStr;
+              detectedPlace = place.toString().trim();
             }
+            if (distName != null && distName.toString().trim().isNotEmpty) {
+              detectedDistrict = distName.toString().trim();
+            }
+
+            if (detectedPlace != null && detectedPlace.isNotEmpty) {
+              if (detectedDistrict != null &&
+                  detectedDistrict.isNotEmpty &&
+                  detectedDistrict.toLowerCase() != detectedPlace.toLowerCase()) {
+                cityName = '$detectedPlace, $detectedDistrict';
+              } else {
+                cityName = detectedPlace;
+              }
+            } else if (detectedDistrict != null && detectedDistrict.isNotEmpty) {
+              cityName = detectedDistrict;
+            }
+
             if (stName != null && stName.toString().trim().isNotEmpty) {
               final s = stName.toString().trim();
               String matched = s;
@@ -175,16 +197,61 @@ class LocationService {
         debugPrint('Nominatim Reverse Geocoding error: $e');
       }
 
-      // 7. Resolve Standard District & Mandi from Directory for this state/district
-      final stdDistrict = MandiDirectory.getStandardDistrictName(state, district);
-      if (stdDistrict.isNotEmpty) {
-        district = stdDistrict;
+      // 7. Resolve Standard District Name from Directory
+      String stdDistrict = '';
+      if (detectedDistrict != null && detectedDistrict.isNotEmpty) {
+        stdDistrict = MandiDirectory.getStandardDistrictName(state, detectedDistrict);
       }
+      if (stdDistrict.isEmpty && detectedPlace != null && detectedPlace.isNotEmpty) {
+        stdDistrict = MandiDirectory.getStandardDistrictName(state, detectedPlace);
+      }
+      if (stdDistrict.isEmpty || !MandiDirectory.hasDistrict(state, stdDistrict)) {
+        stdDistrict = MandiDirectory.getStandardDistrictName(state, cityName);
+      }
+      // If still not matched, fallback to nearestCity's district (derived from coordinate distance!)
+      if (stdDistrict.isEmpty || !MandiDirectory.hasDistrict(state, stdDistrict)) {
+        stdDistrict = nearestCity.effectiveDistrict;
+        if (state.isEmpty) state = nearestCity.state;
+      }
+      district = stdDistrict;
+
+      // 8. Resolve Specific Mandi for user location
       final mandis = MandiDirectory.getMandisForDistrict(state, district);
       if (mandis.isNotEmpty) {
-        mandi = mandis.first;
+        String matchedMandi = '';
+        final queryTerms = [
+          if (detectedPlace != null) detectedPlace.toLowerCase(),
+          cityName.toLowerCase(),
+          if (detectedDistrict != null) detectedDistrict.toLowerCase(),
+        ];
+
+        for (final m in mandis) {
+          final mClean = m
+              .toLowerCase()
+              .replaceAll(RegExp(r'\s*\(F&V\)', caseSensitive: false), '')
+              .replaceAll(RegExp(r'\s*\(Grain\)', caseSensitive: false), '')
+              .replaceAll('apmc', '')
+              .trim();
+          for (final q in queryTerms) {
+            if (mClean.isNotEmpty && (q.contains(mClean) || mClean.contains(q))) {
+              matchedMandi = m;
+              break;
+            }
+          }
+          if (matchedMandi.isNotEmpty) break;
+        }
+
+        if (matchedMandi.isNotEmpty) {
+          mandi = matchedMandi;
+        } else if (nearestCity.mandi.isNotEmpty && mandis.contains(nearestCity.mandi)) {
+          mandi = nearestCity.mandi;
+        } else {
+          mandi = mandis.first;
+        }
       } else {
-        mandi = MandiDirectory.getDefaultMandi(state);
+        mandi = nearestCity.mandi.isNotEmpty
+            ? nearestCity.mandi
+            : MandiDirectory.getDefaultMandi(state);
       }
 
       return LocationResult(

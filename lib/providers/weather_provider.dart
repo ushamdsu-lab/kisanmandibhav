@@ -56,12 +56,18 @@ class WeatherProvider extends ChangeNotifier {
     final savedCity = StorageService.getSavedCity();
     final savedLat = StorageService.getSavedLatitude();
     final savedLng = StorageService.getSavedLongitude();
+    final savedState = StorageService.getSavedState();
+    final savedDistrict = StorageService.getSavedDistrict();
+    final savedMandi = StorageService.getSavedMandi();
 
     if (savedCity.isNotEmpty && savedLat != 0 && savedLng != 0) {
       _cityName = savedCity;
       _currentLat = savedLat;
       _currentLng = savedLng;
     }
+    if (savedState.isNotEmpty) _detectedState = savedState;
+    if (savedDistrict.isNotEmpty) _detectedDistrict = savedDistrict;
+    if (savedMandi.isNotEmpty) _detectedMandi = savedMandi;
   }
 
   Future<LocationResult> fetchUserLocation({MandiProvider? mandiProvider}) async {

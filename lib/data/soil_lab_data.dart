@@ -21,6 +21,8 @@ class DistrictSoilLab {
 }
 
 class SoilLabDatabase {
+  static List<DistrictSoilLab> get labs => districtLabMap.values.toList();
+
   static const Map<String, DistrictSoilLab> districtLabMap = {
     'Bikaner': DistrictSoilLab(
       districtEng: 'Bikaner',

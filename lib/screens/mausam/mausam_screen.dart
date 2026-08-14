@@ -279,9 +279,13 @@ class _MausamScreenState extends State<MausamScreen> {
                                     ),
                                     Row(
                                       children: [
-                                        Text(
-                                          provider.cityName,
-                                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.mausamAccent),
+                                        Flexible(
+                                          child: Text(
+                                            provider.cityName,
+                                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.mausamAccent),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                         if (provider.isGpsLocation) ...[
                                           const SizedBox(width: 6),
@@ -316,29 +320,48 @@ class _MausamScreenState extends State<MausamScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      // Quick City Chips
-                      SizedBox(
-                        height: 38,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: CityDatabase.popularCities.take(12).map((city) {
-                            final isSelected = provider.cityName.contains(city.name.split(' ').first);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: FilterChip(
-                                avatar: Text(city.icon, style: const TextStyle(fontSize: 13)),
-                                label: Text(city.name.split(' ').first, style: const TextStyle(fontSize: 12)),
-                                selected: isSelected,
-                                onSelected: (_) {
-                                  final mandiProv = context.read<MandiProvider>();
-                                  provider.selectCity(city, mandiProvider: mandiProv);
-                                },
-                                selectedColor: AppColors.mausamAccent.withValues(alpha: 0.2),
-                                checkmarkColor: AppColors.mausamAccent,
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                      // Dynamic Quick City & Tehsil Chips based on currently selected district
+                      Builder(
+                        builder: (context) {
+                          final currentDist = provider.detectedDistrict.isNotEmpty
+                              ? provider.detectedDistrict
+                              : (provider.cityName.contains('(')
+                                  ? provider.cityName.split('(').last.replaceAll(')', '').trim()
+                                  : provider.cityName.split(',').last.trim());
+                          final quickCities = CityDatabase.getQuickChipsForLocation(
+                            currentDistrict: currentDist,
+                            currentState: provider.detectedState.isNotEmpty ? provider.detectedState : 'Rajasthan',
+                          );
+
+                          return SizedBox(
+                            height: 40,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: quickCities.length,
+                              itemBuilder: (context, index) {
+                                final city = quickCities[index];
+                                final cityNameOnly = city.name.split(' ').first;
+                                final isSelected = provider.cityName.toLowerCase().contains(cityNameOnly.toLowerCase()) ||
+                                    city.name.toLowerCase().contains(provider.cityName.toLowerCase());
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: FilterChip(
+                                    avatar: Text(city.icon, style: const TextStyle(fontSize: 13)),
+                                    label: Text(cityNameOnly, style: const TextStyle(fontSize: 12)),
+                                    selected: isSelected,
+                                    onSelected: (_) {
+                                      final mandiProv = context.read<MandiProvider>();
+                                      provider.selectCity(city, mandiProvider: mandiProv);
+                                    },
+                                    selectedColor: AppColors.mausamAccent.withValues(alpha: 0.2),
+                                    checkmarkColor: AppColors.mausamAccent,
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -820,14 +843,20 @@ class _MausamScreenState extends State<MausamScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 16, 6),
-          child: Text(
-            '⏰ 24 घंटे का घंटेवार तापमान व वर्षा',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.fromLTRB(20, 14, 16, 8),
+          child: Row(
+            children: [
+              const Icon(Icons.schedule_rounded, size: 18, color: AppColors.mausamAccent),
+              const SizedBox(width: 6),
+              Text(
+                '24 घंटे का घंटेवार तापमान व वर्षा अनुमान',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
           ),
         ),
         SizedBox(
-          height: 105,
+          height: 120,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -836,37 +865,87 @@ class _MausamScreenState extends State<MausamScreen> {
               final h = hourly[index];
               final isNow = index == 0;
               final hourStr = isNow ? 'अभी' : DateFormat('h a').format(h.time);
+              final isNight = h.time.hour < 6 || h.time.hour >= 19;
+              final hasRain = h.precipitation > 0 || (h.weatherCode >= 51 && h.weatherCode <= 67) || (h.weatherCode >= 80 && h.weatherCode <= 99);
 
               return Container(
-                width: 68,
+                width: 76,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 decoration: BoxDecoration(
-                  color: isNow ? AppColors.mausamAccent.withValues(alpha: 0.15) : Theme.of(context).cardTheme.color,
+                  color: isNow
+                      ? AppColors.mausamAccent.withValues(alpha: 0.16)
+                      : Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isNow ? AppColors.mausamAccent : Colors.grey.withValues(alpha: 0.2),
+                    color: isNow
+                        ? AppColors.mausamAccent
+                        : (hasRain ? Colors.blue.withValues(alpha: 0.4) : Colors.grey.withValues(alpha: 0.2)),
+                    width: isNow ? 1.8 : 1.0,
                   ),
+                  boxShadow: isNow
+                      ? [
+                          BoxShadow(
+                            color: AppColors.mausamAccent.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       hourStr,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: isNow ? FontWeight.w800 : FontWeight.w500,
+                        fontWeight: isNow ? FontWeight.w900 : FontWeight.w600,
                         color: isNow ? AppColors.mausamAccent : null,
                       ),
                     ),
                     Icon(
-                      h.precipitation > 0 ? Icons.water_drop_rounded : Icons.wb_sunny_rounded,
+                      hasRain
+                          ? Icons.water_drop_rounded
+                          : (isNight ? Icons.nightlight_round : Icons.wb_sunny_rounded),
                       size: 20,
-                      color: h.precipitation > 0 ? AppColors.mausamAccent : Colors.amber,
+                      color: hasRain
+                          ? AppColors.mausamAccent
+                          : (isNight ? Colors.indigoAccent : Colors.amber),
                     ),
                     Text(
-                      '${h.temperature.round()}°',
+                      '${h.temperature.round()}°C',
                       style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: hasRain
+                            ? AppColors.mausamAccent.withValues(alpha: 0.18)
+                            : Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.umbrella_rounded,
+                            size: 9,
+                            color: hasRain ? AppColors.mausamAccent : Colors.grey,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            hasRain
+                                ? (h.precipitation > 0 ? '${h.precipitation.toStringAsFixed(1)}mm' : '${h.humidity}%')
+                                : '0mm',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: hasRain ? AppColors.mausamAccent : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

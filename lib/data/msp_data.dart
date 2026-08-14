@@ -4,7 +4,8 @@ class MspItem {
   final String nameEng;
   final double mspPrice; // per Quintal (₹/Qtl)
   final String season;
-  final String category; // 'rabi', 'kharif', 'commercial'
+  final String category; // 'rabi', 'kharif', 'commercial', 'baseline'
+  final bool isOfficialMsp; // True if mandated under Govt CACP MSP / FRP
   final String icon;
 
   const MspItem({
@@ -14,56 +15,59 @@ class MspItem {
     required this.mspPrice,
     required this.season,
     required this.category,
+    this.isOfficialMsp = true,
     this.icon = '🌾',
   });
 }
 
 class MspDatabase {
   static const List<MspItem> mspList = [
-    // --- Rabi Crops (रबी फसलें CACP Govt MSP) ---
-    MspItem(cropId: 'wheat', nameHindi: 'गेहूं', nameEng: 'Wheat', mspPrice: 2275, season: 'रबी 2024-25', category: 'rabi', icon: '🌾'),
-    MspItem(cropId: 'mustard', nameHindi: 'सरसों / रायड़ा', nameEng: 'Mustard / Rape Seed', mspPrice: 5650, season: 'रबी 2024-25', category: 'rabi', icon: '🌻'),
-    MspItem(cropId: 'chana', nameHindi: 'चना (ग्राम)', nameEng: 'Chana / Bengal Gram', mspPrice: 5440, season: 'रबी 2024-25', category: 'rabi', icon: '🌱'),
-    MspItem(cropId: 'barley', nameHindi: 'जौ', nameEng: 'Barley', mspPrice: 1850, season: 'रबी 2024-25', category: 'rabi', icon: '🌾'),
-    MspItem(cropId: 'masoor', nameHindi: 'मसूर', nameEng: 'Lentil (Masur)', mspPrice: 6425, season: 'रबी 2024-25', category: 'rabi', icon: '🌱'),
-    MspItem(cropId: 'safflower', nameHindi: 'कुसुम', nameEng: 'Safflower', mspPrice: 5800, season: 'रबी 2024-25', category: 'rabi', icon: '🌼'),
-    MspItem(cropId: 'taramira', nameHindi: 'तारामीरा', nameEng: 'Taramira', mspPrice: 5350, season: 'रबी 2024-25', category: 'rabi', icon: '🌱'),
-    MspItem(cropId: 'jeera', nameHindi: 'जीरा (बेंचमार्क)', nameEng: 'Jeera / Cumin', mspPrice: 21000, season: 'रबी 2024-25', category: 'rabi', icon: '🌿'),
-    MspItem(cropId: 'isabgol', nameHindi: 'इसबगोल (बेंचमार्क)', nameEng: 'Isabgol / Psyllium', mspPrice: 14500, season: 'रबी 2024-25', category: 'rabi', icon: '🌿'),
-    MspItem(cropId: 'dhaniya', nameHindi: 'धनिया (बेंचमार्क)', nameEng: 'Coriander / Dhaniya', mspPrice: 7600, season: 'रबी 2024-25', category: 'rabi', icon: '🌿'),
-    MspItem(cropId: 'saunf', nameHindi: 'सौंफ (बेंचमार्क)', nameEng: 'Saunf / Fennel', mspPrice: 11500, season: 'रबी 2024-25', category: 'rabi', icon: '🌿'),
-    MspItem(cropId: 'methi', nameHindi: 'मेथी दाना', nameEng: 'Methi Seeds', mspPrice: 6200, season: 'रबी 2024-25', category: 'rabi', icon: '🌱'),
+    // --- Rabi Crops (रबी फसलें CACP Govt Official MSP) ---
+    MspItem(cropId: 'wheat', nameHindi: 'गेहूं', nameEng: 'Wheat', mspPrice: 2275, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'mustard', nameHindi: 'सरसों / रायड़ा', nameEng: 'Mustard / Rape Seed', mspPrice: 5650, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌻'),
+    MspItem(cropId: 'chana', nameHindi: 'चना (देसी/काबुली)', nameEng: 'Chana / Bengal Gram', mspPrice: 5440, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'barley', nameHindi: 'जौ', nameEng: 'Barley', mspPrice: 1850, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'masoor', nameHindi: 'मसूर दाल', nameEng: 'Lentil (Masur)', mspPrice: 6425, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'safflower', nameHindi: 'कुसुम', nameEng: 'Safflower', mspPrice: 5800, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌼'),
+    MspItem(cropId: 'taramira', nameHindi: 'तारामीरा', nameEng: 'Taramira', mspPrice: 5350, season: 'रबी 2024-25', category: 'rabi', isOfficialMsp: true, icon: '🌱'),
 
-    // --- Kharif Crops (खरीफ फसलें CACP Govt MSP) ---
-    MspItem(cropId: 'rice', nameHindi: 'धान (सामान्य)', nameEng: 'Paddy Common', mspPrice: 2300, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'rice_a', nameHindi: 'धान (ग्रेड-ए)', nameEng: 'Paddy Grade-A', mspPrice: 2320, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'moong', nameHindi: 'मूंग', nameEng: 'Moong (Green Gram)', mspPrice: 8558, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'urad', nameHindi: 'उड़द', nameEng: 'Urad (Black Gram)', mspPrice: 7400, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'arhar', nameHindi: 'अरहर / तुअर', nameEng: 'Arhar / Toor', mspPrice: 7550, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'bajra', nameHindi: 'बाजरा', nameEng: 'Bajra (Pearl Millet)', mspPrice: 2625, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌽'),
-    MspItem(cropId: 'maize', nameHindi: 'मक्का', nameEng: 'Maize / Corn', mspPrice: 2225, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌽'),
-    MspItem(cropId: 'jowar', nameHindi: 'ज्वार (हायब्रिड)', nameEng: 'Jowar Hybrid', mspPrice: 3371, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'jowar_m', nameHindi: 'ज्वार (मालदंडी)', nameEng: 'Jowar Maldandi', mspPrice: 3421, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'ragi', nameHindi: 'रागी', nameEng: 'Ragi', mspPrice: 4290, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'groundnut', nameHindi: 'मूंगफली', nameEng: 'Groundnut', mspPrice: 6783, season: 'खरीफ 2024-25', category: 'kharif', icon: '🥜'),
-    MspItem(cropId: 'soybean', nameHindi: 'सोयाबीन (पीला)', nameEng: 'Soybean Yellow', mspPrice: 4892, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'sunflower', nameHindi: 'सूरजमुखी', nameEng: 'Sunflower Seed', mspPrice: 7280, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌻'),
-    MspItem(cropId: 'sesame', nameHindi: 'तिल', nameEng: 'Sesame (Til)', mspPrice: 9267, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'nigerseed', nameHindi: 'रामतिल', nameEng: 'Nigerseed', mspPrice: 8717, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
-    MspItem(cropId: 'cotton', nameHindi: 'कपास (मध्यम रेशे)', nameEng: 'Cotton Medium', mspPrice: 7121, season: 'खरीफ 2024-25', category: 'kharif', icon: '☁️'),
-    MspItem(cropId: 'cotton_l', nameHindi: 'कपास (लंबे रेशे)', nameEng: 'Cotton Long Staple', mspPrice: 7521, season: 'खरीफ 2024-25', category: 'kharif', icon: '☁️'),
-    MspItem(cropId: 'guar', nameHindi: 'ग्वार बीज (बेंचमार्क)', nameEng: 'Guar Seed', mspPrice: 5200, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌾'),
-    MspItem(cropId: 'castor', nameHindi: 'अरंडी (एरंड)', nameEng: 'Castor Seed', mspPrice: 6100, season: 'खरीफ 2024-25', category: 'kharif', icon: '🌱'),
+    // --- Kharif Crops (खरीफ फसलें CACP Govt Official MSP) ---
+    MspItem(cropId: 'rice', nameHindi: 'धान (सामान्य)', nameEng: 'Paddy Common', mspPrice: 2300, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'rice_a', nameHindi: 'धान (ग्रेड-ए)', nameEng: 'Paddy Grade-A', mspPrice: 2320, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'moong', nameHindi: 'मूंग', nameEng: 'Moong (Green Gram)', mspPrice: 8558, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'urad', nameHindi: 'उड़द', nameEng: 'Urad (Black Gram)', mspPrice: 7400, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'arhar', nameHindi: 'अरहर / तुअर', nameEng: 'Arhar / Toor', mspPrice: 7550, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'bajra', nameHindi: 'बाजरा', nameEng: 'Bajra (Pearl Millet)', mspPrice: 2625, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌽'),
+    MspItem(cropId: 'maize', nameHindi: 'मक्का', nameEng: 'Maize / Corn', mspPrice: 2225, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌽'),
+    MspItem(cropId: 'jowar', nameHindi: 'ज्वार (हायब्रिड)', nameEng: 'Jowar Hybrid', mspPrice: 3371, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'jowar_m', nameHindi: 'ज्वार (मालदंडी)', nameEng: 'Jowar Maldandi', mspPrice: 3421, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'ragi', nameHindi: 'रागी / मडुआ', nameEng: 'Ragi', mspPrice: 4290, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌾'),
+    MspItem(cropId: 'groundnut', nameHindi: 'मूंगफली', nameEng: 'Groundnut', mspPrice: 6783, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🥜'),
+    MspItem(cropId: 'soybean', nameHindi: 'सोयाबीन (पीला)', nameEng: 'Soybean Yellow', mspPrice: 4892, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'sunflower', nameHindi: 'सूरजमुखी', nameEng: 'Sunflower Seed', mspPrice: 7280, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌻'),
+    MspItem(cropId: 'sesame', nameHindi: 'तिल (सफेद/काला)', nameEng: 'Sesame (Til)', mspPrice: 9267, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'nigerseed', nameHindi: 'रामतिल', nameEng: 'Nigerseed', mspPrice: 8717, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '🌱'),
+    MspItem(cropId: 'cotton', nameHindi: 'कपास (मध्यम रेशा)', nameEng: 'Cotton Medium', mspPrice: 7121, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '☁️'),
+    MspItem(cropId: 'cotton_l', nameHindi: 'कपास (लंबा रेशा)', nameEng: 'Cotton Long Staple', mspPrice: 7521, season: 'खरीफ 2024-25', category: 'kharif', isOfficialMsp: true, icon: '☁️'),
 
-    // --- Commercial & Spices / FRP (वाणिज्यिक व मसाला फसलें) ---
-    MspItem(cropId: 'sugarcane', nameHindi: 'गन्ना (FRP Govt Rate)', nameEng: 'Sugarcane FRP', mspPrice: 340, season: '2024-25', category: 'commercial', icon: '🎋'),
-    MspItem(cropId: 'jute', nameHindi: 'कच्चा जूट / पटसन', nameEng: 'Raw Jute', mspPrice: 5335, season: '2024-25', category: 'commercial', icon: '🌿'),
-    MspItem(cropId: 'copra', nameHindi: 'खोपरा (सूखा नारियल)', nameEng: 'Copra', mspPrice: 11160, season: '2024-25', category: 'commercial', icon: '🥥'),
-    MspItem(cropId: 'garlic', nameHindi: 'लहसुन (आधार मूल्य)', nameEng: 'Garlic', mspPrice: 9500, season: '2024-25', category: 'commercial', icon: '🧄'),
-    MspItem(cropId: 'onion', nameHindi: 'प्याज (आधार मूल्य)', nameEng: 'Onion', mspPrice: 2000, season: '2024-25', category: 'commercial', icon: '🧅'),
-    MspItem(cropId: 'potato', nameHindi: 'आलू (आधार मूल्य)', nameEng: 'Potato', mspPrice: 1500, season: '2024-25', category: 'commercial', icon: '🥔'),
-    MspItem(cropId: 'chilli', nameHindi: 'लाल मिर्च (आधार मूल्य)', nameEng: 'Red Chilli', mspPrice: 12500, season: '2024-25', category: 'commercial', icon: '🌶️'),
-    MspItem(cropId: 'turmeric', nameHindi: 'हल्दी (आधार मूल्य)', nameEng: 'Turmeric', mspPrice: 7800, season: '2024-25', category: 'commercial', icon: '🌿'),
+    // --- Commercial Crops (CACP / FRP Rates) ---
+    MspItem(cropId: 'sugarcane', nameHindi: 'गन्ना (सरकारी FRP दर)', nameEng: 'Sugarcane FRP', mspPrice: 340, season: '2024-25', category: 'commercial', isOfficialMsp: true, icon: '🎋'),
+    MspItem(cropId: 'jute', nameHindi: 'कच्चा जूट / पटसन', nameEng: 'Raw Jute', mspPrice: 5335, season: '2024-25', category: 'commercial', isOfficialMsp: true, icon: '🌿'),
+    MspItem(cropId: 'copra', nameHindi: 'खोपरा (सूखा नारियल)', nameEng: 'Copra', mspPrice: 11160, season: '2024-25', category: 'commercial', isOfficialMsp: true, icon: '🥥'),
+
+    // --- Market Benchmark Reference Rates (मसाले व वाणिज्यिक - बाजार संदर्भ दर) ---
+    MspItem(cropId: 'guar', nameHindi: 'ग्वार बीज (बाजार संदर्भ)', nameEng: 'Guar Seed', mspPrice: 5200, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌾'),
+    MspItem(cropId: 'castor', nameHindi: 'अरंडी / कैस्टर', nameEng: 'Castor Seed', mspPrice: 6100, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌱'),
+    MspItem(cropId: 'jeera', nameHindi: 'जीरा (बाजार बेंचमार्क)', nameEng: 'Jeera / Cumin', mspPrice: 21000, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌿'),
+    MspItem(cropId: 'isabgol', nameHindi: 'इसबगोल (बाजार संदर्भ)', nameEng: 'Isabgol / Psyllium', mspPrice: 14500, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌿'),
+    MspItem(cropId: 'dhaniya', nameHindi: 'धनिया (बाजार संदर्भ)', nameEng: 'Coriander / Dhaniya', mspPrice: 7600, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌿'),
+    MspItem(cropId: 'saunf', nameHindi: 'सौंफ (बाजार संदर्भ)', nameEng: 'Saunf / Fennel', mspPrice: 11500, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌿'),
+    MspItem(cropId: 'methi', nameHindi: 'मेथी दाना', nameEng: 'Methi Seeds', mspPrice: 6200, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌱'),
+    MspItem(cropId: 'garlic', nameHindi: 'लहसुन (औसत आधार)', nameEng: 'Garlic', mspPrice: 9500, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🧄'),
+    MspItem(cropId: 'onion', nameHindi: 'प्याज (औसत आधार)', nameEng: 'Onion', mspPrice: 2000, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🧅'),
+    MspItem(cropId: 'potato', nameHindi: 'आलू (औसत आधार)', nameEng: 'Potato', mspPrice: 1500, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🥔'),
+    MspItem(cropId: 'chilli', nameHindi: 'लाल मिर्च (सूखी)', nameEng: 'Red Chilli', mspPrice: 12500, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌶️'),
+    MspItem(cropId: 'turmeric', nameHindi: 'हल्दी (गांठ)', nameEng: 'Turmeric', mspPrice: 7800, season: '2024-25', category: 'baseline', isOfficialMsp: false, icon: '🌿'),
   ];
 
   /// Finds MSP item for any raw commodity string from API or user input

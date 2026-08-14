@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme.dart';
 import '../../providers/yojna_provider.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/common/in_app_browser_sheet.dart';
 
 class SchemeDetailScreen extends StatelessWidget {
   final String schemeId;
@@ -159,13 +159,17 @@ class SchemeDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // Website button
+                      // In-App Website Portal button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () => _openUrl(scheme.website),
-                          icon: const Icon(Icons.open_in_new_rounded),
-                          label: const Text('आधिकारिक वेबसाइट पर जाएं'),
+                          onPressed: () => InAppBrowserSheet.show(
+                            context,
+                            url: scheme.website,
+                            title: scheme.name,
+                          ),
+                          icon: const Icon(Icons.language_rounded),
+                          label: const Text('आधिकारिक पोर्टल देखें (इन-ऐप)'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.yojnaAccent,
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -213,13 +217,6 @@ class SchemeDetailScreen extends StatelessWidget {
         }),
       ],
     );
-  }
-
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
   }
 
   IconData _getSchemeIcon(String iconName) {

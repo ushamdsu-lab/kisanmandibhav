@@ -8,9 +8,11 @@ import 'package:kisan_mitra/models/notification_item.dart';
 import 'package:kisan_mitra/models/price_alert.dart';
 import 'package:kisan_mitra/utils/whatsapp_share_helper.dart';
 import 'package:kisan_mitra/data/mandi_directory.dart';
+import 'package:kisan_mitra/data/msp_data.dart';
+import 'package:kisan_mitra/config/constants.dart';
 
 void main() {
-  group('Model Tests', () {
+  group('Model & Architecture Tests', () {
     test('Crop model parses correctly', () {
       final json = {
         'id': 'wheat',
@@ -40,15 +42,15 @@ void main() {
       expect(crop.pests.length, 1);
     });
 
-    test('Fertilizer model parses correctly', () {
+    test('Fertilizer model parses correctly and validates dosage per hectare/bigha', () {
       final json = {
         'id': 'urea',
         'name': 'यूरिया',
         'nameEn': 'Urea',
         'nutrient': 'N - 46%',
         'usage': 'बढ़वार के लिए',
-        'dosagePerHectare': '100 किलो',
-        'dosagePerBigha': '12 किलो',
+        'dosagePerHectare': '100-130 किलो',
+        'dosagePerBigha': '12-15 किलो',
         'method': 'छिड़काव',
         'precaution': 'सावधानी रखें',
         'price': '₹266.50',
@@ -58,6 +60,14 @@ void main() {
       final fertilizer = Fertilizer.fromJson(json);
       expect(fertilizer.id, 'urea');
       expect(fertilizer.crops.contains('wheat'), isTrue);
+
+      // Verify acre conversion factor
+      final matches = RegExp(r'(\d+\.?\d*)').allMatches(fertilizer.dosagePerHectare).map((m) => double.parse(m.group(1)!)).toList();
+      expect(matches.length, 2);
+      final minAcre = matches[0] / AppConstants.hectareToAcre;
+      final maxAcre = matches[1] / AppConstants.hectareToAcre;
+      expect(minAcre, closeTo(40.47, 0.5));
+      expect(maxAcre, closeTo(52.61, 0.5));
     });
 
     test('Scheme model parses correctly', () {
@@ -99,7 +109,7 @@ void main() {
       expect(helpline.tollFree, isTrue);
     });
 
-    test('MandiRate model parses correctly', () {
+    test('MandiRate model parses and serializes correctly with isLive support', () {
       final json = {
         'state': 'Uttar Pradesh',
         'district': 'Agra',
@@ -110,7 +120,8 @@ void main() {
         'min_price': '2200',
         'max_price': 2500,
         'modal_price': '2350',
-        'arrival_date': '12/08/2026'
+        'arrival_date': '12/08/2026',
+        'isLive': true,
       };
 
       final rate = MandiRate.fromJson(json);
@@ -118,6 +129,28 @@ void main() {
       expect(rate.minPrice, 2200.0);
       expect(rate.maxPrice, 2500.0);
       expect(rate.modalPrice, 2350.0);
+      expect(rate.isLive, isTrue);
+
+      final encoded = rate.toJson();
+      expect(encoded['isLive'], isTrue);
+      expect(encoded['commodity'], 'Wheat');
+    });
+
+    test('MSP Database accurately categorizes CACP official MSP vs market baseline', () {
+      final wheatMsp = MspDatabase.getMspForCrop('wheat');
+      expect(wheatMsp, isNotNull);
+      expect(wheatMsp!.isOfficialMsp, isTrue);
+      expect(wheatMsp.mspPrice, 2275.0);
+
+      final mustardMsp = MspDatabase.getMspForCrop('mustard');
+      expect(mustardMsp, isNotNull);
+      expect(mustardMsp!.isOfficialMsp, isTrue);
+      expect(mustardMsp.mspPrice, 5650.0);
+
+      final jeeraBaseline = MspDatabase.getMspForCrop('jeera');
+      expect(jeeraBaseline, isNotNull);
+      expect(jeeraBaseline!.isOfficialMsp, isFalse);
+      expect(jeeraBaseline.category, 'baseline');
     });
 
     test('NotificationItem model parses correctly', () {

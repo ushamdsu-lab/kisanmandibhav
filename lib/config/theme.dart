@@ -34,6 +34,7 @@ class AppColors {
   static const textSecondaryDark = Color(0xFFAAAAAA);
 
   // Gradients
+  static const primaryGradient = [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF4CAF50)];
   static const mandiGradient = [Color(0xFFE65100), Color(0xFFFF8F00)];
   static const mausamGradient = [Color(0xFF0277BD), Color(0xFF29B6F6)];
   static const khetiGradient = [Color(0xFF2E7D32), Color(0xFF66BB6A)];
