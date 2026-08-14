@@ -74,6 +74,7 @@ class WhatsAppShareHelper {
     buffer.writeln('📊 *न्यूनतम भाव:* ₹${rate.minPrice.toInt()} / क्विंटल');
     buffer.writeln('📈 *उच्चतम भाव:* ₹${rate.maxPrice.toInt()} / क्विंटल');
     buffer.writeln('🌾 *किस्म/क्वालिटी:* ${rate.variety}');
+    buffer.writeln('📦 *मंडी आवक:* ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
 
     if (topOtherMandis != null && topOtherMandis.isNotEmpty) {

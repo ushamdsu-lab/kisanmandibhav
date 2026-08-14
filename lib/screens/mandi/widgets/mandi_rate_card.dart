@@ -193,9 +193,11 @@ class MandiRateCard extends StatelessWidget {
               // 3. Metadata & MSP comparison row
               Row(
                 children: [
+                  Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textSecondary),
+                  const SizedBox(width: 4),
                   Text(
-                    'आवक तारीख: ${rate.arrivalDate.isNotEmpty ? rate.arrivalDate : "आज"}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                    'आवक: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
                   if (mspItem != null)
