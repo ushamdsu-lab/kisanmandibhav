@@ -10,6 +10,8 @@ import '../../models/helpline.dart';
 import '../../providers/yojna_provider.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../utils/district_helper.dart';
+import '../../services/storage_service.dart';
 
 class YojnaScreen extends StatefulWidget {
   const YojnaScreen({super.key});
@@ -49,6 +51,10 @@ class _YojnaScreenState extends State<YojnaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final savedState = StorageService.getSavedState();
+      if (savedState.isNotEmpty) {
+        context.read<YojnaProvider>().setUserHomeState(savedState);
+      }
       context.read<YojnaProvider>().loadData();
     });
   }
@@ -64,6 +70,8 @@ class _YojnaScreenState extends State<YojnaScreen> {
     return Scaffold(
       body: Consumer<YojnaProvider>(
         builder: (context, provider, _) {
+          final stateHindi = DistrictHelper.getHindiStateName(provider.userHomeState);
+
           return CustomScrollView(
             slivers: [
               // --- App Bar ---
@@ -107,10 +115,55 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 ],
               ),
 
+              // --- Location State Info Bar ---
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                  child: InkWell(
+                    onTap: () => _showStatePickerBottomSheet(context, provider),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            '📍 आपका राज्य: $stateHindi (${provider.userHomeState})',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('राज्य बदलें', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                SizedBox(width: 2),
+                                Icon(Icons.arrow_drop_down, color: Colors.white, size: 14),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               // --- Eligibility Checker Banner with Mahila Kisan Artwork ---
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
                   child: InkWell(
                     onTap: () => _showEligibilityCheckerModal(context),
                     borderRadius: BorderRadius.circular(16),
@@ -172,10 +225,10 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 ),
               ),
 
-              // --- 1. Government Type Switcher (केंद्र vs राज्य vs सभी) ---
+              // --- 1. Government Type Switcher (स्थान आधारित vs केंद्र vs राज्य) ---
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -194,6 +247,17 @@ class _YojnaScreenState extends State<YojnaScreen> {
                       children: [
                         _buildGovtTab(
                           context: context,
+                          label: '🌟 आपके लिए',
+                          icon: Icons.auto_awesome_rounded,
+                          subtitle: '$stateHindi + केंद्र',
+                          count: provider.recommendedCount,
+                          isSelected: provider.selectedGovtType == 'recommended',
+                          onTap: () => provider.selectGovtType('recommended'),
+                          activeColor: const Color(0xFF1B5E20),
+                        ),
+                        const SizedBox(width: 6),
+                        _buildGovtTab(
+                          context: context,
                           label: 'केंद्र सरकार',
                           icon: Icons.account_balance_rounded,
                           subtitle: 'PM-किसान, KCC..',
@@ -207,22 +271,11 @@ class _YojnaScreenState extends State<YojnaScreen> {
                           context: context,
                           label: 'राज्य सरकार',
                           icon: Icons.castle_rounded,
-                          subtitle: 'सब्सिडी, तारबंदी..',
+                          subtitle: 'सब्सिडी, योजनाएं..',
                           count: provider.stateCount,
                           isSelected: provider.selectedGovtType == 'state',
                           onTap: () => provider.selectGovtType('state'),
                           activeColor: AppColors.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildGovtTab(
-                          context: context,
-                          label: 'सभी योजनाएं',
-                          icon: Icons.grid_view_rounded,
-                          subtitle: 'सभी योजनाएं',
-                          count: provider.totalCount,
-                          isSelected: provider.selectedGovtType == 'all',
-                          onTap: () => provider.selectGovtType('all'),
-                          activeColor: const Color(0xFF1E88E5),
                         ),
                       ],
                     ),
@@ -230,8 +283,34 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 ),
               ),
 
-              // --- 2. State Selector Chips (Horizontal Scroll) ---
-              if (provider.selectedGovtType == 'state' || provider.selectedGovtType == 'all')
+              // --- Scope Recommendation Pill ---
+              if (provider.selectedGovtType == 'recommended')
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B5E20).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF1B5E20).withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.verified_rounded, size: 15, color: Color(0xFF1B5E20)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '📍 आपके राज्य ($stateHindi) की विशेष योजनाएं व केंद्र की ऑल इंडिया योजनाएं',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1B5E20)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // --- 2. State Selector Chips (Horizontal Scroll) for State Tab ---
+              if (provider.selectedGovtType == 'state')
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +318,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                       const Padding(
                         padding: EdgeInsets.fromLTRB(20, 8, 16, 4),
                         child: Text(
-                          '📍 राज्य अनुसार फ़िल्टर करें (Filter by State):',
+                          '📍 राज्य अनुसार योजनाएं देखें (Filter by State):',
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -955,6 +1034,86 @@ class _YojnaScreenState extends State<YojnaScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showStatePickerBottomSheet(BuildContext context, YojnaProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '📍 अपना राज्य चुनें (Select State for Schemes)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'आपके चुने हुए राज्य की विशेष योजनाएं व केंद्र की योजनाएं दिखाई जाएंगी',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _stateOptions.where((s) => s['name'] != 'all').length,
+                  separatorBuilder: (ctx, i) => const Divider(height: 1),
+                  itemBuilder: (context, idx) {
+                    final st = _stateOptions.where((s) => s['name'] != 'all').toList()[idx];
+                    final isSelected = provider.userHomeState.toLowerCase() == st['name']!.toLowerCase();
+                    return ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      title: Text(
+                        st['label']!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? AppColors.primary : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        st['name']!,
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
+                          : null,
+                      onTap: () {
+                        provider.setUserHomeState(st['name']!);
+                        provider.selectStateFilter(st['name']!);
+                        StorageService.saveState(st['name']!);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

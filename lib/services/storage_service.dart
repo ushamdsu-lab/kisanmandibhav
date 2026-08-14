@@ -89,6 +89,12 @@ class StorageService {
     }
   }
 
+  static Future<void> saveState(String state) async {
+    if (state.isNotEmpty) {
+      await _prefs?.setString('saved_state', state);
+    }
+  }
+
   // Mandi API Key
   static String getMandiApiKey() => _prefs?.getString('mandi_api_key') ?? '';
   static Future<void> setMandiApiKey(String key) async =>

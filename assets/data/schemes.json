@@ -513,5 +513,111 @@
       "7/12 जमीन नकल",
       "आधार कार्ड"
     ]
+  },
+  {
+    "id": "up_krishi_yantra",
+    "name": "उत्तर प्रदेश कृषि यंत्र व बीज सब्सिडी योजना",
+    "nameEn": "UP Krishi Yantra & Seed Subsidy Scheme",
+    "governmentType": "state",
+    "stateName": "Uttar Pradesh",
+    "badgeText": "🏛️ उत्तर प्रदेश सरकार",
+    "category": "कृषि यंत्र व सब्सिडी",
+    "categoryEn": "Subsidy",
+    "icon": "agriculture",
+    "description": "पारदर्शी किसान सेवा पोर्टल पर ट्रैक्टर, रोटावेटर, लेजर लैंड लेवलर व प्रमाणित बीजों पर 50% सीधी सब्सिडी।",
+    "eligibility": [
+      "उत्तर प्रदेश का मूल निवासी किसान",
+      "पारदर्शी किसान सेवा पोर्टल (upagriculture.com) पर पंजीकृत"
+    ],
+    "benefits": [
+      "कृषि यंत्रों पर 50% से 80% तक का सीधा अनुदान",
+      "प्रमाणित बीजों पर 50% तक छूट"
+    ],
+    "howToApply": "upagriculture.com पर टोकन व्यवस्था के तहत ऑनलाइन बुकिंग करें",
+    "website": "http://upagriculture.com",
+    "documents": [
+      "किसान पंजीकरण संख्या (UP Agriculture)",
+      "खतौनी नकल",
+      "आधार कार्ड",
+      "बैंक पासबुक"
+    ]
+  },
+  {
+    "id": "up_kisan_durghatna",
+    "name": "मुख्यमंत्री कृषक दुर्घटना कल्याण योजना (UP)",
+    "nameEn": "UP Mukhyamantri Krishak Durghatna Yojana",
+    "governmentType": "state",
+    "stateName": "Uttar Pradesh",
+    "badgeText": "🏛️ उत्तर प्रदेश सरकार",
+    "category": "सुरक्षा व बीमा",
+    "categoryEn": "Insurance",
+    "icon": "health_and_safety",
+    "description": "खेत में कार्य करते समय दुर्घटना में मृत्यु या दिव्यांगता होने पर ₹5 लाख तक की आर्थिक सहायता।",
+    "eligibility": [
+      "उत्तर प्रदेश के किसान, बटाईदार व खेतीहर मजदूर (आयु 18 से 70 वर्ष)"
+    ],
+    "benefits": [
+      "आकस्मिक मृत्यु होने पर ₹5 लाख की सहायता",
+      "60% से अधिक दिव्यांगता पर ₹2 लाख से ₹3.75 लाख सहायता"
+    ],
+    "howToApply": "तहसीलदार कार्यालय या edistrict.up.gov.in पर घटना के 45 दिनों में आवेदन करें",
+    "website": "https://edistrict.up.gov.in",
+    "documents": [
+      "पोस्टमॉर्टम रिपोर्ट / मृत्यु प्रमाण पत्र",
+      "खतौनी नकल",
+      "आधार कार्ड",
+      "वारिसान प्रमाण पत्र"
+    ]
+  },
+  {
+    "id": "haryana_mfmb",
+    "name": "मेरी फसल मेरा ब्योरा (हरियाणा)",
+    "nameEn": "Haryana Meri Fasal Mera Byora",
+    "governmentType": "state",
+    "stateName": "Haryana",
+    "badgeText": "🌾 हरियाणा सरकार",
+    "category": "MSP उपार्जन",
+    "categoryEn": "Procurement",
+    "icon": "grain",
+    "description": "फसलों को सरकारी MSP पर बेचने, मुआवजा क्लेम और कृषि सब्सिडी प्राप्त करने का एकल डिजिटल पोर्टल।",
+    "eligibility": [
+      "हरियाणा के सभी भू-स्वामी व काश्तकार किसान"
+    ],
+    "benefits": [
+      "सरकारी मंडियों में MSP पर 100% फसल खरीद की गारंटी",
+      "खराबा होने पर ₹15,000/एकड़ तक मुआवजा सीधा बैंक खाते में"
+    ],
+    "howToApply": "fasal.haryana.gov.in पर परिवार पहचान पत्र (PPP) से रजिस्ट्रेशन करें",
+    "website": "https://fasal.haryana.gov.in",
+    "documents": [
+      "परिवार पहचान पत्र (PPP ID)",
+      "खेवट/खसरा जमाबंदी नंबर",
+      "बैंक खाता विवरण"
+    ]
+  },
+  {
+    "id": "maha_namo_shetkari",
+    "name": "नमो शेतकरी महासन्मान निधी योजना (महाराष्ट्र)",
+    "nameEn": "Maharashtra Namo Shetkari Yojana",
+    "governmentType": "state",
+    "stateName": "Maharashtra",
+    "badgeText": "🚩 महाराष्ट्र सरकार",
+    "category": "वित्तीय सहायता",
+    "categoryEn": "Financial Aid",
+    "icon": "payments",
+    "description": "पीएम-किसान के अतिरिक्त महाराष्ट्र सरकार द्वारा ₹6,000 प्रति वर्ष (कुल ₹12,000 वार्षिक) आर्थिक सहायता।",
+    "eligibility": [
+      "महाराष्ट्र के किसान जो पीएम-किसान सम्मान निधि के पात्र लाभार्थी हैं"
+    ],
+    "benefits": [
+      "₹6,000 प्रति वर्ष अतिरिक्त (3 किस्तों में ₹2,000)",
+      "पीएम-किसान मिलाकर कुल ₹12,000 प्रति वर्ष सीधा बैंक ट्रांसफर"
+    ],
+    "howToApply": "पीएम-किसान में पंजीकृत किसानों को स्वचालित रूप से DBT द्वारा प्राप्त होती है",
+    "website": "https://krishi.maharashtra.gov.in",
+    "documents": [
+      "आधार कार्ड (Aadhaar Seeded Bank Account)",
+      "7/12 व 8-अ जमीन उतारा"
+    ]
   }
 ]

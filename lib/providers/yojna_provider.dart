@@ -11,21 +11,32 @@ class YojnaProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _error = '';
   
-  String _selectedGovtType = 'all'; // Default to 'all' (सभी 25+ योजनाएं)
-  String _selectedStateFilter = 'all'; // Default to 'all' (सभी राज्य)
+  String _selectedGovtType = 'recommended'; // Default to 'recommended' (आपके राज्य + केंद्र की योजनाएं)
+  String _userHomeState = 'Rajasthan';
+  String _selectedStateFilter = 'all';
   String _selectedCategory = 'all';
   String _searchQuery = '';
   List<String> _bookmarkedIds = [];
 
+  String get userHomeState => _userHomeState;
+
   List<Scheme> get schemes {
     var list = _schemes;
 
-    // Filter by Government Type & State
-    if (_selectedGovtType == 'central') {
+    // Filter by Government Type & Location Scope
+    if (_selectedGovtType == 'recommended') {
+      // Show All Central Schemes + User's Specific State Schemes
+      list = list.where((s) =>
+        s.governmentType == 'central' ||
+        s.stateName.toLowerCase() == _userHomeState.toLowerCase() ||
+        _userHomeState.toLowerCase().contains(s.stateName.toLowerCase()) ||
+        s.stateName.toLowerCase().contains(_userHomeState.toLowerCase())
+      ).toList();
+    } else if (_selectedGovtType == 'central') {
       list = list.where((s) => s.governmentType == 'central').toList();
     } else if (_selectedGovtType == 'state') {
       if (_selectedStateFilter != 'all') {
-        list = list.where((s) => s.governmentType == 'central' || s.stateName.toLowerCase() == _selectedStateFilter.toLowerCase()).toList();
+        list = list.where((s) => s.stateName.toLowerCase() == _selectedStateFilter.toLowerCase()).toList();
       } else {
         list = list.where((s) => s.governmentType == 'state').toList();
       }
@@ -68,6 +79,12 @@ class YojnaProvider extends ChangeNotifier {
   // Counts for tabs
   int get centralCount => _schemes.where((s) => s.governmentType == 'central').length;
   int get stateCount => _schemes.where((s) => s.governmentType == 'state').length;
+  int get recommendedCount => _schemes.where((s) =>
+    s.governmentType == 'central' ||
+    s.stateName.toLowerCase() == _userHomeState.toLowerCase() ||
+    _userHomeState.toLowerCase().contains(s.stateName.toLowerCase()) ||
+    s.stateName.toLowerCase().contains(_userHomeState.toLowerCase())
+  ).length;
   int get totalCount => _schemes.length;
 
   List<String> get categories {
@@ -93,6 +110,10 @@ class YojnaProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final savedState = StorageService.getSavedState();
+      if (savedState.isNotEmpty) {
+        _userHomeState = savedState;
+      }
       final localSchemes = await DataService.loadSchemes();
       final liveSchemes = await SchemeApiService.fetchLiveSchemes();
       _schemes = [...localSchemes, ...liveSchemes];
@@ -104,6 +125,12 @@ class YojnaProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setUserHomeState(String state) {
+    if (state.isEmpty || _userHomeState.toLowerCase() == state.toLowerCase()) return;
+    _userHomeState = state;
+    notifyListeners();
   }
 
   void selectGovtType(String govtType) {
