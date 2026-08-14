@@ -61,27 +61,37 @@ class MandiService {
       }
 
       final List<dynamic> records = decoded['records'] ?? [];
-      return records.map((e) {
-        final r = MandiRate.fromJson(e);
-        return MandiRate(
-          state: r.state,
-          district: r.district,
-          market: r.market,
-          commodity: r.commodity,
-          variety: r.variety,
-          grade: r.grade,
-          minPrice: r.minPrice,
-          maxPrice: r.maxPrice,
-          modalPrice: r.modalPrice,
-          arrivalDate: r.arrivalDate,
-          isLive: true, // Verified from live API
-        );
-      }).toList();
-    } on TimeoutException {
-      throw Exception('सर्वर से संपर्क समय समाप्त (Timeout) हो गया। कृपया इंटरनेट जांचें।');
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('मंडी डेटा लोड करने में समस्या: $e');
+      return records.map((e) => MandiRate.fromJson(e)).toList();
+    } catch (_) {
+      // Fallback to Hourly jsDelivr CDN Snapshot if direct API fails or times out
+      try {
+        const cdnUrl = 'https://cdn.jsdelivr.net/gh/ushamdsu-lab/kisanmandibhav@main/assets/data/mandi_live_rates.json';
+        final cdnResponse = await http.get(Uri.parse(cdnUrl)).timeout(const Duration(seconds: 4));
+        if (cdnResponse.statusCode == 200) {
+          final cdnDecoded = json.decode(cdnResponse.body);
+          if (cdnDecoded is Map<String, dynamic> && cdnDecoded['records'] != null) {
+            final List<dynamic> cdnRecords = cdnDecoded['records'];
+            var filtered = cdnRecords.map((e) => MandiRate.fromJson(e)).toList();
+            if (state != null && state.isNotEmpty) {
+              filtered = filtered.where((r) => r.state.toLowerCase() == state.toLowerCase()).toList();
+            }
+            if (district != null && district.isNotEmpty) {
+              filtered = filtered.where((r) => r.district.toLowerCase() == district.toLowerCase()).toList();
+            }
+            if (market != null && market.isNotEmpty) {
+              filtered = filtered.where((r) => r.market.toLowerCase().contains(market.toLowerCase())).toList();
+            }
+            if (commodity != null && commodity.isNotEmpty) {
+              filtered = filtered.where((r) => r.commodity.toLowerCase().contains(commodity.toLowerCase())).toList();
+            }
+            if (filtered.isNotEmpty) {
+              return filtered.take(limit).toList();
+            }
+          }
+        }
+      } catch (_) {}
+
+      return [];
     }
   }
 }

@@ -1,0 +1,44 @@
+name: Hourly Mandi Data Sync
+
+on:
+  schedule:
+    # Runs every hour at minute 0 (24 times a day)
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allows manual run anytime from GitHub Actions tab
+
+jobs:
+  sync-mandi-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Mandi Sync Script
+        env:
+          MANDI_API_KEY: ${{ secrets.MANDI_API_KEY || '579b464db66ec23bdd000001592db4fa842b480f7171a34c0956c64d' }}
+        run: |
+          python scripts/fetch_mandi_data.py
+
+      - name: Commit & Push Updated Live Mandi Rates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/data/mandi_live_rates.json
+          if git diff --staged --quiet; then
+            echo "No changes in mandi rates, skipping commit."
+          else
+            git commit -m "chore(data): auto-update live mandi rates [skip ci]"
+            git push origin main
+          fi
+
+      - name: Purge jsDelivr CDN Cache
+        run: |
+          curl -s "https://purge.jsdelivr.net/gh/ushamdsu-lab/kisanmandibhav@main/assets/data/mandi_live_rates.json" || true
