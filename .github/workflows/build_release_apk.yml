@@ -1,0 +1,58 @@
+name: Build & Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Split Release APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-arm64
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          name: Kisan Mandi Bhav ${{ github.ref_name }}
+          body: |
+            ## 🌾 Kisan Mandi Bhav - Official Release ${{ github.ref_name }}
+            - 🎙️ **Hindi Voice Audio Bulletins** (Weather & Mandi rates)
+            - 📈 **7-Day Rolling Price History** (FIFO Window + Sparklines)
+            - 🎨 **Official Kisan Mandi Bhav Logo**
+            - 📍 **Permanent Location Save**
+            - 🛡️ **100% Genuine Govt Mandi API Data**
