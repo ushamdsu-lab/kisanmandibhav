@@ -32,6 +32,8 @@ class AdService {
   /// Specific Screens ke liye ON/OFF Switches:
   static bool enableMandiBanner = true;
   static bool enableMandiInlineCards = true;
+  static bool enableMausamBanner = true;
+  static bool enableMausamInlineCards = true;
   static bool enableYojnaBanner = true;
   static bool enableYojnaInlineCards = true;
   static bool enableKhetiBanner = true;

@@ -11,6 +11,10 @@ import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/weather/windy_map_widget.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/inline_ad_card.dart';
+import '../../widgets/ads/custom_sponsor_card.dart';
+import '../../services/ad_service.dart';
 
 class MausamScreen extends StatefulWidget {
   const MausamScreen({super.key});
@@ -459,13 +463,35 @@ class _MausamScreenState extends State<MausamScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final forecast = provider.weatherData!.daily[index];
-                      return _buildForecastCard(forecast, index);
+                      final card = _buildForecastCard(forecast, index);
+
+                      if (index == 2) {
+                        final showCustom = AdService.enableCustomSponsorAds && AdService.customAds.isNotEmpty;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            card,
+                            if (showCustom)
+                              CustomSponsorCard(ad: AdService.customAds.first)
+                            else
+                              InlineAdCard(enabled: AdService.enableMausamInlineCards),
+                          ],
+                        );
+                      }
+
+                      return card;
                     },
                     childCount: provider.weatherData!.daily.length,
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: BannerAdWidget(enabled: AdService.enableMausamBanner, showAdBadge: true),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ],
           );
