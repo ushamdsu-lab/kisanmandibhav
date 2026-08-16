@@ -10,6 +10,7 @@ import 'package:kisan_mitra/utils/whatsapp_share_helper.dart';
 import 'package:kisan_mitra/data/mandi_directory.dart';
 import 'package:kisan_mitra/data/msp_data.dart';
 import 'package:kisan_mitra/config/constants.dart';
+import 'package:kisan_mitra/services/ad_service.dart';
 
 void main() {
   group('Model & Architecture Tests', () {
@@ -232,6 +233,15 @@ void main() {
       );
       expect(mandiSlip.contains('किसान मंडी भाव'), isTrue);
       expect(mandiSlip.contains('27500'), isTrue);
+    });
+
+    test('AdService configures test IDs and safe fallback parameters correctly', () {
+      expect(AdService.isTestMode, isTrue);
+      expect(AdService.bannerAdUnitId.isNotEmpty, isTrue);
+      expect(AdService.interstitialAdUnitId.isNotEmpty, isTrue);
+      expect(AdService.rewardedAdUnitId.isNotEmpty, isTrue);
+      expect(AdService.nativeAdUnitId.isNotEmpty, isTrue);
+      expect(AdService.defaultCooldownSeconds, 60);
     });
   });
 }

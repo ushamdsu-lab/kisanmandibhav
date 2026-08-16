@@ -5,6 +5,8 @@ import '../../config/theme.dart';
 import '../../providers/kheti_provider.dart';
 import '../../models/crop.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../services/ad_service.dart';
 
 class CropDetailScreen extends StatelessWidget {
   final String cropId;
@@ -94,6 +96,9 @@ class CropDetailScreen extends StatelessWidget {
 
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
+          ),
+          bottomNavigationBar: SafeArea(
+            child: BannerAdWidget(enabled: AdService.enableKhetiBanner, showAdBadge: true),
           ),
         );
       },

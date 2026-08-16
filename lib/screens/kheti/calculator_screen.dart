@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../config/theme.dart';
 import '../../providers/kheti_provider.dart';
 import '../../models/fertilizer.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../services/ad_service.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -34,6 +36,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             gradient: LinearGradient(colors: AppColors.khetiGradient),
           ),
         ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: BannerAdWidget(enabled: AdService.enableCalculatorBanner, showAdBadge: true),
       ),
       body: Consumer<KhetiProvider>(
         builder: (context, provider, _) {

@@ -14,6 +14,10 @@ import 'widgets/mandi_state_picker_modal.dart';
 import 'widgets/mandi_district_picker_modal.dart';
 import 'widgets/mandi_price_comparison_modal.dart';
 import 'widgets/mandi_price_alert_modal.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/inline_ad_card.dart';
+import '../../widgets/ads/custom_sponsor_card.dart';
+import '../../services/ad_service.dart';
 
 class MandiScreen extends StatefulWidget {
   const MandiScreen({super.key});
@@ -405,21 +409,49 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final rate = provider.rates[index];
-                        return MandiRateCard(
+                        final card = MandiRateCard(
                           rate: rate,
                           index: index,
                           isFavorite: provider.isFavorite(rate.commodity),
                           hasAlert: provider.hasActiveAlertFor(rate.commodity),
                           onToggleFavorite: () => provider.toggleFavorite(rate.commodity),
                           onSetAlert: () => MandiPriceAlertModal.show(context, rate, provider),
-                          onComparePrices: () => MandiPriceComparisonModal.show(context, rate, provider),
+                          onComparePrices: () {
+                            AdService.showInterstitialAd(
+                              onDismissed: () => MandiPriceComparisonModal.show(context, rate, provider),
+                              cooldownSeconds: 90,
+                            );
+                          },
                         );
+
+                        // Show custom sponsor ad or Google AdMob inline ad after every 5 items
+                        if (index > 0 && index % 5 == 0) {
+                          final showCustom = AdService.enableCustomSponsorAds && AdService.customAds.isNotEmpty;
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (showCustom)
+                                CustomSponsorCard(ad: AdService.customAds.first)
+                              else
+                                InlineAdCard(enabled: AdService.enableMandiInlineCards),
+                              card,
+                            ],
+                          );
+                        }
+
+                        return card;
                       },
                       childCount: provider.rates.length,
                     ),
                   ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: BannerAdWidget(enabled: AdService.enableMandiBanner, showAdBadge: true),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ),
           );

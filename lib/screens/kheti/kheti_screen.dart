@@ -7,6 +7,8 @@ import '../../config/app_images.dart';
 import '../../providers/kheti_provider.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../services/ad_service.dart';
 
 class KhetiScreen extends StatefulWidget {
   const KhetiScreen({super.key});
@@ -238,6 +240,13 @@ class _KhetiScreenState extends State<KhetiScreen> {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: BannerAdWidget(enabled: AdService.enableKhetiBanner, showAdBadge: true),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ],
           );
@@ -277,7 +286,12 @@ class _KhetiScreenState extends State<KhetiScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => context.go('/kheti/crop/${crop.id}'),
+        onTap: () {
+          AdService.showInterstitialAd(
+            onDismissed: () => context.go('/kheti/crop/${crop.id}'),
+            cooldownSeconds: 75,
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(

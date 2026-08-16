@@ -12,6 +12,10 @@ import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../utils/district_helper.dart';
 import '../../services/storage_service.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/inline_ad_card.dart';
+import '../../widgets/ads/custom_sponsor_card.dart';
+import '../../services/ad_service.dart';
 
 class YojnaScreen extends StatefulWidget {
   const YojnaScreen({super.key});
@@ -433,13 +437,35 @@ class _YojnaScreenState extends State<YojnaScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final scheme = provider.schemes[index];
-                      return _buildSchemeCard(context, scheme, provider, index);
+                      final card = _buildSchemeCard(context, scheme, provider, index);
+
+                      if (index > 0 && index % 4 == 0) {
+                        final showCustom = AdService.enableCustomSponsorAds && AdService.customAds.isNotEmpty;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (showCustom)
+                              CustomSponsorCard(ad: AdService.customAds.first)
+                            else
+                              InlineAdCard(enabled: AdService.enableYojnaInlineCards),
+                            card,
+                          ],
+                        );
+                      }
+
+                      return card;
                     },
                     childCount: provider.schemes.length,
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: BannerAdWidget(enabled: AdService.enableYojnaBanner, showAdBadge: true),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           );
         },
@@ -567,7 +593,12 @@ class _YojnaScreenState extends State<YojnaScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        onTap: () => context.push('/yojna/detail/${scheme.id}'),
+        onTap: () {
+          AdService.showInterstitialAd(
+            onDismissed: () => context.push('/yojna/detail/${scheme.id}'),
+            cooldownSeconds: 75,
+          );
+        },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -5,6 +5,8 @@ import '../../config/theme.dart';
 import '../../providers/yojna_provider.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/in_app_browser_sheet.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../services/ad_service.dart';
 
 class SchemeDetailScreen extends StatelessWidget {
   final String schemeId;
@@ -183,6 +185,9 @@ class SchemeDetailScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          bottomNavigationBar: SafeArea(
+            child: BannerAdWidget(enabled: AdService.enableYojnaBanner, showAdBadge: true),
           ),
         );
       },
