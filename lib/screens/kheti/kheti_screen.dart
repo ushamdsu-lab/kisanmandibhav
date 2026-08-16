@@ -229,7 +229,7 @@ class _KhetiScreenState extends State<KhetiScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.82,
+                      childAspectRatio: 0.78,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

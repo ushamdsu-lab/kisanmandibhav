@@ -30,14 +30,16 @@ class ShellScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: _onTabTapped,
-          backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
-          indicatorColor: AppColors.primary.withValues(alpha: 0.15),
-          animationDuration: const Duration(milliseconds: 400),
-          height: 68,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: _onTabTapped,
+            backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
+            indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+            animationDuration: const Duration(milliseconds: 400),
+            height: 66,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.grid_view_outlined),
@@ -67,6 +69,7 @@ class ShellScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
