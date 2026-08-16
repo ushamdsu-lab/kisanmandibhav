@@ -18,6 +18,8 @@ import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/inline_ad_card.dart';
 import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
+import '../../services/tts_service.dart';
+import '../../widgets/mandi/voice_bulletin_bar.dart';
 
 class MandiScreen extends StatefulWidget {
   const MandiScreen({super.key});
@@ -77,6 +79,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const VoiceBulletinBar(),
       body: Consumer<MandiProvider>(
         builder: (context, provider, _) {
           return RefreshIndicator(
@@ -339,17 +342,47 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   ),
                 ),
 
-                // Total Count & Active Filter Indicator
+                // Total Count, Voice Bulletin Button & Active Filter Indicator
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'कुल ${provider.rates.length} भाव उपलब्ध',
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                         ),
+                        const Spacer(),
+                        if (provider.rates.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1B5E20),
+                                foregroundColor: Colors.white,
+                                elevation: 1,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                minimumSize: const Size(0, 30),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.volume_up_rounded, size: 15, color: Colors.amberAccent),
+                              label: const Text(
+                                'भाव सुनें',
+                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                              ),
+                              onPressed: () {
+                                final loc = provider.selectedMarket.isNotEmpty
+                                    ? provider.selectedMarket
+                                    : (provider.selectedDistrict.isNotEmpty
+                                        ? provider.selectedDistrict
+                                        : provider.selectedState);
+                                TtsService().speakMandiBulletin(
+                                  mandiOrDistrict: loc,
+                                  rates: provider.rates,
+                                );
+                              },
+                            ),
+                          ),
                         if (provider.selectedMarket.isNotEmpty || provider.selectedDistrict.isNotEmpty || provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty)
                           GestureDetector(
                             onTap: () {

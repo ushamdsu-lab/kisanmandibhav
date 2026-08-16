@@ -6,6 +6,7 @@ import '../../../utils/commodity_helper.dart';
 import '../../../utils/whatsapp_share_helper.dart';
 import '../../../data/msp_data.dart';
 import '../../../widgets/mandi/sparkline_chart_widget.dart';
+import '../../../services/tts_service.dart';
 
 class MandiRateCard extends StatelessWidget {
   final MandiRate rate;
@@ -251,6 +252,16 @@ class MandiRateCard extends StatelessWidget {
                       color: hasAlert ? Colors.amber.shade800 : Colors.grey.shade600,
                     ),
                     onPressed: onSetAlert,
+                  ),
+                  // Voice Speak Rate Button
+                  IconButton(
+                    iconSize: 20,
+                    constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                    tooltip: 'भाव बोलकर सुनें (Audio)',
+                    icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF1B5E20)),
+                    onPressed: () {
+                      TtsService().speakCropRate(rate);
+                    },
                   ),
                   // WhatsApp Share
                   IconButton(
