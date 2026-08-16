@@ -6,6 +6,7 @@ import '../../config/app_images.dart';
 import '../../providers/mandi_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../services/storage_service.dart';
 import '../../widgets/common/notification_center_sheet.dart';
 import 'widgets/dashboard_live_ticker.dart';
 import 'widgets/dashboard_weather_card.dart';
@@ -28,7 +29,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final mandiProv = context.read<MandiProvider>();
 
       if (weatherProv.weatherData == null && !weatherProv.isLoading) {
-        weatherProv.fetchUserLocation(mandiProvider: mandiProv);
+        if (StorageService.hasSavedLocation()) {
+          // Location is ALREADY saved! Directly fetch weather, never prompt GPS again.
+          weatherProv.fetchWeather();
+        } else {
+          // First launch only: auto-detect once and save permanently
+          weatherProv.fetchUserLocation(mandiProvider: mandiProv);
+        }
       }
       if (mandiProv.rates.isEmpty && !mandiProv.isLoading) {
         mandiProv.fetchRates();

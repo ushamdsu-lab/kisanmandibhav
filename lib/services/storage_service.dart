@@ -51,6 +51,10 @@ class StorageService {
   static String getSavedDistrict() => _prefs?.getString('saved_district') ?? '';
   static String getSavedMandi() => _prefs?.getString('saved_mandi') ?? '';
   
+  static bool hasSavedLocation() =>
+      (getSavedCity().isNotEmpty || getSavedDistrict().isNotEmpty || getSavedState().isNotEmpty) &&
+      (getSavedLatitude() != 0 && getSavedLongitude() != 0);
+  
   static Future<void> saveLocation({
     required String city,
     required double lat,
