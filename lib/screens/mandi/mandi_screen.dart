@@ -383,24 +383,50 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   )
                 else if (provider.rates.isEmpty)
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            const Icon(Icons.search_off_rounded, size: 48, color: Colors.grey),
-                            const SizedBox(height: 8),
-                            const Text('कोई मंडी भाव नहीं मिला', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                            const SizedBox(height: 4),
-                            TextButton(
-                              onPressed: () {
-                                _searchController.clear();
-                                provider.clearFilters();
-                              },
-                              child: const Text('सभी फ़िल्टर साफ़ करें'),
+                    child: Container(
+                      margin: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.inventory_2_outlined, size: 54, color: AppColors.mandiAccent.withValues(alpha: 0.8)),
+                          const SizedBox(height: 12),
+                          Text(
+                            provider.selectedMarket.isNotEmpty
+                                ? '${provider.selectedMarket} में आज कोई नई आवक दर्ज नहीं हुई'
+                                : (provider.selectedDistrict.isNotEmpty
+                                    ? '${provider.selectedDistrict} जिले में आज कोई आवक दर्ज नहीं हुई'
+                                    : 'आज कोई मंडी भाव दर्ज नहीं हुआ'),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'सरकारी पोर्टल (Agmarknet) पर आज की नीलामी/आवक दर्ज होते ही यहाँ ताज़ा भाव दिखने लगेंगे।',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mandiAccent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             ),
-                          ],
-                        ),
+                            icon: const Icon(Icons.storefront_rounded, size: 18),
+                            label: const Text('सभी मंडियों के भाव देखें', style: TextStyle(fontWeight: FontWeight.w700)),
+                            onPressed: () {
+                              _searchController.clear();
+                              provider.clearFilters();
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   )
