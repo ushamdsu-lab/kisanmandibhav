@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
+import '../../config/app_images.dart';
 import '../../providers/mandi_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -42,12 +43,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.agriculture_rounded, color: Colors.white, size: 22),
+              child: AppImages.appLogo(size: 34, borderRadius: BorderRadius.circular(8)),
             ),
             const SizedBox(width: 10),
             Column(
