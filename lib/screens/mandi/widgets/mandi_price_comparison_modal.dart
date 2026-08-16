@@ -4,6 +4,7 @@ import '../../../models/mandi_rate.dart';
 import '../../../providers/mandi_provider.dart';
 import '../../../utils/commodity_helper.dart';
 import '../../../utils/district_helper.dart';
+import '../../../widgets/mandi/sparkline_chart_widget.dart';
 
 class MandiPriceComparisonModal extends StatefulWidget {
   final MandiRate targetRate;
@@ -164,6 +165,19 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
                   ),
                 ],
               ),
+            ),
+          ),
+
+          // 7-Day Rolling Price History Chart (FIFO Window)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SparklineChartWidget(
+              state: widget.targetRate.state,
+              commodity: widget.targetRate.commodity,
+              modalPrice: widget.targetRate.modalPrice,
+              minPrice: widget.targetRate.minPrice,
+              maxPrice: widget.targetRate.maxPrice,
+              compact: false,
             ),
           ),
 

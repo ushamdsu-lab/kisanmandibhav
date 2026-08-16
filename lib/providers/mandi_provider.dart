@@ -164,6 +164,7 @@ class MandiProvider extends ChangeNotifier {
         _allStateRates = liveRates;
         _isOffline = false;
         StorageService.saveCachedMandiRates(_selectedState, liveRates);
+        StorageService.recordPriceHistory(liveRates);
       } else {
         final cached = StorageService.getCachedMandiRates(_selectedState);
         if (cached.isNotEmpty) {

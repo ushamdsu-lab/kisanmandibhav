@@ -5,6 +5,7 @@ import '../../../models/mandi_rate.dart';
 import '../../../utils/commodity_helper.dart';
 import '../../../utils/whatsapp_share_helper.dart';
 import '../../../data/msp_data.dart';
+import '../../../widgets/mandi/sparkline_chart_widget.dart';
 
 class MandiRateCard extends StatelessWidget {
   final MandiRate rate;
@@ -29,8 +30,6 @@ class MandiRateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hindiName = CommodityHelper.getHindiName(rate.commodity);
-    final isUp = rate.trendDirection == 'up';
-    final isDown = rate.trendDirection == 'down';
     final mspItem = MspDatabase.getMspForCrop(rate.commodity);
 
     return Card(
@@ -222,34 +221,14 @@ class MandiRateCard extends StatelessWidget {
               // 4. Action Row (Compare Mandis, Price Alert, WhatsApp Share)
               Row(
                 children: [
-                  // Price Trend badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isUp
-                          ? Colors.green.shade100
-                          : (isDown ? Colors.red.shade100 : Colors.grey.shade200),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isUp ? Icons.trending_up_rounded : (isDown ? Icons.trending_down_rounded : Icons.trending_flat_rounded),
-                          size: 14,
-                          color: isUp ? Colors.green.shade800 : (isDown ? Colors.red.shade800 : Colors.grey.shade700),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          isUp ? 'तेजी' : (isDown ? 'मंदी' : 'स्थिर'),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: isUp ? Colors.green.shade900 : (isDown ? Colors.red.shade900 : Colors.grey.shade800),
-                          ),
-                        ),
-                      ],
-                    ),
+                  // Price Trend badge & 7-Day Sparkline
+                  SparklineChartWidget(
+                    state: rate.state,
+                    commodity: rate.commodity,
+                    modalPrice: rate.modalPrice,
+                    minPrice: rate.minPrice,
+                    maxPrice: rate.maxPrice,
+                    compact: true,
                   ),
                   const Spacer(),
                   // Compare prices button
