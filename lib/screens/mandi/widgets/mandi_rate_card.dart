@@ -253,7 +253,7 @@ class MandiRateCard extends StatelessWidget {
                     ),
                     onPressed: onSetAlert,
                   ),
-                  // Voice Speak Rate Button
+                  // Voice Speak Rate Button (Hindi Female Voice)
                   IconButton(
                     iconSize: 20,
                     constraints: const BoxConstraints(minWidth: 38, minHeight: 38),

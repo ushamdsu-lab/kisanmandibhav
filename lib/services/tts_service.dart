@@ -18,7 +18,6 @@ class TtsService {
       ValueNotifier<TtsAudioState>(TtsAudioState.stopped);
   final ValueNotifier<String> currentTitleNotifier = ValueNotifier<String>('');
   final ValueNotifier<String> currentSpeechNotifier = ValueNotifier<String>('');
-  final ValueNotifier<double> progressNotifier = ValueNotifier<double>(0.0);
 
   bool get isPlaying => stateNotifier.value == TtsAudioState.playing;
   bool get isPaused => stateNotifier.value == TtsAudioState.paused;
@@ -30,11 +29,62 @@ class TtsService {
     try {
       _flutterTts = FlutterTts();
 
-      // Configure Hindi Locale
+      // Configure Hindi Locale (India)
       await _flutterTts!.setLanguage("hi-IN");
-      await _flutterTts!.setSpeechRate(kIsWeb ? 0.9 : 0.48); // Natural, clear radio pacing
+
+      // Natural, pleasant radio-announcer pace and clear sweet female tone
+      await _flutterTts!.setSpeechRate(kIsWeb ? 0.9 : 0.44);
+      await _flutterTts!.setPitch(1.08);
       await _flutterTts!.setVolume(1.0);
-      await _flutterTts!.setPitch(1.0);
+
+      // Attempt to pick Google Hindi Female Voice on Android / iOS
+      try {
+        final dynamic voices = await _flutterTts!.getVoices;
+        if (voices is List) {
+          Map<dynamic, dynamic>? selectedVoice;
+
+          // Priority 1: Google Hindi Female neural voice
+          for (final voice in voices) {
+            if (voice is Map) {
+              final name = (voice['name'] ?? '').toString().toLowerCase();
+              final locale = (voice['locale'] ?? '').toString().toLowerCase();
+              if (locale.contains('hi') || locale.contains('hin')) {
+                if (name.contains('hia') ||
+                    name.contains('hie') ||
+                    name.contains('female') ||
+                    name.contains('woman') ||
+                    name.contains('girl')) {
+                  selectedVoice = voice;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Priority 2: Any standard Hindi voice
+          if (selectedVoice == null) {
+            for (final voice in voices) {
+              if (voice is Map) {
+                final locale = (voice['locale'] ?? '').toString().toLowerCase();
+                if (locale.contains('hi')) {
+                  selectedVoice = voice;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (selectedVoice != null) {
+            final voiceName = selectedVoice['name']?.toString() ?? '';
+            final voiceLocale = selectedVoice['locale']?.toString() ?? 'hi-IN';
+            if (voiceName.isNotEmpty) {
+              await _flutterTts!.setVoice({"name": voiceName, "locale": voiceLocale});
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('[TtsService] Voice selection fallback: $e');
+      }
 
       _flutterTts!.setStartHandler(() {
         stateNotifier.value = TtsAudioState.playing;
@@ -44,14 +94,12 @@ class TtsService {
         stateNotifier.value = TtsAudioState.stopped;
         currentTitleNotifier.value = '';
         currentSpeechNotifier.value = '';
-        progressNotifier.value = 0.0;
       });
 
       _flutterTts!.setCancelHandler(() {
         stateNotifier.value = TtsAudioState.stopped;
         currentTitleNotifier.value = '';
         currentSpeechNotifier.value = '';
-        progressNotifier.value = 0.0;
       });
 
       _flutterTts!.setPauseHandler(() {
@@ -73,7 +121,7 @@ class TtsService {
     }
   }
 
-  /// Speak a single crop rate in natural Hindi
+  /// Read single crop rate clearly in Hindi
   Future<void> speakCropRate(MandiRate rate) async {
     await init();
     await stop();
@@ -100,7 +148,7 @@ class TtsService {
     }
   }
 
-  /// Speak full Mandi bulletin for all active rates
+  /// Read comprehensive Hindi Audio Bulletin for all crops in the Mandi
   Future<void> speakMandiBulletin({
     required String mandiOrDistrict,
     required List<MandiRate> rates,
@@ -111,9 +159,9 @@ class TtsService {
 
     final title = "$mandiOrDistrict - दैनिक मंडी बुलेटिन";
     final sb = StringBuffer();
-    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict के प्रमुख मंडी भाव इस प्रकार हैं। ");
+    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict के प्रमुख मंडी भाव इस प्रकार हैं: ");
 
-    final topRates = rates.take(12).toList();
+    final topRates = rates.take(15).toList();
     for (int i = 0; i < topRates.length; i++) {
       final r = topRates[i];
       final crop = CommodityHelper.getHindiName(r.commodity);
@@ -159,6 +207,5 @@ class TtsService {
     stateNotifier.value = TtsAudioState.stopped;
     currentTitleNotifier.value = '';
     currentSpeechNotifier.value = '';
-    progressNotifier.value = 0.0;
   }
 }
