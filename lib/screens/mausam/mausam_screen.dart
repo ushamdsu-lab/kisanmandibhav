@@ -15,6 +15,8 @@ import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/inline_ad_card.dart';
 import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
+import '../../services/tts_service.dart';
+import '../../widgets/mandi/voice_bulletin_bar.dart';
 
 class MausamScreen extends StatefulWidget {
   const MausamScreen({super.key});
@@ -200,6 +202,7 @@ class _MausamScreenState extends State<MausamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const VoiceBulletinBar(),
       body: Consumer<WeatherProvider>(
         builder: (context, provider, _) {
           return CustomScrollView(
@@ -681,6 +684,31 @@ class _MausamScreenState extends State<MausamScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          // 🎙️ "आज का मौसम सुनें" (Audio Weather Bulletin)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF0D47A1),
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF0D47A1), size: 20),
+              label: const Text(
+                'आज का मौसम बुलेटिन सुनें (Audio)',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900),
+              ),
+              onPressed: () {
+                TtsService().speakWeatherReport(
+                  city: provider.cityName,
+                  weather: provider.weatherData!,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

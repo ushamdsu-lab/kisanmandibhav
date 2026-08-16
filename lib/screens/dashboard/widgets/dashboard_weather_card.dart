@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/constants.dart';
 import '../../../providers/weather_provider.dart';
+import '../../../services/tts_service.dart';
 
 class DashboardWeatherCard extends StatelessWidget {
   final WeatherProvider provider;
@@ -86,13 +87,44 @@ class DashboardWeatherCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
+                          GestureDetector(
+                            onTap: () {
+                              if (weather != null) {
+                                TtsService().speakWeatherReport(
+                                  city: locationName,
+                                  weather: weather,
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.amberAccent,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.volume_up_rounded, color: Color(0xFF0D47A1), size: 13),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'मौसम सुनें',
+                                    style: TextStyle(
+                                      color: Color(0xFF0D47A1),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: const Text('आज का मौसम', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
