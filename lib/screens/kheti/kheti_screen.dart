@@ -57,8 +57,24 @@ class _KhetiScreenState extends State<KhetiScreen> {
                 expandedHeight: 130,
                 floating: false,
                 pinned: true,
+                iconTheme: const IconThemeData(color: Colors.white),
+                actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
-                  title: const Text('🌱 खेती सलाह व कीट सुरक्षा'),
+                  title: const Text(
+                    '🌱 खेती सलाह व कीट सुरक्षा',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
                   background: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(

@@ -205,10 +205,23 @@ class _MausamScreenState extends State<MausamScreen> {
                 expandedHeight: 120,
                 floating: false,
                 pinned: true,
+                iconTheme: const IconThemeData(color: Colors.white),
+                actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
                   title: const Text(
                     '🌦️ कृषि मौसम अपडेट',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
                   ),
                   background: Container(
                     decoration: const BoxDecoration(
@@ -222,7 +235,7 @@ class _MausamScreenState extends State<MausamScreen> {
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.my_location_rounded),
+                    icon: const Icon(Icons.my_location_rounded, color: Colors.white),
                     tooltip: 'वर्तमान GPS लोकेशन लें',
                     onPressed: () async {
                       final mandiProv = context.read<MandiProvider>();
@@ -240,7 +253,7 @@ class _MausamScreenState extends State<MausamScreen> {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                     onPressed: () => provider.fetchWeather(),
                     tooltip: 'रिफ्रेश करें',
                   ),

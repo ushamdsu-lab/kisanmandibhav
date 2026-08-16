@@ -34,16 +34,32 @@ class SchemeDetailScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 160,
                 pinned: true,
+                iconTheme: const IconThemeData(color: Colors.white),
+                actionsIconTheme: const IconThemeData(color: Colors.white),
                 actions: [
                   IconButton(
-                    icon: Icon(isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded),
+                    icon: Icon(
+                      isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                      color: Colors.white,
+                    ),
                     onPressed: () => provider.toggleBookmark(scheme.id),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
                     scheme.name,
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

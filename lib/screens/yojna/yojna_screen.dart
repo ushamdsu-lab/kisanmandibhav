@@ -83,10 +83,23 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 expandedHeight: 120,
                 floating: false,
                 pinned: true,
+                iconTheme: const IconThemeData(color: Colors.white),
+                actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
                   title: const Text(
                     '📋 सरकारी योजनाएं',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
                   ),
                   background: Container(
                     decoration: const BoxDecoration(
@@ -112,7 +125,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.verified_user_rounded),
+                    icon: const Icon(Icons.verified_user_rounded, color: Colors.white),
                     onPressed: () => _showEligibilityCheckerModal(context),
                     tooltip: 'पात्रता जांचें',
                   ),

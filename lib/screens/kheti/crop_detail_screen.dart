@@ -33,8 +33,24 @@ class CropDetailScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 180,
                 pinned: true,
+                iconTheme: const IconThemeData(color: Colors.white),
+                actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
-                  title: Text('${crop.name} (${crop.nameEn})'),
+                  title: Text(
+                    '${crop.name} (${crop.nameEn})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
                   background: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
