@@ -25,7 +25,7 @@ class MandiDirectory {
     'Jalore': ['Jalore APMC', 'Bhinmal APMC', 'Raniwara APMC', 'Sanchore APMC', 'Ahore APMC'],
     'Jhalawar': ['Jhalawar APMC', 'Bhawani Mandi APMC', 'Jhalrapatan APMC', 'Aklera APMC', 'Khanpur APMC', 'Pirawa APMC'],
     'Jhunjhunu': ['Jhunjhunu APMC', 'Nawalgarh APMC', 'Chirawa APMC', 'Khetri APMC', 'Surajgarh APMC', 'Udaipurwati APMC'],
-    'Jodhpur': ['Jodhpur (Grain) APMC', 'Jodhpur (F&V) APMC', 'Mathania APMC', 'Bilara APMC', 'Phalodi APMC', 'Pipar City APMC', 'Bhopalgarh APMC', 'Osian APMC', 'Balesar APMC', 'Luni APMC'],
+    'Jodhpur': ['Jodhpur (Grain) APMC', 'Jodhpur (F&V) APMC', 'Bilara APMC', 'Phalodi APMC', 'Pipar City APMC'],
     'Karauli': ['Karauli APMC', 'Hindaun City APMC', 'Todabhim APMC'],
     'Kota': ['Kota APMC', 'Ramganjmandi APMC', 'Sangod APMC', 'Itawa APMC', 'Sultanpur APMC'],
     'Nagaur': ['Nagaur APMC', 'Merta City APMC', 'Didwana APMC', 'Kuchaman City APMC', 'Ladnun APMC', 'Makrana APMC', 'Degana APMC', 'Parbatsar APMC', 'Jayal APMC'],

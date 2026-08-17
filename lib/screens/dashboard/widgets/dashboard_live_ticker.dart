@@ -14,7 +14,7 @@ class DashboardLiveTicker extends StatelessWidget {
     final List<MandiRate> topCrops = mandiProvider.rates.isNotEmpty
         ? mandiProvider.rates.take(8).toList()
         : [
-            MandiRate(state: 'Rajasthan', district: 'Jodhpur', market: 'Mathania APMC', commodity: 'Jeera (Cumin)', minPrice: 27000, maxPrice: 29500, modalPrice: 28500, arrivalDate: 'आज', variety: 'Common', grade: 'FAQ'),
+            MandiRate(state: 'Rajasthan', district: 'Jodhpur', market: 'Jodhpur (Grain) APMC', commodity: 'Jeera (Cumin)', minPrice: 27000, maxPrice: 29500, modalPrice: 28500, arrivalDate: 'आज', variety: 'Common', grade: 'FAQ'),
             MandiRate(state: 'Rajasthan', district: 'Jodhpur', market: 'Jodhpur (Grain) APMC', commodity: 'Mustard', minPrice: 5200, maxPrice: 5500, modalPrice: 5420, arrivalDate: 'आज', variety: 'Mustard', grade: 'FAQ'),
             MandiRate(state: 'Rajasthan', district: 'Jodhpur', market: 'Jodhpur (Grain) APMC', commodity: 'Guar Seed', minPrice: 5100, maxPrice: 5400, modalPrice: 5320, arrivalDate: 'आज', variety: 'Guar', grade: 'FAQ'),
             MandiRate(state: 'Rajasthan', district: 'Jodhpur', market: 'Jodhpur (Grain) APMC', commodity: 'Gram (Chana)', minPrice: 5600, maxPrice: 6000, modalPrice: 5800, arrivalDate: 'आज', variety: 'Desi', grade: 'FAQ'),

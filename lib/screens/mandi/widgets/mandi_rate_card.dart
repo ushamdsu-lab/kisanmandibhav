@@ -220,60 +220,70 @@ class MandiRateCard extends StatelessWidget {
               const SizedBox(height: 8),
 
               // 4. Action Row (Compare Mandis, Price Alert, WhatsApp Share)
-              Row(
-                children: [
-                  // Price Trend badge & 7-Day Sparkline
-                  SparklineChartWidget(
-                    state: rate.state,
-                    commodity: rate.commodity,
-                    modalPrice: rate.modalPrice,
-                    minPrice: rate.minPrice,
-                    maxPrice: rate.maxPrice,
-                    compact: true,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: 320,
+                  child: Row(
+                    children: [
+                      // Price Trend badge & 7-Day Sparkline
+                      SparklineChartWidget(
+                        state: rate.state,
+                        commodity: rate.commodity,
+                        modalPrice: rate.modalPrice,
+                        minPrice: rate.minPrice,
+                        maxPrice: rate.maxPrice,
+                        compact: true,
+                      ),
+                      const Spacer(),
+                      // Compare prices button
+                      TextButton.icon(
+                        onPressed: onComparePrices,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          minimumSize: const Size(36, 32),
+                        ),
+                        icon: const Icon(Icons.compare_arrows_rounded, size: 15, color: AppColors.primary),
+                        label: const Text('तुलना', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                      ),
+                      // Price Alert button
+                      IconButton(
+                        iconSize: 19,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        tooltip: 'भाव अलर्ट सेट करें',
+                        icon: Icon(
+                          hasAlert ? Icons.notifications_active_rounded : Icons.notification_add_outlined,
+                          color: hasAlert ? Colors.amber.shade800 : Colors.grey.shade600,
+                        ),
+                        onPressed: onSetAlert,
+                      ),
+                      // Voice Speak Rate Button
+                      IconButton(
+                        iconSize: 19,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        tooltip: 'भाव बोलकर सुनें (Audio)',
+                        icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF1B5E20)),
+                        onPressed: () {
+                          TtsService().speakCropRate(rate);
+                        },
+                      ),
+                      // WhatsApp Share
+                      IconButton(
+                        iconSize: 19,
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        tooltip: 'व्हाट्सएप पर पर्ची भेजें',
+                        icon: const Icon(Icons.share_rounded, color: Color(0xFF25D366)),
+                        onPressed: () {
+                          WhatsAppShareHelper.shareRateSlip(rate: rate);
+                        },
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  // Compare prices button
-                  TextButton.icon(
-                    onPressed: onComparePrices,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      minimumSize: const Size(40, 36),
-                    ),
-                    icon: const Icon(Icons.compare_arrows_rounded, size: 16, color: AppColors.primary),
-                    label: const Text('तुलना', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                  ),
-                  // Price Alert button
-                  IconButton(
-                    iconSize: 20,
-                    constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                    tooltip: 'भाव अलर्ट सेट करें',
-                    icon: Icon(
-                      hasAlert ? Icons.notifications_active_rounded : Icons.notification_add_outlined,
-                      color: hasAlert ? Colors.amber.shade800 : Colors.grey.shade600,
-                    ),
-                    onPressed: onSetAlert,
-                  ),
-                  // Voice Speak Rate Button (Hindi Female Voice)
-                  IconButton(
-                    iconSize: 20,
-                    constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                    tooltip: 'भाव बोलकर सुनें (Audio)',
-                    icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF1B5E20)),
-                    onPressed: () {
-                      TtsService().speakCropRate(rate);
-                    },
-                  ),
-                  // WhatsApp Share
-                  IconButton(
-                    iconSize: 20,
-                    constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                    tooltip: 'व्हाट्सएप पर पर्ची भेजें',
-                    icon: const Icon(Icons.share_rounded, color: Color(0xFF25D366)),
-                    onPressed: () {
-                      WhatsAppShareHelper.shareRateSlip(rate: rate);
-                    },
-                  ),
-                ],
+                ),
               ),
             ],
           ),

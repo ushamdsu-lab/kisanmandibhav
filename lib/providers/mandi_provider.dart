@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/mandi_rate.dart';
@@ -14,6 +15,7 @@ class MandiProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isOffline = false;
   String _error = '';
+  Timer? _autoSyncTimer;
   
   String _selectedState = 'Rajasthan'; // Default state; updated by GPS detection
   String _selectedDistrict = '';
@@ -29,6 +31,23 @@ class MandiProvider extends ChangeNotifier {
 
   MandiProvider() {
     _loadSavedPreferences();
+    _startAutoSyncTimer();
+  }
+
+  void _startAutoSyncTimer() {
+    _autoSyncTimer?.cancel();
+    // Industry standard: Auto-sync fresh mandi rates every 30 minutes while active
+    _autoSyncTimer = Timer.periodic(const Duration(minutes: 30), (_) {
+      if (!_isLoading) {
+        fetchRates(state: _selectedState);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoSyncTimer?.cancel();
+    super.dispose();
   }
 
   void _loadSavedPreferences() {
@@ -44,8 +63,9 @@ class MandiProvider extends ChangeNotifier {
       _selectedDistrict = savedDistrict;
       _userHomeDistrict = savedDistrict;
     }
-    if (savedMandi.isNotEmpty) {
-      _selectedMarket = savedMandi;
+    // Location detection and home view show all mandis in the district by default
+    _selectedMarket = '';
+    if (savedMandi.isNotEmpty && !savedMandi.toLowerCase().contains('mathania')) {
       _userHomeMarket = savedMandi;
     }
 
@@ -144,6 +164,34 @@ class MandiProvider extends ChangeNotifier {
     final list = markets.where((m) => m.isNotEmpty).toList();
     list.sort();
     return list;
+  }
+
+  int getRatesCountForMarket(String market) {
+    final m = _cleanMarketName(market).toLowerCase();
+    return _allStateRates.where((r) {
+      final rMarket = _cleanMarketName(r.market).toLowerCase();
+      return rMarket.contains(m) ||
+          m.contains(rMarket) ||
+          r.market.toLowerCase().contains(m) ||
+          m.contains(r.market.toLowerCase());
+    }).length;
+  }
+
+  List<String> getSampleCropsForMarket(String market) {
+    final m = _cleanMarketName(market).toLowerCase();
+    final matching = _allStateRates
+        .where((r) {
+          final rMarket = _cleanMarketName(r.market).toLowerCase();
+          return rMarket.contains(m) ||
+              m.contains(rMarket) ||
+              r.market.toLowerCase().contains(m) ||
+              m.contains(r.market.toLowerCase());
+        })
+        .map((r) => CommodityHelper.getHindiName(r.commodity))
+        .toSet()
+        .take(4)
+        .toList();
+    return matching;
   }
 
   Future<void> fetchRates({String? state, String? district, String? market}) async {
@@ -291,10 +339,14 @@ class MandiProvider extends ChangeNotifier {
       _userHomeDistrict = _selectedDistrict;
     }
 
-    if (market != null && market.isNotEmpty) {
-      _selectedMarket = market;
-      _userHomeMarket = market;
-    }
+    // When location is detected, show ALL mandis of that district, not locked to a single market
+    _selectedMarket = (market != null &&
+            market.isNotEmpty &&
+            market != 'all' &&
+            MandiDirectory.getMandisForDistrict(_selectedState, _selectedDistrict).contains(market))
+        ? market
+        : '';
+    _userHomeMarket = _selectedMarket;
 
     StorageService.saveMandiLocation(
       state: _selectedState,
@@ -302,7 +354,11 @@ class MandiProvider extends ChangeNotifier {
       mandi: _selectedMarket,
     );
 
-    fetchRates(state: _selectedState, district: _selectedDistrict, market: _selectedMarket);
+    fetchRates(
+      state: _selectedState,
+      district: _selectedDistrict,
+      market: _selectedMarket.isNotEmpty ? _selectedMarket : null,
+    );
   }
 
   void viewAllMandis() {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/weather_data.dart';
 import '../services/weather_service.dart';
@@ -26,6 +27,7 @@ class WeatherProvider extends ChangeNotifier {
   WeatherData? _weatherData;
   bool _isLoading = false;
   String _error = '';
+  Timer? _autoRefreshTimer;
   
   // Default to Delhi / National Central Hub
   String _cityName = 'दिल्ली (Delhi)';
@@ -50,6 +52,23 @@ class WeatherProvider extends ChangeNotifier {
 
   WeatherProvider() {
     _loadSavedLocation();
+    _startAutoRefreshTimer();
+  }
+
+  void _startAutoRefreshTimer() {
+    _autoRefreshTimer?.cancel();
+    // Industry standard: Auto-sync every 15 minutes while active
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      if (!_isLoading) {
+        fetchWeather();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
   }
 
   void _loadSavedLocation() {
@@ -98,7 +117,6 @@ class WeatherProvider extends ChangeNotifier {
       mandiProvider.syncLocationContext(
         state: _detectedState,
         district: _detectedDistrict,
-        market: _detectedMandi,
       );
     }
 
@@ -166,7 +184,6 @@ class WeatherProvider extends ChangeNotifier {
       mandiProvider.syncLocationContext(
         state: loc.state,
         district: loc.effectiveDistrict,
-        market: loc.mandi.isNotEmpty ? loc.mandi : null,
       );
     }
 

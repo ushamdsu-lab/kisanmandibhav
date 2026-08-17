@@ -27,13 +27,19 @@ class TtsService {
   bool get isPaused => stateNotifier.value == TtsAudioState.paused;
   bool get isStopped => stateNotifier.value == TtsAudioState.stopped;
 
+  List<String> _pendingSegments = [];
+  int _currentSegmentIndex = 0;
+  bool _isUsingAudioPlayer = false;
+
   Future<void> init() async {
     if (_isInitialized) return;
 
     try {
       _audioPlayer = AudioPlayer();
       _audioPlayer!.onPlayerStateChanged.listen((state) {
-        if (state == PlayerState.completed || state == PlayerState.stopped) {
+        if (state == PlayerState.completed) {
+          _playNextSegment();
+        } else if (state == PlayerState.stopped) {
           stateNotifier.value = TtsAudioState.stopped;
           currentTitleNotifier.value = '';
           currentSpeechNotifier.value = '';
@@ -46,40 +52,9 @@ class TtsService {
 
       _flutterTts = FlutterTts();
       await _flutterTts!.setLanguage("hi-IN");
-      await _flutterTts!.setSpeechRate(kIsWeb ? 0.9 : 0.44);
-      await _flutterTts!.setPitch(1.08);
+      await _flutterTts!.setSpeechRate(kIsWeb ? 0.85 : 0.42);
+      await _flutterTts!.setPitch(0.92);
       await _flutterTts!.setVolume(1.0);
-
-      // Pick Google Hindi Female voice on Android
-      try {
-        final dynamic voices = await _flutterTts!.getVoices;
-        if (voices is List) {
-          Map<dynamic, dynamic>? selectedVoice;
-          for (final voice in voices) {
-            if (voice is Map) {
-              final name = (voice['name'] ?? '').toString().toLowerCase();
-              final locale = (voice['locale'] ?? '').toString().toLowerCase();
-              if (locale.contains('hi') || locale.contains('hin')) {
-                if (name.contains('hia') ||
-                    name.contains('hie') ||
-                    name.contains('female') ||
-                    name.contains('woman')) {
-                  selectedVoice = voice;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (selectedVoice != null) {
-            final voiceName = selectedVoice['name']?.toString() ?? '';
-            final voiceLocale = selectedVoice['locale']?.toString() ?? 'hi-IN';
-            if (voiceName.isNotEmpty) {
-              await _flutterTts!.setVoice({"name": voiceName, "locale": voiceLocale});
-            }
-          }
-        }
-      } catch (_) {}
 
       _flutterTts!.setStartHandler(() => stateNotifier.value = TtsAudioState.playing);
       _flutterTts!.setCompletionHandler(() {
@@ -102,7 +77,58 @@ class TtsService {
     }
   }
 
-  /// 🌤️ Read complete Weather Forecast Bulletin in sweet Hindi
+  /// 🌾 Read LIVE Mandi Rates currently shown on screen with exact prices
+  Future<void> speakMandiBulletin({
+    required String mandiOrDistrict,
+    required List<MandiRate> rates,
+  }) async {
+    if (rates.isEmpty) return;
+    await init();
+    await stop();
+
+    final title = "$mandiOrDistrict - लाइव भाव बुलेटिन";
+    final sb = StringBuffer();
+    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict में फसलों के ताज़ा भाव इस प्रकार हैं: ");
+
+    // Read top 10 crops currently on the screen with their exact live modal prices
+    final topRates = rates.take(10).toList();
+    for (int i = 0; i < topRates.length; i++) {
+      final r = topRates[i];
+      final crop = CommodityHelper.getHindiName(r.commodity);
+      final price = r.modalPrice.toInt();
+      if (i == topRates.length - 1 && topRates.length > 1) {
+        sb.write("और $crop $price रुपये, ");
+      } else {
+        sb.write("$crop $price रुपये, ");
+      }
+    }
+
+    sb.write("प्रति क्विंटल दर्ज हुआ है। धन्यवाद और आपका दिन शुभ हो!");
+    final fullText = sb.toString();
+
+    await _speakDynamicText(fullText, title);
+  }
+
+  /// 🌾 Read single crop rate in Hindi with exact modal, min and max prices
+  Future<void> speakCropRate(MandiRate rate) async {
+    await init();
+    await stop();
+
+    final cropHindi = CommodityHelper.getHindiName(rate.commodity);
+    final marketName = rate.market.trim();
+    final modal = rate.modalPrice.toInt();
+    final min = rate.minPrice.toInt();
+    final max = rate.maxPrice.toInt();
+
+    final text =
+        "$marketName में $cropHindi का मॉडल भाव $modal रुपये प्रति क्विंटल है। "
+        "न्यूनतम भाव $min रुपये और अधिकतम भाव $max रुपये रहा।";
+
+    final title = "$cropHindi - ₹$modal/क्विंटल";
+    await _speakDynamicText(text, title);
+  }
+
+  /// 🌤️ Read complete Weather Forecast Bulletin with live data
   Future<void> speakWeatherReport({
     required String city,
     required WeatherData weather,
@@ -128,111 +154,111 @@ class TtsService {
     } else if (rain > 20) {
       sb.write("आज $rain प्रतिशत हल्की बारिश होने की संभावना है। ");
     } else {
-      sb.write("बारिश की संभावना $rain प्रतिशत है। ");
+      sb.write("आज बारिश की संभावना $rain प्रतिशत है। ");
     }
     sb.write("हवा की गति $wind किलोमीटर प्रति घंटा और नमी $humidity प्रतिशत रहेगी। ");
     if (rain < 30 && wind < 20) {
-      sb.write("किसान सलाह: आज मौसम अनुकूल है, आप फसलों में सिंचाई व कीटनाशक छिड़काव का कार्य कर सकते हैं। ");
+      sb.write("किसान सलाह: आज मौसम अनुकूल है, आप फसलों में सिंचाई व छिड़काव का कार्य कर सकते हैं। ");
     }
     sb.write("धन्यवाद और आपका दिन मंगलमय हो!");
 
     final fullText = sb.toString();
-    currentTitleNotifier.value = "$cleanCity - आज का मौसम ($temp°C)";
-    currentSpeechNotifier.value = fullText;
-    stateNotifier.value = TtsAudioState.playing;
-
-    try {
-      await _flutterTts!.speak(fullText);
-    } catch (e) {
-      debugPrint('[TtsService] Weather speak error: $e');
-      stateNotifier.value = TtsAudioState.stopped;
-    }
+    final title = "$cleanCity - आज का मौसम ($temp°C)";
+    await _speakDynamicText(fullText, title);
   }
 
-  /// 🌾 Read complete Mandi Rates Bulletin in sweet Hindi
-  Future<void> speakMandiBulletin({
-    required String mandiOrDistrict,
-    required List<MandiRate> rates,
-  }) async {
-    if (rates.isEmpty) return;
-    await init();
-    await stop();
-
-    final title = "$mandiOrDistrict - दैनिक मंडी बुलेटिन";
-    final sb = StringBuffer();
-    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict के प्रमुख मंडी भाव इस प्रकार हैं: ");
-
-    final topRates = rates.take(15).toList();
-    for (int i = 0; i < topRates.length; i++) {
-      final r = topRates[i];
-      final crop = CommodityHelper.getHindiName(r.commodity);
-      final price = r.modalPrice.toInt();
-      sb.write("$crop, $price रुपये, ");
-    }
-
-    sb.write("प्रति क्विंटल दर्ज हुआ है। धन्यवाद और आपका दिन शुभ हो!");
-    final fullText = sb.toString();
-
+  /// Speaks dynamic live text using streaming neural audio with instant fallback
+  Future<void> _speakDynamicText(String fullText, String title) async {
     currentTitleNotifier.value = title;
     currentSpeechNotifier.value = fullText;
     stateNotifier.value = TtsAudioState.playing;
 
-    try {
-      await _flutterTts!.speak(fullText);
-    } catch (e) {
-      debugPrint('[TtsService] Bulletin speak error: $e');
+    final segments = _splitIntoSegments(fullText);
+    _pendingSegments = segments;
+    _currentSegmentIndex = 0;
+
+    _playNextSegment();
+  }
+
+  void _playNextSegment() async {
+    if (_currentSegmentIndex >= _pendingSegments.length) {
       stateNotifier.value = TtsAudioState.stopped;
+      currentTitleNotifier.value = '';
+      currentSpeechNotifier.value = '';
+      return;
+    }
+
+    final segment = _pendingSegments[_currentSegmentIndex];
+    _currentSegmentIndex++;
+
+    // Try high-definition Google Neural voice stream
+    try {
+      _isUsingAudioPlayer = true;
+      final encoded = Uri.encodeComponent(segment);
+      final url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=hi&client=tw-ob&q=$encoded';
+      await _audioPlayer!.play(UrlSource(url));
+    } catch (_) {
+      // Fallback to local TTS
+      _isUsingAudioPlayer = false;
+      try {
+        await _flutterTts!.speak(segment);
+      } catch (e) {
+        stateNotifier.value = TtsAudioState.stopped;
+      }
     }
   }
 
-  /// 🌾 Read single crop rate in Hindi
-  Future<void> speakCropRate(MandiRate rate) async {
-    await init();
-    await stop();
+  List<String> _splitIntoSegments(String text) {
+    final sentences = text.split(RegExp(r'[।\.\!\?]\s*'));
+    final List<String> segments = [];
+    String current = '';
 
-    final cropHindi = CommodityHelper.getHindiName(rate.commodity);
-    final marketName = rate.market.trim();
-    final modal = rate.modalPrice.toInt();
-    final min = rate.minPrice.toInt();
-    final max = rate.maxPrice.toInt();
-
-    final text =
-        "$marketName में $cropHindi का मॉडल भाव $modal रुपये प्रति क्विंटल है। "
-        "न्यूनतम भाव $min रुपये और अधिकतम भाव $max रुपये रहा।";
-
-    currentTitleNotifier.value = "$cropHindi - ₹$modal/Qtl";
-    currentSpeechNotifier.value = text;
-    stateNotifier.value = TtsAudioState.playing;
-
-    try {
-      await _flutterTts!.speak(text);
-    } catch (e) {
-      debugPrint('[TtsService] Speak error: $e');
-      stateNotifier.value = TtsAudioState.stopped;
+    for (final s in sentences) {
+      final trimmed = s.trim();
+      if (trimmed.isEmpty) continue;
+      if ('$current $trimmed'.length > 120) {
+        if (current.isNotEmpty) segments.add(current.trim());
+        current = trimmed;
+      } else {
+        current = current.isEmpty ? trimmed : '$current $trimmed';
+      }
     }
+    if (current.isNotEmpty) {
+      segments.add(current.trim());
+    }
+    return segments.isNotEmpty ? segments : [text];
   }
 
   Future<void> pause() async {
     try {
-      await _flutterTts?.pause();
-      await _audioPlayer?.pause();
+      if (_isUsingAudioPlayer) {
+        await _audioPlayer?.pause();
+      } else {
+        await _flutterTts?.pause();
+      }
       stateNotifier.value = TtsAudioState.paused;
     } catch (_) {}
   }
 
   Future<void> resume() async {
-    if (currentSpeechNotifier.value.isNotEmpty) {
-      try {
-        stateNotifier.value = TtsAudioState.playing;
-        await _flutterTts?.speak(currentSpeechNotifier.value);
-      } catch (_) {}
-    }
+    try {
+      if (_isUsingAudioPlayer) {
+        await _audioPlayer?.resume();
+      } else {
+        if (currentSpeechNotifier.value.isNotEmpty) {
+          await _flutterTts?.speak(currentSpeechNotifier.value);
+        }
+      }
+      stateNotifier.value = TtsAudioState.playing;
+    } catch (_) {}
   }
 
   Future<void> stop() async {
+    _pendingSegments.clear();
+    _currentSegmentIndex = 0;
     try {
-      await _flutterTts?.stop();
       await _audioPlayer?.stop();
+      await _flutterTts?.stop();
     } catch (_) {}
     stateNotifier.value = TtsAudioState.stopped;
     currentTitleNotifier.value = '';

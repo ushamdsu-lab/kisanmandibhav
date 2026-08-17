@@ -478,7 +478,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                   child: BannerAdWidget(enabled: AdService.enableYojnaBanner, showAdBadge: true),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 90)),
             ],
           );
         },

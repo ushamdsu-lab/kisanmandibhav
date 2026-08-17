@@ -9,6 +9,7 @@ import '../../providers/notification_provider.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/mandi/voice_bulletin_bar.dart';
 import '../../widgets/common/notification_center_sheet.dart';
+import '../../utils/district_helper.dart';
 import 'widgets/dashboard_live_ticker.dart';
 import 'widgets/dashboard_weather_card.dart';
 import 'widgets/dashboard_mandi_spotlight.dart';
@@ -94,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(res.isGps
-                        ? '📍 लोकेशन: ${res.cityName} (${res.mandi}) अपडेट हो गई!'
+                        ? '📍 लोकेशन: ${res.cityName} (${DistrictHelper.getHindiName(res.district)} जिले की सभी मंडियों के भाव)'
                         : (res.errorMessage ?? 'लोकेशन प्राप्त नहीं हो सकी')),
                     backgroundColor: res.isGps ? Colors.green.shade700 : Colors.orange.shade800,
                   ),
@@ -283,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                         ...mandiProv.rates.take(4).map((r) => _buildMiniRateRow(context, r)),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 90),
                       ],
                     ),
                   ),

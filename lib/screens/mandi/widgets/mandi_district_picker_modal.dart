@@ -88,7 +88,7 @@ class MandiDistrictPickerModal extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(res.isGps
-                            ? '📍 आपकी मंडी लोकेशन: ${res.cityName} (${res.mandi}) सेट हो गई!'
+                            ? '📍 लोकेशन: ${res.cityName} (${DistrictHelper.getHindiName(res.district)} जिले की सभी मंडियों के भाव सेट)'
                             : (res.errorMessage ?? 'लोकेशन प्राप्त नहीं हो सकी')),
                         backgroundColor: res.isGps ? Colors.green.shade700 : Colors.orange.shade800,
                       ),

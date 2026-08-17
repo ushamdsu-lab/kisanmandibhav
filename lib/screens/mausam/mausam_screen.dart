@@ -7,6 +7,7 @@ import '../../config/constants.dart';
 import '../../data/city_locations.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/mandi_provider.dart';
+import '../../utils/district_helper.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
@@ -116,7 +117,7 @@ class _MausamScreenState extends State<MausamScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(res.isGps
-                                ? '📍 लोकेशन (${res.cityName}) और मंडी (${res.mandi}) सेट हो गई!'
+                                ? '📍 लोकेशन (${res.cityName}) और ${DistrictHelper.getHindiName(res.district)} जिले के मंडी भाव सेट हो गए!'
                                 : (res.errorMessage ?? 'लोकेशन प्राप्त नहीं हो सकी')),
                             backgroundColor: res.isGps ? Colors.green.shade700 : Colors.orange.shade800,
                           ),
@@ -494,7 +495,7 @@ class _MausamScreenState extends State<MausamScreen> {
                     child: BannerAdWidget(enabled: AdService.enableMausamBanner, showAdBadge: true),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 90)),
               ],
             ],
           );

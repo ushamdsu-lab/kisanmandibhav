@@ -262,7 +262,7 @@ class _KhetiScreenState extends State<KhetiScreen> {
                     child: BannerAdWidget(enabled: AdService.enableKhetiBanner, showAdBadge: true),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 90)),
               ],
             ],
           );
