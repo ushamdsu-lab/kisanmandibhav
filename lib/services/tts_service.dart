@@ -31,6 +31,9 @@ class TtsService {
   int _currentSegmentIndex = 0;
   bool _isUsingAudioPlayer = false;
 
+  // Voice Persona: Puck (पुरुष - ऊर्जावान रेडियो टोन)
+  static const String activeVoicePersona = 'Puck (पुरुष - ऊर्जावान रेडियो टोन)';
+
   Future<void> init() async {
     if (_isInitialized) return;
 
@@ -52,9 +55,44 @@ class TtsService {
 
       _flutterTts = FlutterTts();
       await _flutterTts!.setLanguage("hi-IN");
-      await _flutterTts!.setSpeechRate(kIsWeb ? 0.85 : 0.42);
-      await _flutterTts!.setPitch(0.92);
+      
+      // Puck (ऊर्जावान रेडियो टोन) Calibration:
+      // Crisp radio speech rate & bright, enthusiastic pitch
+      await _flutterTts!.setSpeechRate(kIsWeb ? 0.95 : 0.48);
+      await _flutterTts!.setPitch(1.04);
       await _flutterTts!.setVolume(1.0);
+
+      // Select male/radio engine voice if available on Android
+      try {
+        final dynamic voices = await _flutterTts!.getVoices;
+        if (voices is List) {
+          Map<dynamic, dynamic>? selectedVoice;
+          for (final voice in voices) {
+            if (voice is Map) {
+              final name = (voice['name'] ?? '').toString().toLowerCase();
+              final locale = (voice['locale'] ?? '').toString().toLowerCase();
+              if (locale.contains('hi') || locale.contains('hin')) {
+                if (name.contains('male') ||
+                    name.contains('hid') ||
+                    name.contains('hic') ||
+                    name.contains('man') ||
+                    name.contains('puck')) {
+                  selectedVoice = voice;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (selectedVoice != null) {
+            final voiceName = selectedVoice['name']?.toString() ?? '';
+            final voiceLocale = selectedVoice['locale']?.toString() ?? 'hi-IN';
+            if (voiceName.isNotEmpty) {
+              await _flutterTts!.setVoice({"name": voiceName, "locale": voiceLocale});
+            }
+          }
+        }
+      } catch (_) {}
 
       _flutterTts!.setStartHandler(() => stateNotifier.value = TtsAudioState.playing);
       _flutterTts!.setCompletionHandler(() {
@@ -77,7 +115,7 @@ class TtsService {
     }
   }
 
-  /// 🌾 Read LIVE Mandi Rates currently shown on screen with exact prices
+  /// 🌾 Read LIVE Mandi Rates in Puck (पुरुष - ऊर्जावान रेडियो टोन)
   Future<void> speakMandiBulletin({
     required String mandiOrDistrict,
     required List<MandiRate> rates,
@@ -86,11 +124,10 @@ class TtsService {
     await init();
     await stop();
 
-    final title = "$mandiOrDistrict - लाइव भाव बुलेटिन";
+    final title = "$mandiOrDistrict - लाइव भाव (Puck रेडियो)";
     final sb = StringBuffer();
-    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict में फसलों के ताज़ा भाव इस प्रकार हैं: ");
+    sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict मंडी में फसलों के ताज़ा भाव इस प्रकार दर्ज हुए हैं: ");
 
-    // Read top 10 crops currently on the screen with their exact live modal prices
     final topRates = rates.take(10).toList();
     for (int i = 0; i < topRates.length; i++) {
       final r = topRates[i];
@@ -103,13 +140,13 @@ class TtsService {
       }
     }
 
-    sb.write("प्रति क्विंटल दर्ज हुआ है। धन्यवाद और आपका दिन शुभ हो!");
+    sb.write("प्रति क्विंटल रहा। धन्यवाद और आपका दिन शुभ हो!");
     final fullText = sb.toString();
 
     await _speakDynamicText(fullText, title);
   }
 
-  /// 🌾 Read single crop rate in Hindi with exact modal, min and max prices
+  /// 🌾 Read single crop rate in Puck (ऊर्जावान रेडियो टोन)
   Future<void> speakCropRate(MandiRate rate) async {
     await init();
     await stop();
@@ -121,14 +158,14 @@ class TtsService {
     final max = rate.maxPrice.toInt();
 
     final text =
-        "$marketName में $cropHindi का मॉडल भाव $modal रुपये प्रति क्विंटल है। "
+        "$marketName मंडी में $cropHindi का मॉडल भाव $modal रुपये प्रति क्विंटल है! "
         "न्यूनतम भाव $min रुपये और अधिकतम भाव $max रुपये रहा।";
 
     final title = "$cropHindi - ₹$modal/क्विंटल";
     await _speakDynamicText(text, title);
   }
 
-  /// 🌤️ Read complete Weather Forecast Bulletin with live data
+  /// 🌤️ Read complete Weather Forecast Bulletin in Puck Voice
   Future<void> speakWeatherReport({
     required String city,
     required WeatherData weather,
@@ -150,7 +187,7 @@ class TtsService {
     sb.write("वर्तमान तापमान $temp डिग्री सेल्सियस है, जो $feels डिग्री जैसा महसूस हो रहा है। ");
     if (rain >= 50) {
       sb.write("आज $rain प्रतिशत बारिश होने की संभावना है। ");
-      sb.write("किसान सलाह: आज तेज़ बारिश की संभावना है, फसलों में कीटनाशक छिड़काव व सिंचाई से बचें। ");
+      sb.write("किसान सलाह: आज तेज़ बारिश हो सकती है, फसलों में कीटनाशक छिड़काव व सिंचाई से बचें। ");
     } else if (rain > 20) {
       sb.write("आज $rain प्रतिशत हल्की बारिश होने की संभावना है। ");
     } else {
@@ -158,12 +195,12 @@ class TtsService {
     }
     sb.write("हवा की गति $wind किलोमीटर प्रति घंटा और नमी $humidity प्रतिशत रहेगी। ");
     if (rain < 30 && wind < 20) {
-      sb.write("किसान सलाह: आज मौसम अनुकूल है, आप फसलों में सिंचाई व छिड़काव का कार्य कर सकते हैं। ");
+      sb.write("किसान सलाह: आज मौसम बहुत बढ़िया है, आप फसलों में आवश्यक कृषि कार्य कर सकते हैं। ");
     }
     sb.write("धन्यवाद और आपका दिन मंगलमय हो!");
 
     final fullText = sb.toString();
-    final title = "$cleanCity - आज का मौसम ($temp°C)";
+    final title = "$cleanCity - मौसम बुलेटिन ($temp°C)";
     await _speakDynamicText(fullText, title);
   }
 
@@ -191,14 +228,12 @@ class TtsService {
     final segment = _pendingSegments[_currentSegmentIndex];
     _currentSegmentIndex++;
 
-    // Try high-definition Google Neural voice stream
     try {
       _isUsingAudioPlayer = true;
       final encoded = Uri.encodeComponent(segment);
       final url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=hi&client=tw-ob&q=$encoded';
       await _audioPlayer!.play(UrlSource(url));
     } catch (_) {
-      // Fallback to local TTS
       _isUsingAudioPlayer = false;
       try {
         await _flutterTts!.speak(segment);
