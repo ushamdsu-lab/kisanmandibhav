@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:isolate';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import '../models/mandi_rate.dart';
@@ -8,6 +10,24 @@ class MandiService {
   static List<MandiRate>? _cachedRates;
   static DateTime? _lastFetchTime;
   static const Duration _cacheDuration = Duration(minutes: 5);
+
+  static List<MandiRate> _parseJsonRecords(String jsonString) {
+    try {
+      final dynamic decoded = json.decode(jsonString);
+      if (decoded is Map<String, dynamic> && decoded['records'] is List) {
+        final List<dynamic> records = decoded['records'];
+        return records.map((e) => MandiRate.fromJson(e)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<List<MandiRate>> _parseAsync(String jsonString) async {
+    if (kIsWeb) {
+      return _parseJsonRecords(jsonString);
+    }
+    return await Isolate.run(() => _parseJsonRecords(jsonString));
+  }
 
   /// Fetch mandi rates directly from GitHub CDN (auto-synced hourly from govt portal)
   /// with GitHub Raw and offline asset fallbacks. The app never queries the govt API directly.
@@ -39,10 +59,8 @@ class MandiService {
         final response =
             await http.get(Uri.parse(cdnUrl)).timeout(const Duration(seconds: 6));
         if (response.statusCode == 200 && response.body.isNotEmpty) {
-          final dynamic decoded = json.decode(response.body);
-          if (decoded is Map<String, dynamic> && decoded['records'] is List) {
-            final List<dynamic> records = decoded['records'];
-            allRates = records.map((e) => MandiRate.fromJson(e)).toList();
+          allRates = await _parseAsync(response.body);
+          if (allRates.isNotEmpty) {
             _cachedRates = allRates;
             _lastFetchTime = DateTime.now();
           }
@@ -58,10 +76,8 @@ class MandiService {
         final response =
             await http.get(Uri.parse(rawUrl)).timeout(const Duration(seconds: 6));
         if (response.statusCode == 200 && response.body.isNotEmpty) {
-          final dynamic decoded = json.decode(response.body);
-          if (decoded is Map<String, dynamic> && decoded['records'] is List) {
-            final List<dynamic> records = decoded['records'];
-            allRates = records.map((e) => MandiRate.fromJson(e)).toList();
+          allRates = await _parseAsync(response.body);
+          if (allRates.isNotEmpty) {
             _cachedRates = allRates;
             _lastFetchTime = DateTime.now();
           }
@@ -74,11 +90,7 @@ class MandiService {
       try {
         final jsonString =
             await rootBundle.loadString('assets/data/mandi_live_rates.json');
-        final decoded = json.decode(jsonString);
-        if (decoded is Map<String, dynamic> && decoded['records'] is List) {
-          final List<dynamic> records = decoded['records'];
-          allRates = records.map((e) => MandiRate.fromJson(e)).toList();
-        }
+        allRates = await _parseAsync(jsonString);
       } catch (_) {}
     }
 

@@ -33,7 +33,7 @@ class MandiRateCard extends StatelessWidget {
     final hindiName = CommodityHelper.getHindiName(rate.commodity);
     final mspItem = MspDatabase.getMspForCrop(rate.commodity);
 
-    return Card(
+    final cardWidget = Card(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -289,6 +289,14 @@ class MandiRateCard extends StatelessWidget {
           ),
         ),
       ),
-    ).animate().fadeIn(delay: Duration(milliseconds: (index * 40).clamp(0, 400)), duration: 250.ms).slideY(begin: 0.05, end: 0);
+    );
+
+    if (index < 8) {
+      return cardWidget
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: (index * 35).clamp(0, 280)), duration: 200.ms)
+          .slideY(begin: 0.04, end: 0);
+    }
+    return cardWidget;
   }
 }
