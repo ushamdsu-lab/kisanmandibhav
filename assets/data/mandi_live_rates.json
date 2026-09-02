@@ -1,10 +1,70 @@
 {
   "status": "ok",
-  "total": 4,
-  "count": 4,
-  "updated_at_utc": "2026-09-02T00:13:50.639492+00:00",
-  "updated_at_ist": "2026-09-02 00:13:50 IST",
+  "total": 14,
+  "count": 14,
+  "updated_at_utc": "2026-09-02T01:07:41.176383+00:00",
+  "updated_at_ist": "2026-09-02 01:07:41 IST",
   "records": [
+    {
+      "state": "Andhra Pradesh",
+      "district": "Srikakulam",
+      "market": "Kanchili APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 2400,
+      "max_price": 2400,
+      "modal_price": 2400
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Eluru",
+      "market": "Polavaram APMC",
+      "commodity": "Maize",
+      "variety": "Local",
+      "grade": "Local",
+      "arrival_date": "02/09/2026",
+      "min_price": 2420,
+      "max_price": 2420,
+      "modal_price": 2420
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Eluru",
+      "market": "Polavaram APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "Local",
+      "arrival_date": "02/09/2026",
+      "min_price": 2445,
+      "max_price": 2445,
+      "modal_price": 2445
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Kakinada",
+      "market": "Pithapuram APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 2369,
+      "max_price": 2389,
+      "modal_price": 2379
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Polavaram",
+      "market": "Rampachodvaram APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "Grade Range-2",
+      "arrival_date": "02/09/2026",
+      "min_price": 2369,
+      "max_price": 2389,
+      "modal_price": 2379
+    },
     {
       "state": "Andhra Pradesh",
       "district": "Dr.B.R.A.Konaseema",
@@ -18,16 +78,64 @@
       "modal_price": 15600
     },
     {
+      "state": "Punjab",
+      "district": "Amritsar",
+      "market": "Rayya APMC",
+      "commodity": "Cucumbar(Kheera)",
+      "variety": "Cucumbar",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 895,
+      "max_price": 895,
+      "modal_price": 895
+    },
+    {
+      "state": "Punjab",
+      "district": "Amritsar",
+      "market": "Rayya APMC",
+      "commodity": "Brinjal",
+      "variety": "Brinjal",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 500,
+      "max_price": 500,
+      "modal_price": 500
+    },
+    {
       "state": "Andhra Pradesh",
-      "district": "Alluri Sitharama Raju",
-      "market": "Chintapally APMC",
-      "commodity": "Groundnut",
+      "district": "Anakapally",
+      "market": "Yellamanchili APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "Local",
+      "arrival_date": "02/09/2026",
+      "min_price": 2390,
+      "max_price": 2450,
+      "modal_price": 2400
+    },
+    {
+      "state": "Punjab",
+      "district": "Amritsar",
+      "market": "Rayya APMC",
+      "commodity": "Cauliflower",
       "variety": "Local",
       "grade": "FAQ",
       "arrival_date": "02/09/2026",
-      "min_price": 6500,
-      "max_price": 7500,
-      "modal_price": 7000
+      "min_price": 3180,
+      "max_price": 3180,
+      "modal_price": 3180
+    },
+    {
+      "state": "Punjab",
+      "district": "Amritsar",
+      "market": "Rayya APMC",
+      "commodity": "Bhindi(Ladies Finger)",
+      "variety": "Bhindi",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 692,
+      "max_price": 692,
+      "modal_price": 692
     },
     {
       "state": "Andhra Pradesh",
@@ -40,6 +148,18 @@
       "min_price": 2369,
       "max_price": 2390,
       "modal_price": 2375
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Alluri Sitharama Raju",
+      "market": "Chintapally APMC",
+      "commodity": "Groundnut",
+      "variety": "Local",
+      "grade": "FAQ",
+      "arrival_date": "02/09/2026",
+      "min_price": 6500,
+      "max_price": 7500,
+      "modal_price": 7000
     },
     {
       "state": "Andhra Pradesh",
