@@ -11,6 +11,7 @@ import 'package:kisan_mitra/data/mandi_directory.dart';
 import 'package:kisan_mitra/data/msp_data.dart';
 import 'package:kisan_mitra/config/constants.dart';
 import 'package:kisan_mitra/services/ad_service.dart';
+import 'package:kisan_mitra/services/mandi_service.dart';
 
 void main() {
   group('Model & Architecture Tests', () {
@@ -242,6 +243,14 @@ void main() {
       expect(AdService.rewardedAdUnitId.isNotEmpty, isTrue);
       expect(AdService.nativeAdUnitId.isNotEmpty, isTrue);
       expect(AdService.defaultCooldownSeconds, 60);
+    });
+
+    test('MandiService loads rates from CDN/Asset and filters correctly', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final rates = await MandiService.fetchMandiRates(limit: 100);
+      expect(rates, isNotEmpty);
+      expect(rates.first.commodity, isNotEmpty);
+      expect(rates.first.modalPrice, greaterThan(0));
     });
   });
 }

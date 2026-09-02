@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/mandi_rate.dart';
 import '../models/price_alert.dart';
@@ -118,10 +117,9 @@ class MandiProvider extends ChangeNotifier {
   }
 
   // Extracted unique districts for current state
+  // Extracted unique districts for current state (strictly from API records)
   List<String> get availableDistricts {
-    final state = _selectedState.isNotEmpty ? _selectedState : (_userHomeState.isNotEmpty ? _userHomeState : 'Rajasthan');
-    final Map<String, List<String>> dir = MandiDirectory.getDistrictMandis(state);
-    final Set<String> districts = dir.keys.toSet();
+    final Set<String> districts = {};
     for (final r in _allStateRates) {
       if (r.district.trim().isNotEmpty) {
         districts.add(r.district.trim());
@@ -141,23 +139,25 @@ class MandiProvider extends ChangeNotifier {
     return list;
   }
 
-  // All Mandis for current state & district
+  // All Mandis for current state & district (strictly from API records)
   List<String> get availableMarkets {
     final Set<String> markets = {};
 
     if (_selectedDistrict.isNotEmpty) {
-      final mandis = MandiDirectory.getMandisForDistrict(_selectedState, _selectedDistrict);
-      markets.addAll(mandis);
+      final d = _selectedDistrict.toLowerCase();
       for (final r in _allStateRates) {
-        if (r.district.toLowerCase().contains(_selectedDistrict.toLowerCase()) ||
-            _selectedDistrict.toLowerCase().contains(r.district.toLowerCase())) {
-          markets.add(r.market.trim());
+        if (r.district.toLowerCase().contains(d) ||
+            d.contains(r.district.toLowerCase())) {
+          if (r.market.trim().isNotEmpty) {
+            markets.add(r.market.trim());
+          }
         }
       }
     } else {
-      markets.addAll(MandiDirectory.getMandisForState(_selectedState));
       for (final r in _allStateRates) {
-        markets.add(r.market.trim());
+        if (r.market.trim().isNotEmpty) {
+          markets.add(r.market.trim());
+        }
       }
     }
 
@@ -342,8 +342,7 @@ class MandiProvider extends ChangeNotifier {
     // When location is detected, show ALL mandis of that district, not locked to a single market
     _selectedMarket = (market != null &&
             market.isNotEmpty &&
-            market != 'all' &&
-            MandiDirectory.getMandisForDistrict(_selectedState, _selectedDistrict).contains(market))
+            market != 'all')
         ? market
         : '';
     _userHomeMarket = _selectedMarket;
@@ -554,69 +553,6 @@ class MandiProvider extends ChangeNotifier {
       }
     }
 
-    // 3. Ensure EVERY SINGLE MANDI in this district is present for this crop
-    final allDistrictMandis = MandiDirectory.getMandisForDistrict(_selectedState, distName);
-    final dateStr = targetRate.arrivalDate.isNotEmpty ? targetRate.arrivalDate : 'आज';
-
-    for (final mandi in allDistrictMandis) {
-      final key = '${_cleanMarketName(mandi)}_$distName'.toLowerCase();
-      if (!addedMarketKeys.contains(key)) {
-        addedMarketKeys.add(key);
-        // Realistic deterministic local mandi variance
-        final seed = (targetRate.commodity.hashCode + mandi.hashCode).abs() % 100;
-        final factor = 1.0 + (sin(seed * 0.1) * 0.035);
-        final mModal = (targetRate.modalPrice * factor).roundToDouble();
-        final mMin = (targetRate.minPrice * factor).roundToDouble();
-        final mMax = (targetRate.maxPrice * factor).roundToDouble();
-
-        districtMatches.add(MandiRate(
-          state: _selectedState,
-          district: distName,
-          market: mandi,
-          commodity: targetRate.commodity,
-          variety: targetRate.variety,
-          grade: targetRate.grade,
-          minPrice: mMin,
-          maxPrice: mMax,
-          modalPrice: mModal,
-          arrivalDate: dateStr,
-          isLive: false,
-        ));
-      }
-    }
-
-    // 4. Ensure ALL MANDIS across ALL OTHER DISTRICTS in the entire state are included
-    final stateDir = MandiDirectory.getDistrictMandis(_selectedState);
-    for (final entry in stateDir.entries) {
-      if (entry.key.toLowerCase() == distName.toLowerCase()) continue;
-      final districtKey = entry.key;
-      for (final mandi in entry.value) {
-        final key = '${_cleanMarketName(mandi)}_$districtKey'.toLowerCase();
-        if (!addedMarketKeys.contains(key)) {
-          addedMarketKeys.add(key);
-          final seed = (targetRate.commodity.hashCode + mandi.hashCode).abs() % 100;
-          final factor = 1.0 + (sin(seed * 0.1) * 0.045);
-          final mModal = (targetRate.modalPrice * factor).roundToDouble();
-          final mMin = (targetRate.minPrice * factor).roundToDouble();
-          final mMax = (targetRate.maxPrice * factor).roundToDouble();
-
-          stateMatches.add(MandiRate(
-            state: _selectedState,
-            district: districtKey,
-            market: mandi,
-            commodity: targetRate.commodity,
-            variety: targetRate.variety,
-            grade: targetRate.grade,
-            minPrice: mMin,
-            maxPrice: mMax,
-            modalPrice: mModal,
-            arrivalDate: dateStr,
-            isLive: false,
-          ));
-        }
-      }
-    }
-
     // Sort district matches and state matches by modal price descending
     districtMatches.sort((a, b) => b.modalPrice.compareTo(a.modalPrice));
     stateMatches.sort((a, b) => b.modalPrice.compareTo(a.modalPrice));
@@ -633,8 +569,14 @@ class MandiProvider extends ChangeNotifier {
   }
 
   String _findDistrictForMarket(String market) {
-    final dir = MandiDirectory.getDistrictMandis(_selectedState);
     final mClean = _cleanMarketName(market).toLowerCase();
+    for (final r in _allStateRates) {
+      final rMarket = _cleanMarketName(r.market).toLowerCase();
+      if ((rMarket == mClean || rMarket.contains(mClean) || mClean.contains(rMarket)) && r.district.trim().isNotEmpty) {
+        return r.district.trim();
+      }
+    }
+    final dir = MandiDirectory.getDistrictMandis(_selectedState);
     for (final entry in dir.entries) {
       for (final m in entry.value) {
         final entryClean = _cleanMarketName(m).toLowerCase();

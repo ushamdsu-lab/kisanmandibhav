@@ -7,7 +7,6 @@ import '../../providers/mandi_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/storage_service.dart';
-import '../../widgets/mandi/voice_bulletin_bar.dart';
 import '../../widgets/common/notification_center_sheet.dart';
 import '../../utils/district_helper.dart';
 import 'widgets/dashboard_live_ticker.dart';
@@ -48,7 +47,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const VoiceBulletinBar(),
       appBar: AppBar(
         title: Row(
           children: [

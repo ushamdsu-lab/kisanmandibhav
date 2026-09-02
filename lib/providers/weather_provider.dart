@@ -177,7 +177,7 @@ class WeatherProvider extends ChangeNotifier {
       lng: loc.longitude,
       state: loc.state,
       district: loc.effectiveDistrict,
-      mandi: loc.mandi,
+      mandi: '',
     );
 
     if (mandiProvider != null) {

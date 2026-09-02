@@ -20,6 +20,17 @@ class DashboardWeatherCard extends StatelessWidget {
     return Icons.wb_sunny_rounded;
   }
 
+  Color _getWeatherIconColor(int code) {
+    if (code == 0 || code == 1) return Colors.amberAccent;
+    if (code == 2 || code == 3) return Colors.white70;
+    if (code >= 45 && code <= 48) return Colors.blueGrey.shade100;
+    if (code >= 51 && code <= 65) return Colors.lightBlueAccent;
+    if (code >= 71 && code <= 77) return Colors.cyanAccent;
+    if (code >= 80 && code <= 82) return Colors.lightBlueAccent;
+    if (code >= 95) return Colors.amberAccent;
+    return Colors.amberAccent;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (provider.isLoading && provider.weatherData == null) {
@@ -37,7 +48,7 @@ class DashboardWeatherCard extends StatelessWidget {
     final temp = weather?.current.temperature.round() ?? 27;
     final weatherCode = weather?.current.weatherCode ?? 1;
     final weatherInfo = AppConstants.weatherCodes[weatherCode];
-    final locationName = weather?.locationName ?? 'जयपुर, राजस्थान';
+    final locationName = weather?.locationName ?? (provider.cityName.isNotEmpty ? provider.cityName : 'स्थानीय मौसम');
     final humidity = weather?.current.humidity ?? 68;
     final windSpeed = weather?.current.windSpeed ?? 12;
 
@@ -164,7 +175,7 @@ class DashboardWeatherCard extends StatelessWidget {
                   ),
                   child: Icon(
                     _getWeatherIcon(weatherCode),
-                    color: Colors.amberAccent,
+                    color: _getWeatherIconColor(weatherCode),
                     size: 38,
                   ),
                 ),

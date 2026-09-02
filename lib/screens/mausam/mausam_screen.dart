@@ -17,7 +17,6 @@ import '../../widgets/ads/inline_ad_card.dart';
 import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
 import '../../services/tts_service.dart';
-import '../../widgets/mandi/voice_bulletin_bar.dart';
 
 class MausamScreen extends StatefulWidget {
   const MausamScreen({super.key});
@@ -29,6 +28,32 @@ class MausamScreen extends StatefulWidget {
 class _MausamScreenState extends State<MausamScreen> {
   static const List<String> _hindiDays = ['सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार', 'रविवार'];
   static const List<String> _hindiMonths = ['', 'जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
+
+  static IconData _getWeatherIcon(int code, {bool isNight = false}) {
+    if (code == 0 || code == 1) {
+      return isNight ? Icons.nightlight_round : Icons.wb_sunny_rounded;
+    }
+    if (code == 2) return Icons.wb_cloudy_rounded;
+    if (code == 3) return Icons.cloud_rounded;
+    if (code >= 45 && code <= 48) return Icons.foggy;
+    if (code >= 51 && code <= 55) return Icons.grain_rounded;
+    if (code >= 61 && code <= 65) return Icons.water_drop_rounded;
+    if (code >= 71 && code <= 77) return Icons.ac_unit_rounded;
+    if (code >= 80 && code <= 82) return Icons.shower_rounded;
+    if (code >= 95) return Icons.thunderstorm_rounded;
+    return Icons.wb_sunny_rounded;
+  }
+
+  static Color _getWeatherIconColor(int code) {
+    if (code == 0 || code == 1) return Colors.amberAccent;
+    if (code == 2 || code == 3) return Colors.white70;
+    if (code >= 45 && code <= 48) return Colors.blueGrey.shade100;
+    if (code >= 51 && code <= 65) return Colors.lightBlueAccent;
+    if (code >= 71 && code <= 77) return Colors.cyanAccent;
+    if (code >= 80 && code <= 82) return Colors.lightBlueAccent;
+    if (code >= 95) return Colors.amberAccent;
+    return Colors.amberAccent;
+  }
 
   @override
   void initState() {
@@ -203,7 +228,6 @@ class _MausamScreenState extends State<MausamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const VoiceBulletinBar(),
       body: Consumer<WeatherProvider>(
         builder: (context, provider, _) {
           return CustomScrollView(
@@ -576,7 +600,11 @@ class _MausamScreenState extends State<MausamScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.wb_sunny_rounded, size: 64, color: Colors.amberAccent),
+              Icon(
+                _getWeatherIcon(current.weatherCode),
+                size: 64,
+                color: _getWeatherIconColor(current.weatherCode),
+              ),
               const SizedBox(width: 14),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,13 +1001,9 @@ class _MausamScreenState extends State<MausamScreen> {
                       ),
                     ),
                     Icon(
-                      hasRain
-                          ? Icons.water_drop_rounded
-                          : (isNight ? Icons.nightlight_round : Icons.wb_sunny_rounded),
+                      _getWeatherIcon(h.weatherCode, isNight: isNight),
                       size: 20,
-                      color: hasRain
-                          ? AppColors.mausamAccent
-                          : (isNight ? Colors.indigoAccent : Colors.amber),
+                      color: hasRain ? AppColors.mausamAccent : _getWeatherIconColor(h.weatherCode),
                     ),
                     Text(
                       '${h.temperature.round()}°C',
@@ -1056,8 +1080,8 @@ class _MausamScreenState extends State<MausamScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                forecast.precipitationProbability > 40 ? Icons.water_drop_rounded : Icons.wb_sunny_rounded,
-                color: forecast.precipitationProbability > 40 ? AppColors.mausamAccent : Colors.amber,
+                _getWeatherIcon(forecast.weatherCode),
+                color: _getWeatherIconColor(forecast.weatherCode),
                 size: 22,
               ),
             ),

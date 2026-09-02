@@ -19,7 +19,6 @@ import '../../widgets/ads/inline_ad_card.dart';
 import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
 import '../../services/tts_service.dart';
-import '../../widgets/mandi/voice_bulletin_bar.dart';
 
 class MandiScreen extends StatefulWidget {
   const MandiScreen({super.key});
@@ -52,6 +51,8 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
           if (provider.selectedDistrict.isNotEmpty) {
             provider.viewAllMandis();
           }
+        } else if (_tabController.index == 2) {
+          MandiStatePickerModal.show(context, provider);
         }
       }
     });
@@ -82,7 +83,6 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const VoiceBulletinBar(),
       body: Consumer<MandiProvider>(
         builder: (context, provider, _) {
           final isDistrictMandiListView = _tabController.index == 0 &&

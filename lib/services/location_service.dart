@@ -53,23 +53,38 @@ class LocationService {
     return nearest;
   }
 
-  /// Fetch user location via GPS -> LastKnown -> IP Geolocation -> Default City
+  /// Fetch user location via GPS -> LastKnown -> Multi-provider IP Geolocation -> Reverse Geocoding
   static Future<LocationResult> getCurrentLocation() async {
     try {
-      // 1. Check & Request Permissions
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
       double? lat;
       double? lng;
       bool isGpsSuccess = false;
+      String? ipCity;
+      String? ipRegion;
 
-      // 2. If permission granted, attempt GPS / LastKnown
+      // 1. Check Location Service & Permissions
+      bool serviceEnabled = false;
+      try {
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      } catch (e) {
+        debugPrint('Geolocator isLocationServiceEnabled error: $e');
+      }
+
+      LocationPermission permission = LocationPermission.denied;
+      if (serviceEnabled) {
+        try {
+          permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+        } catch (e) {
+          debugPrint('Geolocator permission error: $e');
+        }
+      }
+
+      // 2. If permission granted, attempt GPS / LastKnown Position
       if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
         try {
-          // Fast check: Last Known Position (instant cached fix)
           final lastKnown = await Geolocator.getLastKnownPosition();
           if (lastKnown != null) {
             lat = lastKnown.latitude;
@@ -80,13 +95,13 @@ class LocationService {
           debugPrint('Geolocator lastKnown error: $e');
         }
 
-        // If no cached fix, request fresh low-latency fix
+        // If no cached position, request fresh GPS fix (medium accuracy, 7 seconds)
         if (lat == null || lng == null) {
           try {
             final position = await Geolocator.getCurrentPosition(
               locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.low,
-                timeLimit: Duration(seconds: 5),
+                accuracy: LocationAccuracy.medium,
+                timeLimit: Duration(seconds: 7),
               ),
             );
             lat = position.latitude;
@@ -98,106 +113,161 @@ class LocationService {
         }
       }
 
-      // 3. If GPS failed or disabled, use network IP Geolocation fallback (HTTPS)
+      // 3. Fallback to reliable IP Geolocation if GPS is unavailable / disabled / timed out
       if (lat == null || lng == null) {
+        // Option A: ipwho.is (fast HTTPS, reliable Indian ISP location)
         try {
-          final ipRes = await http
-              .get(Uri.parse('https://ipapi.co/json/'))
-              .timeout(const Duration(seconds: 2));
-          if (ipRes.statusCode == 200) {
-            final ipData = json.decode(ipRes.body);
-            if (ipData['latitude'] != null && ipData['longitude'] != null) {
-              lat = (ipData['latitude'] as num).toDouble();
-              lng = (ipData['longitude'] as num).toDouble();
+          final res = await http
+              .get(Uri.parse('https://ipwho.is/'))
+              .timeout(const Duration(seconds: 4));
+          if (res.statusCode == 200) {
+            final data = json.decode(res.body);
+            if (data['success'] == true && data['latitude'] != null && data['longitude'] != null) {
+              lat = (data['latitude'] as num).toDouble();
+              lng = (data['longitude'] as num).toDouble();
+              ipCity = data['city']?.toString();
+              ipRegion = data['region']?.toString();
               isGpsSuccess = true;
             }
           }
         } catch (e) {
-          debugPrint('IP Geolocation fallback error: $e');
+          debugPrint('ipwho.is fallback error: $e');
+        }
+
+        // Option B: ip-api.com (secondary free IP geolocation provider)
+        if (lat == null || lng == null) {
+          try {
+            final res = await http
+                .get(Uri.parse('http://ip-api.com/json'))
+                .timeout(const Duration(seconds: 3));
+            if (res.statusCode == 200) {
+              final data = json.decode(res.body);
+              if (data['status'] == 'success' && data['lat'] != null && data['lon'] != null) {
+                lat = (data['lat'] as num).toDouble();
+                lng = (data['lon'] as num).toDouble();
+                ipCity = data['city']?.toString();
+                ipRegion = data['regionName']?.toString();
+                isGpsSuccess = true;
+              }
+            }
+          } catch (e) {
+            debugPrint('ip-api.com fallback error: $e');
+          }
         }
       }
 
-      // 4. Default fallback if everything failed
+      // 4. Default fallback if absolutely all location methods failed
       if (lat == null || lng == null) {
-        lat = 28.6139; // Delhi default
-        lng = 77.2090;
+        lat = 26.9124; // Jaipur, Rajasthan default
+        lng = 75.7873;
       }
 
-      // 5. Find nearest predefined city from coordinates
+      // 5. Pre-match nearest predefined city from coordinates
       final nearestCity = getNearestPopularCity(lat, lng);
       String cityName = nearestCity.name;
-      String state = nearestCity.state;
-      String district = nearestCity.effectiveDistrict;
-      String mandi = nearestCity.mandi;
+      String state = ipRegion != null && ipRegion.isNotEmpty ? ipRegion : nearestCity.state;
+      String district = ipCity != null && ipCity.isNotEmpty ? ipCity : nearestCity.effectiveDistrict;
 
       String? detectedPlace;
       String? detectedDistrict;
 
-      // 6. Try Reverse Geocoding via OpenStreetMap Nominatim
+      // 6. Reverse Geocoding - Primary: BigDataCloud Reverse Geocoding Client (Fast & Accurate for India)
       try {
-        final url = Uri.parse(
-          'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=hi,en',
+        final bdcUrl = Uri.parse(
+          'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lng&localityLanguage=en',
         );
-        final response = await http.get(
-          url,
-          headers: {'User-Agent': 'KisanMandiBhavApp/1.0'},
-        ).timeout(const Duration(seconds: 4));
+        final bdcResponse = await http.get(bdcUrl).timeout(const Duration(seconds: 4));
+        if (bdcResponse.statusCode == 200) {
+          final data = json.decode(bdcResponse.body);
+          if (data is Map<String, dynamic>) {
+            final p = data['locality'] ?? data['city'];
+            final st = data['principalSubdivision'];
 
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          final addr = data['address'] as Map<String, dynamic>?;
-          if (addr != null) {
-            final place = addr['suburb'] ??
-                addr['town'] ??
-                addr['village'] ??
-                addr['city'] ??
-                addr['subdistrict'] ??
-                addr['municipality'] ??
-                addr['hamlet'] ??
-                addr['neighbourhood'];
-            final distName = addr['state_district'] ??
-                addr['county'] ??
-                addr['city_district'] ??
-                addr['district'];
-            final stName = addr['state'];
-
-            if (place != null && place.toString().trim().isNotEmpty) {
-              detectedPlace = place.toString().trim();
+            if (p != null && p.toString().trim().isNotEmpty) {
+              detectedPlace = p.toString().trim();
             }
-            if (distName != null && distName.toString().trim().isNotEmpty) {
-              detectedDistrict = distName.toString().trim();
+            if (st != null && st.toString().trim().isNotEmpty) {
+              state = st.toString().trim();
             }
 
-            if (detectedPlace != null && detectedPlace.isNotEmpty) {
-              if (detectedDistrict != null &&
-                  detectedDistrict.isNotEmpty &&
-                  detectedDistrict.toLowerCase() != detectedPlace.toLowerCase()) {
-                cityName = '$detectedPlace, $detectedDistrict';
-              } else {
-                cityName = detectedPlace;
-              }
-            } else if (detectedDistrict != null && detectedDistrict.isNotEmpty) {
-              cityName = detectedDistrict;
-            }
-
-            if (stName != null && stName.toString().trim().isNotEmpty) {
-              final s = stName.toString().trim();
-              String matched = s;
-              for (final st in MandiDirectory.allStates) {
-                if (s.toLowerCase().contains(st.toLowerCase()) || st.toLowerCase().contains(s.toLowerCase())) {
-                  matched = st;
-                  break;
+            final admin = data['localityInfo']?['administrative'];
+            if (admin is List) {
+              for (final item in admin) {
+                if (item is Map) {
+                  final name = item['name']?.toString() ?? '';
+                  final desc = item['description']?.toString() ?? '';
+                  if (desc.toLowerCase().contains('district') || name.toLowerCase().contains('district')) {
+                    detectedDistrict = name
+                        .replaceAll(RegExp(r'\s*district\s*', caseSensitive: false), '')
+                        .trim();
+                    break;
+                  }
                 }
               }
-              state = matched;
             }
           }
         }
       } catch (e) {
-        debugPrint('Nominatim Reverse Geocoding error: $e');
+        debugPrint('BigDataCloud Reverse Geocoding error: $e');
       }
 
-      // 7. Resolve Standard District Name from Directory
+      // 7. Reverse Geocoding - Secondary: OpenStreetMap Nominatim Fallback
+      if (detectedDistrict == null || detectedDistrict.isEmpty) {
+        try {
+          final url = Uri.parse(
+            'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=hi,en',
+          );
+          final response = await http.get(
+            url,
+            headers: {'User-Agent': 'KisanMitraApp/1.0.5 (kisanmitra.india@gmail.com)'},
+          ).timeout(const Duration(seconds: 4));
+
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            final addr = data['address'] as Map<String, dynamic>?;
+            if (addr != null) {
+              final place = addr['suburb'] ??
+                  addr['town'] ??
+                  addr['village'] ??
+                  addr['city'] ??
+                  addr['subdistrict'] ??
+                  addr['municipality'] ??
+                  addr['hamlet'] ??
+                  addr['neighbourhood'];
+              final distName = addr['state_district'] ??
+                  addr['county'] ??
+                  addr['city_district'] ??
+                  addr['district'];
+              final stName = addr['state'];
+
+              if (place != null && place.toString().trim().isNotEmpty) {
+                detectedPlace = place.toString().trim();
+              }
+              if (distName != null && distName.toString().trim().isNotEmpty) {
+                detectedDistrict = distName
+                    .toString()
+                    .replaceAll(RegExp(r'\s*district\s*', caseSensitive: false), '')
+                    .trim();
+              }
+              if (stName != null && stName.toString().trim().isNotEmpty) {
+                state = stName.toString().trim();
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('Nominatim Reverse Geocoding error: $e');
+        }
+      }
+
+      // 8. Match and Standardize State
+      for (final st in MandiDirectory.allStates) {
+        if (state.toLowerCase().contains(st.toLowerCase()) || st.toLowerCase().contains(state.toLowerCase())) {
+          state = st;
+          break;
+        }
+      }
+
+      // 9. Match and Standardize District
       String stdDistrict = '';
       if (detectedDistrict != null && detectedDistrict.isNotEmpty) {
         stdDistrict = MandiDirectory.getStandardDistrictName(state, detectedDistrict);
@@ -205,53 +275,30 @@ class LocationService {
       if (stdDistrict.isEmpty && detectedPlace != null && detectedPlace.isNotEmpty) {
         stdDistrict = MandiDirectory.getStandardDistrictName(state, detectedPlace);
       }
-      if (stdDistrict.isEmpty || !MandiDirectory.hasDistrict(state, stdDistrict)) {
-        stdDistrict = MandiDirectory.getStandardDistrictName(state, cityName);
+      if (stdDistrict.isEmpty && ipCity != null && ipCity.isNotEmpty) {
+        stdDistrict = MandiDirectory.getStandardDistrictName(state, ipCity);
       }
-      // If still not matched, fallback to nearestCity's district (derived from coordinate distance!)
       if (stdDistrict.isEmpty || !MandiDirectory.hasDistrict(state, stdDistrict)) {
         stdDistrict = nearestCity.effectiveDistrict;
         if (state.isEmpty) state = nearestCity.state;
       }
       district = stdDistrict;
 
-      // 8. Resolve Specific Mandi for user location
-      final mandis = MandiDirectory.getMandisForDistrict(state, district);
-      if (mandis.isNotEmpty) {
-        String matchedMandi = '';
-        final queryTerms = [
-          if (detectedPlace != null) detectedPlace.toLowerCase(),
-          cityName.toLowerCase(),
-          if (detectedDistrict != null) detectedDistrict.toLowerCase(),
-        ];
-
-        for (final m in mandis) {
-          final mClean = m
-              .toLowerCase()
-              .replaceAll(RegExp(r'\s*\(F&V\)', caseSensitive: false), '')
-              .replaceAll(RegExp(r'\s*\(Grain\)', caseSensitive: false), '')
-              .replaceAll('apmc', '')
-              .trim();
-          for (final q in queryTerms) {
-            if (mClean.isNotEmpty && (q.contains(mClean) || mClean.contains(q))) {
-              matchedMandi = m;
-              break;
-            }
-          }
-          if (matchedMandi.isNotEmpty) break;
-        }
-
-        if (matchedMandi.isNotEmpty) {
-          mandi = matchedMandi;
-        } else if (nearestCity.mandi.isNotEmpty && mandis.contains(nearestCity.mandi)) {
-          mandi = nearestCity.mandi;
+      // 10. Format City Name Display for Farmer UI
+      if (detectedPlace != null && detectedPlace.isNotEmpty && detectedDistrict != null && detectedDistrict.isNotEmpty) {
+        if (detectedPlace.toLowerCase() != detectedDistrict.toLowerCase()) {
+          cityName = '$detectedPlace ($detectedDistrict)';
         } else {
-          mandi = mandis.first;
+          cityName = detectedPlace;
         }
+      } else if (detectedPlace != null && detectedPlace.isNotEmpty) {
+        cityName = detectedPlace;
+      } else if (detectedDistrict != null && detectedDistrict.isNotEmpty) {
+        cityName = detectedDistrict;
+      } else if (ipCity != null && ipCity.isNotEmpty) {
+        cityName = ipCity;
       } else {
-        mandi = nearestCity.mandi.isNotEmpty
-            ? nearestCity.mandi
-            : MandiDirectory.getDefaultMandi(state);
+        cityName = nearestCity.name;
       }
 
       return LocationResult(
@@ -260,18 +307,18 @@ class LocationService {
         cityName: cityName,
         state: state,
         district: district,
-        mandi: mandi,
+        mandi: '',
         isGps: isGpsSuccess,
       );
     } catch (e) {
       debugPrint('LocationService unexpected error: $e');
       return LocationResult(
-        latitude: 28.6139,
-        longitude: 77.2090,
-        cityName: 'नई दिल्ली (Delhi)',
-        state: 'Delhi',
-        district: 'Central Delhi',
-        mandi: 'Azadpur APMC',
+        latitude: 26.9124,
+        longitude: 75.7873,
+        cityName: 'जयपुर (Jaipur)',
+        state: 'Rajasthan',
+        district: 'Jaipur',
+        mandi: '',
         isGps: false,
         errorMessage: 'स्थान प्राप्त करने में समस्या हुई।',
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../config/theme.dart';
+import '../widgets/mandi/voice_bulletin_bar.dart';
 
 class ShellScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -19,7 +20,12 @@ class ShellScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: [
+          Expanded(child: navigationShell),
+          const VoiceBulletinBar(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

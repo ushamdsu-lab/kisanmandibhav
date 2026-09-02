@@ -120,11 +120,17 @@ class TtsService {
     required String mandiOrDistrict,
     required List<MandiRate> rates,
   }) async {
-    if (rates.isEmpty) return;
     await init();
     await stop();
 
-    final title = "$mandiOrDistrict - लाइव भाव (Puck रेडियो)";
+    if (rates.isEmpty) {
+      final text = "नमस्कार किसान भाइयों! $mandiOrDistrict के लिए वर्तमान में भाव लोड हो रहे हैं या आज मंडी अवकाश है। कृपया थोड़ी देर बाद पुनः देखें।";
+      final title = "$mandiOrDistrict - भाव उपलब्ध नहीं";
+      await _speakDynamicText(text, title);
+      return;
+    }
+
+    final title = "$mandiOrDistrict - लाइव भाव बुलेटिन";
     final sb = StringBuffer();
     sb.write("नमस्कार किसान भाइयों! आज $mandiOrDistrict मंडी में फसलों के ताज़ा भाव इस प्रकार दर्ज हुए हैं: ");
 
@@ -204,17 +210,25 @@ class TtsService {
     await _speakDynamicText(fullText, title);
   }
 
-  /// Speaks dynamic live text using streaming neural audio with instant fallback
+  /// Speaks dynamic live text using on-device Native TTS with streaming audio fallback
   Future<void> _speakDynamicText(String fullText, String title) async {
     currentTitleNotifier.value = title;
     currentSpeechNotifier.value = fullText;
     stateNotifier.value = TtsAudioState.playing;
 
-    final segments = _splitIntoSegments(fullText);
-    _pendingSegments = segments;
-    _currentSegmentIndex = 0;
-
-    _playNextSegment();
+    try {
+      if (_flutterTts == null) {
+        await init();
+      }
+      _isUsingAudioPlayer = false;
+      await _flutterTts!.speak(fullText);
+    } catch (e) {
+      debugPrint('[TtsService] Native TTS error, attempting streaming fallback: $e');
+      final segments = _splitIntoSegments(fullText);
+      _pendingSegments = segments;
+      _currentSegmentIndex = 0;
+      _playNextSegment();
+    }
   }
 
   void _playNextSegment() async {
@@ -236,9 +250,9 @@ class TtsService {
     } catch (_) {
       _isUsingAudioPlayer = false;
       try {
-        await _flutterTts!.speak(segment);
+        await _flutterTts?.speak(segment);
       } catch (e) {
-        stateNotifier.value = TtsAudioState.stopped;
+        _playNextSegment();
       }
     }
   }

@@ -13,7 +13,9 @@ class DashboardMandiSpotlight extends StatelessWidget {
   Widget build(BuildContext context) {
     final dist = provider.selectedDistrict.isNotEmpty
         ? provider.selectedDistrict
-        : (provider.userHomeDistrict.isNotEmpty ? provider.userHomeDistrict : 'Jodhpur');
+        : (provider.userHomeDistrict.isNotEmpty
+            ? provider.userHomeDistrict
+            : (provider.rates.isNotEmpty ? provider.rates.first.district : provider.selectedState));
     final distHindi = DistrictHelper.getHindiName(dist);
     final topRates = provider.rates.take(3).toList();
 
@@ -126,6 +128,24 @@ class DashboardMandiSpotlight extends StatelessWidget {
                       ),
                     );
                   }).toList(),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'मंडी के सभी भाव व आवक देखने के लिए टैप करें →',
+                      style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
             ],
