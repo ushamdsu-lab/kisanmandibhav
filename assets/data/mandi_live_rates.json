@@ -1,21 +1,81 @@
 {
   "status": "ok",
-  "total": 4,
-  "count": 4,
-  "updated_at_utc": "2026-09-03T00:14:41.376965+00:00",
-  "updated_at_ist": "2026-09-03 00:14:41 IST",
+  "total": 13,
+  "count": 13,
+  "updated_at_utc": "2026-09-03T01:08:07.473292+00:00",
+  "updated_at_ist": "2026-09-03 01:08:07 IST",
   "records": [
     {
-      "state": "Gujarat",
-      "district": "Amreli",
-      "market": "Rajula APMC",
-      "commodity": "Kabuli Chana(Chickpeas-White)",
-      "variety": "Kabuli Chana(Chickpeas-white)",
+      "state": "Andhra Pradesh",
+      "district": "Kakinada",
+      "market": "Samalkot APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "Paddy",
+      "grade": "FAQ",
+      "arrival_date": "03/09/2026",
+      "min_price": 2365,
+      "max_price": 2380,
+      "modal_price": 2369
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Prakasam",
+      "market": "Darsi APMC",
+      "commodity": "Cotton",
+      "variety": "Desi",
       "grade": "Local",
       "arrival_date": "03/09/2026",
-      "min_price": 6200,
-      "max_price": 6200,
-      "modal_price": 6200
+      "min_price": 8100,
+      "max_price": 8200,
+      "modal_price": 8200
+    },
+    {
+      "state": "Telangana",
+      "district": "Rajanna Siricilla",
+      "market": "Gambhiraopet APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "Local",
+      "arrival_date": "03/09/2026",
+      "min_price": 2390,
+      "max_price": 2390,
+      "modal_price": 2390
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Vijayanagaram",
+      "market": "Chipurupalli APMC",
+      "commodity": "Maize",
+      "variety": "Local",
+      "grade": "FAQ",
+      "arrival_date": "03/09/2026",
+      "min_price": 4800,
+      "max_price": 4800,
+      "modal_price": 4800
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Alluri Sitharama Raju",
+      "market": "Araku Valley APMC",
+      "commodity": "Ginger(Dry)",
+      "variety": "Ginger-Organic",
+      "grade": "Grade Range-1",
+      "arrival_date": "03/09/2026",
+      "min_price": 13000,
+      "max_price": 13000,
+      "modal_price": 13000
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Kakinada",
+      "market": "Pithapuram APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "B P T",
+      "grade": "FAQ",
+      "arrival_date": "03/09/2026",
+      "min_price": 2369,
+      "max_price": 2389,
+      "modal_price": 2379
     },
     {
       "state": "Gujarat",
@@ -28,6 +88,18 @@
       "min_price": 6655,
       "max_price": 6655,
       "modal_price": 6655
+    },
+    {
+      "state": "Gujarat",
+      "district": "Amreli",
+      "market": "Rajula APMC",
+      "commodity": "Kabuli Chana(Chickpeas-White)",
+      "variety": "Kabuli Chana(Chickpeas-white)",
+      "grade": "Local",
+      "arrival_date": "03/09/2026",
+      "min_price": 6200,
+      "max_price": 6200,
+      "modal_price": 6200
     },
     {
       "state": "Andhra Pradesh",
@@ -43,6 +115,30 @@
     },
     {
       "state": "Andhra Pradesh",
+      "district": "Prakasam",
+      "market": "Darsi APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "B P T",
+      "grade": "Local",
+      "arrival_date": "03/09/2026",
+      "min_price": 2500,
+      "max_price": 2600,
+      "modal_price": 2600
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Polavaram",
+      "market": "Rampachodvaram APMC",
+      "commodity": "Paddy(Common)",
+      "variety": "1001",
+      "grade": "Grade Range-2",
+      "arrival_date": "03/09/2026",
+      "min_price": 2369,
+      "max_price": 2389,
+      "modal_price": 2379
+    },
+    {
+      "state": "Andhra Pradesh",
       "district": "Alluri Sitharama Raju",
       "market": "Chintapally APMC",
       "commodity": "Groundnut",
@@ -52,6 +148,18 @@
       "min_price": 6750,
       "max_price": 7500,
       "modal_price": 7000
+    },
+    {
+      "state": "Andhra Pradesh",
+      "district": "Markapuram",
+      "market": "Markapur APMC",
+      "commodity": "Cotton",
+      "variety": "Desi",
+      "grade": "FAQ",
+      "arrival_date": "03/09/2026",
+      "min_price": 8000,
+      "max_price": 8000,
+      "modal_price": 8000
     }
   ]
 }
