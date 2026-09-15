@@ -19,6 +19,10 @@ class DashboardMandiSpotlight extends StatelessWidget {
     final distHindi = DistrictHelper.getHindiName(dist);
     final topRates = provider.rates.take(3).toList();
 
+    final titleText = provider.selectedMarket.isNotEmpty
+        ? '📍 ${provider.selectedMarket}'
+        : '📍 $distHindi ($dist) मंडी';
+
     return InkWell(
       onTap: () => context.go('/mandi'),
       borderRadius: BorderRadius.circular(20),
@@ -60,7 +64,7 @@ class DashboardMandiSpotlight extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              '📍 $distHindi ($dist) मंडी',
+                              titleText,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
@@ -110,19 +114,26 @@ class DashboardMandiSpotlight extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: topRates.map((r) {
                     final hindi = CommodityHelper.getHindiName(r.commodity);
+                    final eng = CommodityHelper.getEnglishName(r.commodity);
                     return Expanded(
                       child: Column(
                         children: [
                           Text(
                             hindi,
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            eng.isNotEmpty ? eng : r.commodity,
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 9, fontWeight: FontWeight.w500),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '₹${r.modalPrice.toInt()}',
-                            style: const TextStyle(color: Colors.amberAccent, fontSize: 14, fontWeight: FontWeight.w900),
+                            style: const TextStyle(color: Colors.amberAccent, fontSize: 13.5, fontWeight: FontWeight.w900),
                           ),
                         ],
                       ),
@@ -130,20 +141,65 @@ class DashboardMandiSpotlight extends StatelessWidget {
                   }).toList(),
                 ),
               ),
-            ] else ...[
-              const SizedBox(height: 8),
+            ],
+            if (provider.availableMarkets.length > 1) ...[
+              const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.12),
+                  color: Colors.black.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'मंडी के सभी भाव व आवक देखने के लिए टैप करें →',
-                      style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                    Row(
+                      children: [
+                        const Icon(Icons.store_mall_directory_rounded, size: 13, color: Colors.amberAccent),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$distHindi जिले की अन्य मंडियां:',
+                          style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          ...provider.availableMarkets.map((m) {
+                            final isCur = provider.selectedMarket == m;
+                            final shortName = m.replaceAll('APMC', '').trim();
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: InkWell(
+                                onTap: () {
+                                  provider.selectMarket(m);
+                                  context.go('/mandi');
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: isCur ? Colors.white : Colors.white.withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    shortName,
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isCur ? const Color(0xFFE65100) : Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   ],
                 ),

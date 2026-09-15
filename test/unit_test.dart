@@ -12,6 +12,9 @@ import 'package:kisan_mitra/data/msp_data.dart';
 import 'package:kisan_mitra/config/constants.dart';
 import 'package:kisan_mitra/services/ad_service.dart';
 import 'package:kisan_mitra/services/mandi_service.dart';
+import 'package:kisan_mitra/services/location_service.dart';
+import 'package:kisan_mitra/utils/commodity_helper.dart';
+import 'package:kisan_mitra/data/crop_disease_database.dart';
 
 void main() {
   group('Model & Architecture Tests', () {
@@ -251,6 +254,102 @@ void main() {
       expect(rates, isNotEmpty);
       expect(rates.first.commodity, isNotEmpty);
       expect(rates.first.modalPrice, greaterThan(0));
+    });
+
+    test('CommodityHelper correctly separates main crops from fruits & vegetables', () {
+      // Main crops (Grains, Oilseeds, Pulses, Commercial)
+      expect(CommodityHelper.isVegetableOrFruit('Wheat'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Mustard'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Chana'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Soyabean'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Guar Seed(Cluster Beans Seed)'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Cotton'), isFalse);
+      expect(CommodityHelper.isVegetableOrFruit('Bajra(Pearl Millet/Cumbu)'), isFalse);
+
+      // Fruits & Vegetables (Horticultural Produce)
+      expect(CommodityHelper.isVegetableOrFruit('Tomato'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Potato'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Onion'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Green Chilli'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Brinjal'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Banana'), isTrue);
+      expect(CommodityHelper.isVegetableOrFruit('Apple'), isTrue);
+    });
+
+    test('LocationResult correctly stores GPS, service and permission flags', () {
+      final loc = LocationResult(
+        latitude: 26.9124,
+        longitude: 75.7873,
+        cityName: 'जयपुर (Jaipur)',
+        state: 'Rajasthan',
+        district: 'Jaipur',
+        mandi: '',
+        isGps: true,
+        isLocationServiceDisabled: false,
+        isPermissionDeniedForever: false,
+      );
+
+      expect(loc.isGps, isTrue);
+      expect(loc.isLocationServiceDisabled, isFalse);
+      expect(loc.isPermissionDeniedForever, isFalse);
+    });
+
+    test('CropDiseaseDatabase accurately diagnoses wheat yellow rust and returns remedies', () {
+      final wheatDiseases = CropDiseaseDatabase.getDiseasesByCrop('wheat');
+      expect(wheatDiseases, isNotEmpty);
+      expect(wheatDiseases.first.diseaseNameHindi.contains('रतुआ'), isTrue);
+      expect(wheatDiseases.first.chemicalMedicine, isNotEmpty);
+      expect(wheatDiseases.first.sprayDosage, isNotEmpty);
+
+      final diag = CropDiseaseDatabase.diagnose(cropId: 'mustard', symptomKeyword: 'सफेद');
+      expect(diag.cropId, 'mustard');
+      expect(diag.diseaseNameHindi.contains('सफेद रोली'), isTrue);
+      expect(diag.confidenceScore, greaterThan(90.0));
+    });
+
+    test('CropDiseaseDatabase covers all 40 supported crops and symptom checklist logic', () {
+      final supportedCrops = [
+        'wheat', 'paddy', 'maize', 'bajra',
+        'mustard', 'soybean', 'gram', 'moong', 'urad', 'groundnut', 'castor', 'sunflower', 'sesame',
+        'cotton', 'sugarcane', 'guar', 'isabgol',
+        'jeera', 'coriander', 'fennel', 'fenugreek', 'ginger', 'turmeric',
+        'tomato', 'potato', 'onion', 'garlic', 'chilli', 'brinjal', 'okra', 'cauliflower', 'pea',
+        'pomegranate', 'citrus', 'mango', 'guava', 'papaya', 'watermelon', 'banana', 'apple'
+      ];
+      expect(supportedCrops.length, 40);
+      for (final cropId in supportedCrops) {
+        final diseases = CropDiseaseDatabase.getDiseasesByCrop(cropId);
+        expect(diseases, isNotEmpty, reason: 'Crop $cropId should have disease entries');
+        for (final d in diseases) {
+          expect(d.diseaseNameHindi, isNotEmpty);
+          expect(d.chemicalMedicine, isNotEmpty);
+          expect(d.sprayDosage, isNotEmpty);
+          expect(d.organicRemedy, isNotEmpty);
+        }
+
+        final tags = CropDiseaseDatabase.getSymptomTagsForCrop(cropId);
+        expect(tags, isNotEmpty, reason: 'Crop $cropId should have symptom tags');
+      }
+
+      // Test symptom-based diagnosis
+      final gramDiag = CropDiseaseDatabase.diagnoseFromSelectedSymptoms(
+        cropId: 'gram',
+        selectedSymptoms: ['फली में छेद'],
+      );
+      expect(gramDiag.diseaseNameHindi.contains('फली छेदक'), isTrue);
+      expect(gramDiag.chemicalMedicine.contains('कोराजन') || gramDiag.chemicalMedicine.contains('एमामेक्टिन'), isTrue);
+
+      final paddyDiag = CropDiseaseDatabase.diagnoseFromSelectedSymptoms(
+        cropId: 'paddy',
+        selectedSymptoms: ['तने पर भूरे छोटे कीड़े'],
+      );
+      expect(paddyDiag.diseaseNameHindi.contains('भूरा फुदका') || paddyDiag.diseaseNameHindi.contains('BPH'), isTrue);
+
+      final appleDiag = CropDiseaseDatabase.diagnoseFromSelectedSymptoms(
+        cropId: 'apple',
+        selectedSymptoms: ['फलों का फटना'],
+      );
+      expect(appleDiag.diseaseNameHindi.contains('स्कैब') || appleDiag.diseaseNameHindi.contains('पपड़ी'), isTrue);
     });
   });
 }

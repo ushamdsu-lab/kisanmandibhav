@@ -1,0 +1,42 @@
+name: Weekly Crop Disease & Pesticide Database Sync
+
+on:
+  schedule:
+    # Runs every Sunday midnight UTC (5:30 AM IST)
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  sync-crop-diseases:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Crop Disease Sync Script
+        run: |
+          python scripts/fetch_crop_diseases.py
+
+      - name: Commit & Push Updated Disease Database
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/data/crop_diseases.json
+          if git diff --staged --quiet; then
+            echo "No changes in crop disease database, skipping commit."
+          else
+            git commit -m "chore(data): auto-update CIBRC crop disease database [skip ci]"
+            git push origin main
+          fi
+
+      - name: Purge jsDelivr CDN Cache
+        run: |
+          curl -s "https://purge.jsdelivr.net/gh/ushamdsu-lab/kisanmandibhav@main/assets/data/crop_diseases.json" || true

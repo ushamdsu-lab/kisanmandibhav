@@ -15,6 +15,8 @@ class LocationResult {
   final String mandi;
   final bool isGps;
   final String? errorMessage;
+  final bool isLocationServiceDisabled;
+  final bool isPermissionDeniedForever;
 
   LocationResult({
     required this.latitude,
@@ -25,6 +27,8 @@ class LocationResult {
     required this.mandi,
     this.isGps = false,
     this.errorMessage,
+    this.isLocationServiceDisabled = false,
+    this.isPermissionDeniedForever = false,
   });
 }
 
@@ -59,6 +63,9 @@ class LocationService {
       double? lat;
       double? lng;
       bool isGpsSuccess = false;
+      bool isServiceDisabled = false;
+      bool isDeniedForever = false;
+      String? customError;
       String? ipCity;
       String? ipRegion;
 
@@ -70,45 +77,74 @@ class LocationService {
         debugPrint('Geolocator isLocationServiceEnabled error: $e');
       }
 
-      LocationPermission permission = LocationPermission.denied;
-      if (serviceEnabled) {
-        try {
-          permission = await Geolocator.checkPermission();
-          if (permission == LocationPermission.denied) {
-            permission = await Geolocator.requestPermission();
-          }
-        } catch (e) {
-          debugPrint('Geolocator permission error: $e');
-        }
+      if (!serviceEnabled) {
+        isServiceDisabled = true;
+        customError = 'फोन का GPS (लोकेशन) बंद है। कृपया ऊपर से GPS चालू करें।';
       }
 
-      // 2. If permission granted, attempt GPS / LastKnown Position
-      if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+      LocationPermission permission = LocationPermission.denied;
+      try {
+        permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.deniedForever) {
+          isDeniedForever = true;
+          customError = 'लोकेशन परमिशन बंद है। ऐप सेटिंग्स से परमिशन चालू करें।';
+        }
+      } catch (e) {
+        debugPrint('Geolocator permission error: $e');
+      }
+
+      // 2. If permission granted and service enabled, attempt fresh GPS first!
+      if (serviceEnabled &&
+          (permission == LocationPermission.always || permission == LocationPermission.whileInUse)) {
+        // Step 2A: High accuracy fresh GPS fix (up to 12 seconds)
         try {
-          final lastKnown = await Geolocator.getLastKnownPosition();
-          if (lastKnown != null) {
-            lat = lastKnown.latitude;
-            lng = lastKnown.longitude;
-            isGpsSuccess = true;
-          }
+          final position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 12),
+            ),
+          );
+          lat = position.latitude;
+          lng = position.longitude;
+          isGpsSuccess = true;
+          customError = null;
         } catch (e) {
-          debugPrint('Geolocator lastKnown error: $e');
+          debugPrint('Geolocator high fix timed out or failed: $e');
         }
 
-        // If no cached position, request fresh GPS fix (medium accuracy, 7 seconds)
+        // Step 2B: Balanced / medium accuracy fix (Cell tower + WiFi) if satellite GPS timed out (e.g. indoors)
         if (lat == null || lng == null) {
           try {
             final position = await Geolocator.getCurrentPosition(
               locationSettings: const LocationSettings(
                 accuracy: LocationAccuracy.medium,
-                timeLimit: Duration(seconds: 7),
+                timeLimit: Duration(seconds: 6),
               ),
             );
             lat = position.latitude;
             lng = position.longitude;
             isGpsSuccess = true;
+            customError = null;
           } catch (e) {
-            debugPrint('Geolocator currentPosition error: $e');
+            debugPrint('Geolocator medium fix failed: $e');
+          }
+        }
+
+        // Step 2C: Fallback to last known position
+        if (lat == null || lng == null) {
+          try {
+            final lastKnown = await Geolocator.getLastKnownPosition();
+            if (lastKnown != null) {
+              lat = lastKnown.latitude;
+              lng = lastKnown.longitude;
+              isGpsSuccess = true;
+              customError = null;
+            }
+          } catch (e) {
+            debugPrint('Geolocator lastKnown fallback error: $e');
           }
         }
       }
@@ -127,31 +163,32 @@ class LocationService {
               lng = (data['longitude'] as num).toDouble();
               ipCity = data['city']?.toString();
               ipRegion = data['region']?.toString();
-              isGpsSuccess = true;
+              // Note: IP geolocation is approximate, not real hardware GPS
+              isGpsSuccess = false;
             }
           }
         } catch (e) {
           debugPrint('ipwho.is fallback error: $e');
         }
 
-        // Option B: ip-api.com (secondary free IP geolocation provider)
+        // Option B: freeipapi.com (secure HTTPS secondary free IP geolocation provider)
         if (lat == null || lng == null) {
           try {
             final res = await http
-                .get(Uri.parse('http://ip-api.com/json'))
-                .timeout(const Duration(seconds: 3));
+                .get(Uri.parse('https://freeipapi.com/api/json'))
+                .timeout(const Duration(seconds: 4));
             if (res.statusCode == 200) {
               final data = json.decode(res.body);
-              if (data['status'] == 'success' && data['lat'] != null && data['lon'] != null) {
-                lat = (data['lat'] as num).toDouble();
-                lng = (data['lon'] as num).toDouble();
-                ipCity = data['city']?.toString();
+              if (data['latitude'] != null && data['longitude'] != null) {
+                lat = (data['latitude'] as num).toDouble();
+                lng = (data['longitude'] as num).toDouble();
+                ipCity = data['cityName']?.toString();
                 ipRegion = data['regionName']?.toString();
-                isGpsSuccess = true;
+                isGpsSuccess = false;
               }
             }
           } catch (e) {
-            debugPrint('ip-api.com fallback error: $e');
+            debugPrint('freeipapi fallback error: $e');
           }
         }
       }
@@ -174,7 +211,7 @@ class LocationService {
       // 6. Reverse Geocoding - Primary: BigDataCloud Reverse Geocoding Client (Fast & Accurate for India)
       try {
         final bdcUrl = Uri.parse(
-          'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lng&localityLanguage=en',
+          'https://api-bdc.io/data/reverse-geocode-client?latitude=$lat&longitude=$lng&localityLanguage=en',
         );
         final bdcResponse = await http.get(bdcUrl).timeout(const Duration(seconds: 4));
         if (bdcResponse.statusCode == 200) {
@@ -284,7 +321,29 @@ class LocationService {
       }
       district = stdDistrict;
 
-      // 10. Format City Name Display for Farmer UI
+      // 10. Auto-Detect Specific Nearest Mandi for Farmer
+      String nearestMandi = '';
+      final availableDistrictMandis = MandiDirectory.getMandisForDistrict(state, district);
+
+      if (nearestCity.mandi.isNotEmpty &&
+          (nearestCity.effectiveDistrict.toLowerCase() == district.toLowerCase() ||
+              availableDistrictMandis.contains(nearestCity.mandi))) {
+        nearestMandi = nearestCity.mandi;
+      } else if (detectedPlace != null && detectedPlace.isNotEmpty) {
+        final placeLower = detectedPlace.toLowerCase();
+        for (final m in availableDistrictMandis) {
+          if (m.toLowerCase().contains(placeLower) || placeLower.contains(m.toLowerCase().replaceAll('apmc', '').trim())) {
+            nearestMandi = m;
+            break;
+          }
+        }
+      }
+
+      if (nearestMandi.isEmpty && availableDistrictMandis.isNotEmpty) {
+        nearestMandi = availableDistrictMandis.first;
+      }
+
+      // 11. Format City Name Display for Farmer UI
       if (detectedPlace != null && detectedPlace.isNotEmpty && detectedDistrict != null && detectedDistrict.isNotEmpty) {
         if (detectedPlace.toLowerCase() != detectedDistrict.toLowerCase()) {
           cityName = '$detectedPlace ($detectedDistrict)';
@@ -307,8 +366,11 @@ class LocationService {
         cityName: cityName,
         state: state,
         district: district,
-        mandi: '',
+        mandi: nearestMandi,
         isGps: isGpsSuccess,
+        errorMessage: isGpsSuccess ? null : customError,
+        isLocationServiceDisabled: isServiceDisabled,
+        isPermissionDeniedForever: isDeniedForever,
       );
     } catch (e) {
       debugPrint('LocationService unexpected error: $e');
@@ -318,9 +380,10 @@ class LocationService {
         cityName: 'जयपुर (Jaipur)',
         state: 'Rajasthan',
         district: 'Jaipur',
-        mandi: '',
+        mandi: 'Jaipur (Grain) APMC',
         isGps: false,
-        errorMessage: 'स्थान प्राप्त करने में समस्या हुई।',
+        errorMessage: 'स्थान प्राप्त करने में समस्या हुई। कृपया GPS ऑन करें।',
+        isLocationServiceDisabled: true,
       );
     }
   }

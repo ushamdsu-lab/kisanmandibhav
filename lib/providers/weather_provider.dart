@@ -104,19 +104,23 @@ class WeatherProvider extends ChangeNotifier {
     _detectedDistrict = result.district;
     _detectedMandi = result.mandi;
 
-    await StorageService.saveLocation(
-      city: _cityName,
-      lat: _currentLat,
-      lng: _currentLng,
-      state: _detectedState,
-      district: _detectedDistrict,
-      mandi: _detectedMandi,
-    );
+    // Only save permanently if accurate GPS fix or if no prior location saved
+    if (result.isGps || !StorageService.hasSavedLocation()) {
+      await StorageService.saveLocation(
+        city: _cityName,
+        lat: _currentLat,
+        lng: _currentLng,
+        state: _detectedState,
+        district: _detectedDistrict,
+        mandi: _detectedMandi,
+      );
+    }
 
     if (mandiProvider != null) {
       mandiProvider.syncLocationContext(
         state: _detectedState,
         district: _detectedDistrict,
+        mandi: _detectedMandi,
       );
     }
 

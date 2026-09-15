@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:kisan_mitra/app.dart';
+import 'package:kisan_mitra/providers/locale_provider.dart';
 import 'package:kisan_mitra/providers/theme_provider.dart';
 import 'package:kisan_mitra/providers/weather_provider.dart';
 import 'package:kisan_mitra/providers/mandi_provider.dart';
@@ -16,10 +17,13 @@ void main() {
     await StorageService.init();
   });
 
-  testWidgets('App renders correctly with navigation destinations', (WidgetTester tester) async {
+  testWidgets('App renders correctly with navigation destinations and locale provider', (WidgetTester tester) async {
+    final localeProvider = LocaleProvider();
+
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider.value(value: localeProvider),
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (_) => WeatherProvider()),
           ChangeNotifierProvider(create: (_) => MandiProvider()),
@@ -33,11 +37,24 @@ void main() {
 
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify navigation bar items exist
+    // Verify initial Hindi navigation bar items exist
     expect(find.text('होम'), findsWidgets);
-    expect(find.text('मंडी'), findsOneWidget);
-    expect(find.text('मौसम'), findsOneWidget);
-    expect(find.text('खेती'), findsOneWidget);
-    expect(find.text('योजना'), findsOneWidget);
+    expect(find.text('मंडी'), findsWidgets);
+    expect(find.text('मौसम'), findsWidgets);
+    expect(find.text('खेती'), findsWidgets);
+    expect(find.text('योजना'), findsWidgets);
+
+    // Switch language to English
+    await localeProvider.setLanguage('en');
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Verify dynamic English navigation bar items
+    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Mandi'), findsWidgets);
+    expect(find.text('Weather'), findsWidgets);
+    expect(find.text('Farming'), findsWidgets);
+    expect(find.text('Schemes'), findsWidgets);
   });
 }
+
+

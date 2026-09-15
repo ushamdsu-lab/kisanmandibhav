@@ -9,6 +9,7 @@ import '../screens/kheti/crop_detail_screen.dart';
 import '../screens/kheti/calculator_screen.dart';
 import '../screens/yojna/yojna_screen.dart';
 import '../screens/yojna/scheme_detail_screen.dart';
+import '../screens/crop_doctor/crop_doctor_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -69,6 +70,11 @@ final GoRouter appRouter = GoRouter(
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const CalculatorScreen(),
                 ),
+                GoRoute(
+                  path: 'doctor',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const CropDoctorScreen(),
+                ),
               ],
             ),
           ],
@@ -98,6 +104,15 @@ final GoRouter appRouter = GoRouter(
       path: '/calculator',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const CalculatorScreen(),
+    ),
+    GoRoute(
+      path: '/crop-doctor',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const CropDoctorScreen(),
+    ),
+    GoRoute(
+      path: '/schemes',
+      redirect: (_, __) => '/yojna',
     ),
   ],
 );

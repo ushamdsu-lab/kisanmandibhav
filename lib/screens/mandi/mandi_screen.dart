@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/mandi_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -9,6 +10,7 @@ import '../../utils/district_helper.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/notification_center_sheet.dart';
+import '../../widgets/common/language_toggle_button.dart';
 import 'widgets/mandi_rate_card.dart';
 import 'widgets/mandi_state_picker_modal.dart';
 import 'widgets/mandi_district_picker_modal.dart';
@@ -35,7 +37,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -43,27 +45,17 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
         setState(() {
           _showAllDistrictRates = false;
         });
-        if (_tabController.index == 0) {
-          if (provider.selectedDistrict.isEmpty) {
-            provider.resetToHomeDistrict();
-          }
-        } else if (_tabController.index == 1) {
+        if (_tabController.index == 1) {
           if (provider.selectedDistrict.isNotEmpty) {
             provider.viewAllMandis();
           }
-        } else if (_tabController.index == 2) {
-          MandiStatePickerModal.show(context, provider);
         }
       }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<MandiProvider>();
-      final weatherProv = context.read<WeatherProvider>();
-
-      if (provider.userHomeDistrict.isEmpty || !weatherProv.isGpsLocation) {
-        await weatherProv.fetchUserLocation(mandiProvider: provider);
-      } else if (provider.rates.isEmpty && !provider.isLoading) {
+      if (provider.rates.isEmpty && !provider.isLoading) {
         provider.fetchRates(
           state: provider.selectedState,
           district: provider.selectedDistrict,
@@ -82,6 +74,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+
     return Scaffold(
       body: Consumer<MandiProvider>(
         builder: (context, provider, _) {
@@ -100,9 +95,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   pinned: true,
                   floating: false,
                   elevation: 2,
-                  title: const Text(
-                    '🏪 मंडी भाव लाइव',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white),
+                  title: Text(
+                    isHi ? '🏪 मंडी भाव लाइव' : '🏪 Live Mandi Rates',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Colors.white),
                   ),
                   centerTitle: false,
                   flexibleSpace: Container(
@@ -141,15 +136,15 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                         unselectedLabelColor: Colors.white.withValues(alpha: 0.95),
                         labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
                         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5),
-                        tabs: const [
+                        tabs: [
                           Tab(
                             height: 38,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.location_on_rounded, size: 16),
-                                SizedBox(width: 4),
-                                Text('मेरा ज़िला'),
+                                const Icon(Icons.location_on_rounded, size: 16),
+                                const SizedBox(width: 6),
+                                Text(localeProv.t('tab_district_mandis')),
                               ],
                             ),
                           ),
@@ -158,20 +153,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.account_balance_rounded, size: 16),
-                                SizedBox(width: 4),
-                                Text('पूरा राज्य'),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            height: 38,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.public_rounded, size: 16),
-                                SizedBox(width: 4),
-                                Text('देश भर की'),
+                                const Icon(Icons.account_balance_rounded, size: 16),
+                                const SizedBox(width: 6),
+                                Text(localeProv.t('tab_all_mandis')),
                               ],
                             ),
                           ),
@@ -180,9 +164,10 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     ),
                   ),
                   actions: [
+                    const LanguageToggleButton(),
                     IconButton(
                       icon: const Icon(Icons.my_location_rounded, color: Colors.white),
-                      tooltip: 'GPS लोकेशन से मंडी सेट करें',
+                      tooltip: isHi ? 'GPS लोकेशन से मंडी सेट करें' : 'Set Mandi from GPS',
                       onPressed: () async {
                         final weatherProv = context.read<WeatherProvider>();
                         final res = await weatherProv.fetchUserLocation(mandiProvider: provider);
@@ -190,8 +175,10 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(res.isGps
-                                  ? '📍 लोकेशन: ${res.cityName} (${DistrictHelper.getHindiName(res.district)} जिले की सभी मंडियों के भाव)'
-                                  : (res.errorMessage ?? 'लोकेशन प्राप्त नहीं हो सकी')),
+                                  ? (isHi
+                                      ? '📍 लोकेशन: ${res.cityName} (${DistrictHelper.getHindiName(res.district)} जिले की सभी मंडियों के भाव)'
+                                      : '📍 Location: ${res.cityName} (${res.district} District Mandis)')
+                                  : (res.errorMessage ?? (isHi ? 'लोकेशन प्राप्त नहीं हो सकी' : 'Location unavailable'))),
                               backgroundColor: res.isGps ? Colors.green.shade700 : Colors.orange.shade800,
                             ),
                           );
@@ -207,7 +194,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             IconButton(
                               icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
                               onPressed: () => NotificationCenterSheet.show(context),
-                              tooltip: 'सूचनाएं व भाव अलर्ट',
+                              tooltip: isHi ? 'सूचनाएं व भाव अलर्ट' : 'Alerts & Notifications',
                             ),
                             if (unread > 0)
                               Positioned(
@@ -234,7 +221,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     IconButton(
                       icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                       onPressed: () => provider.fetchRates(state: provider.selectedState),
-                      tooltip: 'ताज़ा करें',
+                      tooltip: isHi ? 'ताज़ा करें' : 'Refresh',
                     ),
                   ],
                 ),
@@ -299,9 +286,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                         ),
                         child: Row(
                           children: [
-                            _buildCategoryButton('सभी भाव', Icons.grid_view_rounded, provider.selectedCategory == 'all', () => provider.selectCategory('all')),
-                            _buildCategoryButton('अनाज व दलहन', Icons.grain_rounded, provider.selectedCategory == 'crops', () => provider.selectCategory('crops')),
-                            _buildCategoryButton('सब्जी व फल', Icons.eco_rounded, provider.selectedCategory == 'vegetables', () => provider.selectCategory('vegetables')),
+                            _buildCategoryButton(localeProv.t('all_rates'), Icons.grid_view_rounded, provider.selectedCategory == 'all', () => provider.selectCategory('all')),
+                            _buildCategoryButton(localeProv.t('main_crops'), Icons.grain_rounded, provider.selectedCategory == 'crops', () => provider.selectCategory('crops')),
+                            _buildCategoryButton(localeProv.t('veg_and_fruits'), Icons.eco_rounded, provider.selectedCategory == 'vegetables', () => provider.selectCategory('vegetables')),
                           ],
                         ),
                       ),
@@ -319,7 +306,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: FilterChip(
-                              label: const Text('सभी', style: TextStyle(fontWeight: FontWeight.bold)),
+                              label: Text(localeProv.t('all_filter'), style: const TextStyle(fontWeight: FontWeight.bold)),
                               selected: provider.selectedCropFilter.isEmpty,
                               onSelected: (_) => provider.selectCropFilter(''),
                             ),
@@ -329,10 +316,15 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                   : CommodityHelper.popularCrops)
                               .map((c) {
                             final isSelected = provider.selectedCropFilter == c['key'];
+                            final chipLabel = isHi
+                                ? c['name']!
+                                : (CommodityHelper.getEnglishName(c['key']!).isNotEmpty
+                                    ? CommodityHelper.getEnglishName(c['key']!)
+                                    : c['name']!);
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: FilterChip(
-                                label: Text(c['name']!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                label: Text(chipLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                                 selected: isSelected,
                                 onSelected: (_) => provider.selectCropFilter(c['key']!),
                               ),
@@ -351,7 +343,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                         controller: _searchController,
                         onChanged: (q) => provider.searchCommodity(q),
                         decoration: InputDecoration(
-                          hintText: '🔍 फसल या मंडी का नाम खोजें (उदा: जीरा, सरसों, मेड़ता)...',
+                          hintText: isHi
+                              ? '🔍 फसल या मंडी का नाम खोजें (उदा: जीरा, सरसों, मेड़ता)...'
+                              : '🔍 Search crop or mandi (e.g. Wheat, Mustard, Merta)...',
                           prefixIcon: const Icon(Icons.search_rounded),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
@@ -374,7 +368,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                       child: Row(
                         children: [
                           Text(
-                            'कुल ${provider.rates.length} भाव उपलब्ध',
+                            isHi
+                                ? 'कुल ${provider.rates.length} भाव उपलब्ध'
+                                : 'Total ${provider.rates.length} rates available',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                           ),
                           const Spacer(),
@@ -391,9 +387,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 icon: const Icon(Icons.volume_up_rounded, size: 15, color: Colors.amberAccent),
-                                label: const Text(
-                                  'भाव सुनें',
-                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                label: Text(
+                                  isHi ? 'भाव सुनें' : 'Listen Bulletin',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
                                 ),
                                 onPressed: () {
                                   final loc = provider.selectedMarket.isNotEmpty
@@ -414,9 +410,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                 _searchController.clear();
                                 provider.clearFilters();
                               },
-                              child: const Text(
-                                'फ़िल्टर हटाएं ✕',
-                                style: TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.bold),
+                              child: Text(
+                                isHi ? 'फ़िल्टर हटाएं ✕' : 'Clear Filters ✕',
+                                style: const TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.bold),
                               ),
                             ),
                         ],
@@ -459,7 +455,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                   ? '${provider.selectedMarket} में आज कोई नई आवक दर्ज नहीं हुई'
                                   : (provider.selectedDistrict.isNotEmpty
                                       ? '${provider.selectedDistrict} जिले में आज कोई आवक दर्ज नहीं हुई'
-                                      : 'आज कोई मंडी भाव दर्ज नहीं हुआ'),
+                                      : '${DistrictHelper.getHindiStateName(provider.selectedState)} राज्य में आज कोई मंडी भाव दर्ज नहीं हुआ'),
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                             ),
@@ -469,20 +465,53 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.mandiAccent,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              ),
-                              icon: const Icon(Icons.storefront_rounded, size: 18),
-                              label: const Text('सभी मंडियों के भाव देखें', style: TextStyle(fontWeight: FontWeight.w700)),
-                              onPressed: () {
-                                _searchController.clear();
-                                provider.clearFilters();
-                              },
+                            const SizedBox(height: 20),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.mandiAccent,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                                  ),
+                                  icon: const Icon(Icons.storefront_rounded, size: 18),
+                                  label: const Text('सभी प्रमुख मंडियों के भाव देखें', style: TextStyle(fontWeight: FontWeight.w800)),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    provider.clearFilters();
+                                  },
+                                ),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary, width: 1.2),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                                  ),
+                                  icon: const Icon(Icons.map_rounded, size: 18),
+                                  label: const Text('दूसरा राज्य / ज़िला चुनें', style: TextStyle(fontWeight: FontWeight.w800)),
+                                  onPressed: () {
+                                    MandiStatePickerModal.show(context, provider);
+                                  },
+                                ),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.grey.shade700,
+                                    side: BorderSide(color: Colors.grey.shade400, width: 1.0),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                                  ),
+                                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                                  label: const Text('ताज़ा करें', style: TextStyle(fontWeight: FontWeight.w700)),
+                                  onPressed: () {
+                                    provider.fetchRates(state: provider.selectedState);
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -546,79 +575,134 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   }
 
   Widget _buildLocationBar(BuildContext context, MandiProvider provider) {
-    final distHindi = provider.selectedDistrict.isNotEmpty ? DistrictHelper.getHindiName(provider.selectedDistrict) : 'सभी जिले';
-    final stateHindi = DistrictHelper.getHindiStateName(provider.selectedState);
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+    final distName = provider.selectedDistrict.isNotEmpty
+        ? (isHi ? DistrictHelper.getHindiName(provider.selectedDistrict) : provider.selectedDistrict)
+        : (isHi ? 'सभी जिले' : 'All Districts');
+    final stateName = isHi ? DistrictHelper.getHindiStateName(provider.selectedState) : provider.selectedState;
+    final homeDistName = isHi ? DistrictHelper.getHindiName(provider.userHomeDistrict) : provider.userHomeDistrict;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-      child: Row(
-        children: [
-          // State Picker
-          Expanded(
-            child: InkWell(
-              onTap: () => MandiStatePickerModal.show(context, provider),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+    return Column(
+      children: [
+        if (provider.isBrowsingOtherLocation)
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.amber.shade700, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: Colors.brown, size: 16),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    isHi ? 'आप $stateName ($distName) देख रहे हैं' : 'Viewing $stateName ($distName)',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.brown),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.map_rounded, size: 16, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        stateHindi,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                InkWell(
+                  onTap: () => provider.resetToHomeDistrict(),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE65100),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    const Icon(Icons.arrow_drop_down_rounded, size: 18),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.my_location_rounded, size: 12, color: Colors.white),
+                        const SizedBox(width: 4),
+                        Text(
+                          isHi ? 'मेरी लोकेशन ($homeDistName)' : 'My Location ($homeDistName)',
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          // District Picker
-          Expanded(
-            child: InkWell(
-              onTap: () => MandiDistrictPickerModal.show(context, provider),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardTheme.color,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              // State Picker
+              Expanded(
+                child: InkWell(
+                  onTap: () => MandiStatePickerModal.show(context, provider),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.location_city_rounded, size: 16, color: AppColors.mandiAccent),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        distHindi,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                     ),
-                    const Icon(Icons.arrow_drop_down_rounded, size: 18),
-                  ],
+                    child: Row(
+                      children: [
+                        const Icon(Icons.map_rounded, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            stateName,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down_rounded, size: 18),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              // District Picker
+              Expanded(
+                child: InkWell(
+                  onTap: () => MandiDistrictPickerModal.show(context, provider),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_city_rounded, size: 16, color: AppColors.mandiAccent),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            distName,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down_rounded, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   List<Widget> _buildDistrictMandisSlivers(BuildContext context, MandiProvider provider) {
-    final distHindi = DistrictHelper.getHindiName(provider.selectedDistrict);
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+    final distName = isHi ? DistrictHelper.getHindiName(provider.selectedDistrict) : provider.selectedDistrict;
     final markets = provider.availableMarkets;
 
     return [
@@ -655,13 +739,13 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '📍 $distHindi जिले की प्रमुख मंडियां (${markets.length})',
+                      isHi ? '📍 $distName जिले की प्रमुख मंडियां (${markets.length})' : '📍 $distName District Markets (${markets.length})',
                       style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5),
                     ),
                     const SizedBox(height: 3),
-                    const Text(
-                      'फसलों के ताज़ा भाव देखने के लिए अपनी मंडी चुनें:',
-                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                    Text(
+                      isHi ? 'फसलों के ताज़ा भाव देखने के लिए अपनी मंडी चुनें:' : 'Select your APMC market to view live crop prices:',
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -676,6 +760,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final market = markets[index];
+            final isNearest = provider.userHomeMarket.isNotEmpty &&
+                (provider.userHomeMarket.toLowerCase() == market.toLowerCase() ||
+                    market.toLowerCase().contains(provider.userHomeMarket.toLowerCase()));
             final count = provider.getRatesCountForMarket(market);
             final sampleCrops = provider.getSampleCropsForMarket(market);
 
@@ -684,11 +771,18 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
               decoration: BoxDecoration(
                 color: Theme.of(context).cardTheme.color,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+                border: Border.all(
+                  color: isNearest
+                      ? const Color(0xFFE65100).withValues(alpha: 0.6)
+                      : Colors.grey.withValues(alpha: 0.18),
+                  width: isNearest ? 1.5 : 1.0,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 6,
+                    color: isNearest
+                        ? const Color(0xFFE65100).withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.03),
+                    blurRadius: isNearest ? 10 : 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -705,15 +799,46 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (isNearest)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade100,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.amber.shade800, width: 0.8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.my_location_rounded, size: 12, color: Colors.brown.shade800),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isHi ? '📍 आपकी सबसे नजदीकी मंडी (Nearest APMC)' : '📍 Your Nearest APMC Market',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.brown.shade900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE65100).withValues(alpha: 0.12),
+                                color: isNearest
+                                    ? const Color(0xFFE65100)
+                                    : const Color(0xFFE65100).withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(Icons.storefront_rounded, color: Color(0xFFE65100), size: 20),
+                              child: Icon(
+                                Icons.storefront_rounded,
+                                color: isNearest ? Colors.white : const Color(0xFFE65100),
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -740,7 +865,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        count > 0 ? '$count फसलों के ताज़ा भाव उपलब्ध' : 'आज की नीलामी भाव',
+                                        count > 0
+                                            ? (isHi ? '$count फसलों के ताज़ा भाव उपलब्ध' : '$count crop rates live')
+                                            : (isHi ? 'आज की नीलामी भाव' : 'Live Auction Rates'),
                                         style: TextStyle(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
@@ -758,15 +885,15 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                 color: const Color(0xFF1B5E20),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'भाव देखें',
-                                    style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800),
+                                    isHi ? 'भाव देखें' : 'View Rates',
+                                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800),
                                   ),
-                                  SizedBox(width: 3),
-                                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
+                                  const SizedBox(width: 3),
+                                  const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
                                 ],
                               ),
                             ),
@@ -778,6 +905,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             spacing: 6,
                             runSpacing: 4,
                             children: sampleCrops.map((crop) {
+                              final cropLabel = isHi ? crop : (CommodityHelper.getEnglishName(crop).isNotEmpty ? CommodityHelper.getEnglishName(crop) : crop);
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
@@ -786,7 +914,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                   border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                                 ),
                                 child: Text(
-                                  crop,
+                                  cropLabel,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                                 ),
                               );
@@ -816,7 +944,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
             ),
             icon: const Icon(Icons.grid_view_rounded, size: 18, color: AppColors.primary),
             label: Text(
-              '📊 $distHindi जिले के सभी भाव एक साथ देखें',
+              isHi ? '📊 $distName जिले के सभी भाव एक साथ देखें' : '📊 View All $distName Rates Together',
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primary),
             ),
             onPressed: () {
@@ -831,10 +959,12 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   }
 
   Widget _buildSelectedMandiHeader(BuildContext context, MandiProvider provider) {
-    final distHindi = DistrictHelper.getHindiName(provider.selectedDistrict);
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+    final distName = isHi ? DistrictHelper.getHindiName(provider.selectedDistrict) : provider.selectedDistrict;
     final title = provider.selectedMarket.isNotEmpty
         ? provider.selectedMarket
-        : '$distHindi (सभी मंडियां)';
+        : '$distName (${isHi ? "सभी मंडियां" : "All Markets"})';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
@@ -860,14 +990,14 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                 color: const Color(0xFFE65100).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.arrow_back_rounded, size: 14, color: Color(0xFFE65100)),
-                  SizedBox(width: 4),
+                  const Icon(Icons.arrow_back_rounded, size: 14, color: Color(0xFFE65100)),
+                  const SizedBox(width: 4),
                   Text(
-                    'सभी मंडियां',
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFE65100)),
+                    isHi ? 'सभी मंडियां' : 'All Mandis',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFE65100)),
                   ),
                 ],
               ),
@@ -887,12 +1017,14 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
   }
 
   Widget _buildMandiSelector(BuildContext context, MandiProvider provider) {
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
     final markets = provider.availableMarkets;
     if (markets.isEmpty) return const SizedBox.shrink();
 
     final distName = provider.selectedDistrict.isNotEmpty
-        ? DistrictHelper.getHindiName(provider.selectedDistrict)
-        : DistrictHelper.getHindiStateName(provider.selectedState);
+        ? (isHi ? DistrictHelper.getHindiName(provider.selectedDistrict) : provider.selectedDistrict)
+        : (isHi ? DistrictHelper.getHindiStateName(provider.selectedState) : provider.selectedState);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
@@ -910,7 +1042,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
               const Icon(Icons.storefront_rounded, size: 16, color: Color(0xFFE65100)),
               const SizedBox(width: 6),
               Text(
-                '🏬 $distName की प्रमुख मंडियां (${markets.length})',
+                isHi ? '🏬 $distName की प्रमुख मंडियां (${markets.length})' : '🏬 $distName Markets (${markets.length})',
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
               ),
               const Spacer(),
@@ -924,12 +1056,12 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.red.shade300, width: 0.8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('सभी देखें', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.red)),
-                        SizedBox(width: 2),
-                        Icon(Icons.close_rounded, size: 12, color: Colors.red),
+                        Text(isHi ? 'सभी देखें' : 'View All', style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.red)),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.close_rounded, size: 12, color: Colors.red),
                       ],
                     ),
                   ),
@@ -948,7 +1080,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                 if (idx == 0) {
                   final isAllSelected = provider.selectedMarket.isEmpty;
                   return ChoiceChip(
-                    label: const Text('सभी मंडियां', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                    label: Text(isHi ? 'सभी मंडियां' : 'All Mandis', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
                     selected: isAllSelected,
                     selectedColor: const Color(0xFFE65100),
                     labelStyle: TextStyle(
@@ -962,20 +1094,27 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                 }
                 final market = markets[idx - 1];
                 final isSelected = provider.selectedMarket == market;
+                final isNearest = provider.userHomeMarket.isNotEmpty &&
+                    (provider.userHomeMarket.toLowerCase() == market.toLowerCase() ||
+                        market.toLowerCase().contains(provider.userHomeMarket.toLowerCase()));
                 final count = provider.getRatesCountForMarket(market);
                 final displayName = market
                     .replaceAll('APMC', '')
                     .trim();
 
+                final labelText = isNearest
+                    ? (count > 0 ? '📍 $displayName (${isHi ? "नजदीकी" : "Nearest"}: $count)' : '📍 $displayName (${isHi ? "नजदीकी" : "Nearest"})')
+                    : (count > 0 ? '$displayName ($count)' : displayName);
+
                 return ChoiceChip(
                   avatar: isSelected
                       ? const Icon(Icons.check_circle_rounded, size: 14, color: Colors.white)
-                      : null,
+                      : (isNearest ? const Icon(Icons.my_location_rounded, size: 13, color: Color(0xFFE65100)) : null),
                   label: Text(
-                    count > 0 ? '$displayName ($count)' : displayName,
+                    labelText,
                     style: TextStyle(
                       fontSize: 11.5,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: isSelected || isNearest ? FontWeight.w800 : FontWeight.w600,
                       color: isSelected ? Colors.white : null,
                     ),
                   ),

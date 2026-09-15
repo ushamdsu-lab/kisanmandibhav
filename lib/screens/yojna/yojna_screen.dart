@@ -7,9 +7,11 @@ import '../../config/theme.dart';
 import '../../config/app_images.dart';
 import '../../models/scheme.dart';
 import '../../models/helpline.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/yojna_provider.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/common/language_toggle_button.dart';
 import '../../utils/district_helper.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
@@ -71,10 +73,13 @@ class _YojnaScreenState extends State<YojnaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+
     return Scaffold(
       body: Consumer<YojnaProvider>(
         builder: (context, provider, _) {
-          final stateHindi = DistrictHelper.getHindiStateName(provider.userHomeState);
+          final stateName = isHi ? DistrictHelper.getHindiStateName(provider.userHomeState) : provider.userHomeState;
 
           return CustomScrollView(
             slivers: [
@@ -86,9 +91,9 @@ class _YojnaScreenState extends State<YojnaScreen> {
                 iconTheme: const IconThemeData(color: Colors.white),
                 actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
-                  title: const Text(
-                    '📋 सरकारी योजनाएं',
-                    style: TextStyle(
+                  title: Text(
+                    isHi ? '📋 सरकारी योजनाएं' : '📋 Govt Agri Schemes',
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
                       color: Colors.white,
@@ -124,10 +129,11 @@ class _YojnaScreenState extends State<YojnaScreen> {
                   ),
                 ),
                 actions: [
+                  const LanguageToggleButton(),
                   IconButton(
                     icon: const Icon(Icons.verified_user_rounded, color: Colors.white),
                     onPressed: () => _showEligibilityCheckerModal(context),
-                    tooltip: 'पात्रता जांचें',
+                    tooltip: isHi ? 'पात्रता जांचें' : 'Check Eligibility',
                   ),
                 ],
               ),
@@ -151,7 +157,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                           const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
                           const SizedBox(width: 6),
                           Text(
-                            '📍 आपका राज्य: $stateHindi (${provider.userHomeState})',
+                            isHi ? '📍 आपका राज्य: $stateName (${provider.userHomeState})' : '📍 Your State: $stateName',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
                           ),
                           const Spacer(),
@@ -161,12 +167,12 @@ class _YojnaScreenState extends State<YojnaScreen> {
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('राज्य बदलें', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                                SizedBox(width: 2),
-                                Icon(Icons.arrow_drop_down, color: Colors.white, size: 14),
+                                Text(isHi ? 'राज्य बदलें' : 'Change State', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 2),
+                                const Icon(Icons.arrow_drop_down, color: Colors.white, size: 14),
                               ],
                             ),
                           ),
@@ -211,20 +217,20 @@ class _YojnaScreenState extends State<YojnaScreen> {
                                     color: Colors.amberAccent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Text(
-                                    '100% नि:शुल्क सरकारी सहायता',
-                                    style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                                  child: Text(
+                                    isHi ? '100% नि:शुल्क सरकारी सहायता' : '100% Free Govt Support',
+                                    style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  'अपनी पात्रता जांचें (Eligibility Calculator)',
-                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                                Text(
+                                  isHi ? 'अपनी पात्रता जांचें (Eligibility Calculator)' : 'Check Eligibility Calculator',
+                                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  'पीएम-किसान, कृषि बीमा, तारबंदी व सोलर पंप पात्रता',
-                                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                                Text(
+                                  isHi ? 'पीएम-किसान, कृषि बीमा, तारबंदी व सोलर पंप पात्रता' : 'PM-Kisan, Crop Insurance, Solar Pump Eligibility',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
                                 ),
                               ],
                             ),
@@ -264,9 +270,9 @@ class _YojnaScreenState extends State<YojnaScreen> {
                       children: [
                         _buildGovtTab(
                           context: context,
-                          label: '🌟 आपके लिए',
+                          label: isHi ? '🌟 आपके लिए' : '🌟 For You',
                           icon: Icons.auto_awesome_rounded,
-                          subtitle: '$stateHindi + केंद्र',
+                          subtitle: isHi ? '$stateName + केंद्र' : '$stateName + Central',
                           count: provider.recommendedCount,
                           isSelected: provider.selectedGovtType == 'recommended',
                           onTap: () => provider.selectGovtType('recommended'),
@@ -275,9 +281,9 @@ class _YojnaScreenState extends State<YojnaScreen> {
                         const SizedBox(width: 6),
                         _buildGovtTab(
                           context: context,
-                          label: 'केंद्र सरकार',
+                          label: isHi ? 'केंद्र सरकार' : 'Central Govt',
                           icon: Icons.account_balance_rounded,
-                          subtitle: 'PM-किसान, KCC..',
+                          subtitle: 'PM-Kisan, KCC..',
                           count: provider.centralCount,
                           isSelected: provider.selectedGovtType == 'central',
                           onTap: () => provider.selectGovtType('central'),
@@ -286,9 +292,9 @@ class _YojnaScreenState extends State<YojnaScreen> {
                         const SizedBox(width: 6),
                         _buildGovtTab(
                           context: context,
-                          label: 'राज्य सरकार',
+                          label: isHi ? 'राज्य सरकार' : 'State Govt',
                           icon: Icons.castle_rounded,
-                          subtitle: 'सब्सिडी, योजनाएं..',
+                          subtitle: isHi ? 'सब्सिडी, योजनाएं..' : 'Subsidy, Schemes..',
                           count: provider.stateCount,
                           isSelected: provider.selectedGovtType == 'state',
                           onTap: () => provider.selectGovtType('state'),
@@ -317,7 +323,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            '📍 आपके राज्य ($stateHindi) की विशेष योजनाएं व केंद्र की ऑल इंडिया योजनाएं',
+                            isHi ? '📍 आपके राज्य ($stateName) की विशेष योजनाएं व केंद्र की ऑल इंडिया योजनाएं' : '📍 State ($stateName) and Central schemes for you',
                             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1B5E20)),
                           ),
                         ),

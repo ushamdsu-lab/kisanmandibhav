@@ -210,6 +210,13 @@ class TtsService {
     await _speakDynamicText(fullText, title);
   }
 
+  /// Speaks generic agricultural text / prescription in Hindi
+  Future<void> speak(String text, {String? title}) async {
+    await init();
+    await stop();
+    await _speakDynamicText(text, title ?? 'किसान मित्र सलाह');
+  }
+
   /// Speaks dynamic live text using on-device Native TTS with streaming audio fallback
   Future<void> _speakDynamicText(String fullText, String title) async {
     currentTitleNotifier.value = title;

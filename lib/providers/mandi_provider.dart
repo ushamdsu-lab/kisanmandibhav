@@ -22,7 +22,7 @@ class MandiProvider extends ChangeNotifier {
   String _userHomeState = 'Rajasthan';
   String _userHomeDistrict = '';
   String _userHomeMarket = '';
-  String _selectedCategory = 'all'; // 'all', 'crops', 'vegetables'
+  String _selectedCategory = 'all'; // 'all' (default, shows all crops of the mandi), 'crops', 'vegetables'
   String _selectedCropFilter = ''; // Specific Crop shortcut
   String _searchQuery = '';
   List<String> _favoriteCommodities = [];
@@ -61,6 +61,9 @@ class MandiProvider extends ChangeNotifier {
     if (savedDistrict.isNotEmpty) {
       _selectedDistrict = savedDistrict;
       _userHomeDistrict = savedDistrict;
+    } else {
+      _selectedDistrict = MandiDirectory.getDefaultDistrict(_selectedState);
+      _userHomeDistrict = _selectedDistrict;
     }
     // Location detection and home view show all mandis in the district by default
     _selectedMarket = '';
@@ -94,6 +97,10 @@ class MandiProvider extends ChangeNotifier {
   String get userHomeMarket => _userHomeMarket;
   bool get isViewingHomeDistrict => _selectedDistrict.isNotEmpty && _selectedDistrict.toLowerCase() == _userHomeDistrict.toLowerCase();
   bool get isViewingAllMandis => _selectedDistrict.isEmpty && _selectedMarket.isEmpty;
+  bool get isBrowsingOtherLocation =>
+      _userHomeState.isNotEmpty &&
+      (_selectedState.toLowerCase() != _userHomeState.toLowerCase() ||
+       (_userHomeDistrict.isNotEmpty && _selectedDistrict.isNotEmpty && _selectedDistrict.toLowerCase() != _userHomeDistrict.toLowerCase()));
   String get selectedCategory => _selectedCategory;
   String get selectedCropFilter => _selectedCropFilter;
   String get searchQuery => _searchQuery;
@@ -116,8 +123,7 @@ class MandiProvider extends ChangeNotifier {
     return _allStateRates.where((r) => CommodityHelper.isVegetableOrFruit(r.commodity)).length;
   }
 
-  // Extracted unique districts for current state
-  // Extracted unique districts for current state (strictly from API records)
+  // Extracted unique districts for current state strictly from data.gov.in rates
   List<String> get availableDistricts {
     final Set<String> districts = {};
     for (final r in _allStateRates) {
@@ -125,7 +131,7 @@ class MandiProvider extends ChangeNotifier {
         districts.add(r.district.trim());
       }
     }
-    
+
     final Map<String, String> uniqueHindiMap = {};
     for (final d in districts) {
       final h = DistrictHelper.getHindiName(d);
@@ -139,15 +145,18 @@ class MandiProvider extends ChangeNotifier {
     return list;
   }
 
-  // All Mandis for current state & district (strictly from API records)
+  // Active reporting Mandis from data.gov.in for current state & district
   List<String> get availableMarkets {
     final Set<String> markets = {};
 
     if (_selectedDistrict.isNotEmpty) {
-      final d = _selectedDistrict.toLowerCase();
+      final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, _selectedDistrict);
+      final targetDist = (stdDistrict.isNotEmpty ? stdDistrict : _selectedDistrict).toLowerCase();
+
       for (final r in _allStateRates) {
-        if (r.district.toLowerCase().contains(d) ||
-            d.contains(r.district.toLowerCase())) {
+        final rDist = MandiDirectory.getStandardDistrictName(_selectedState, r.district).toLowerCase();
+        final rawDist = r.district.trim().toLowerCase();
+        if (rDist == targetDist || rawDist == targetDist || rDist.contains(targetDist) || targetDist.contains(rDist)) {
           if (r.market.trim().isNotEmpty) {
             markets.add(r.market.trim());
           }
@@ -191,7 +200,18 @@ class MandiProvider extends ChangeNotifier {
         .toSet()
         .take(4)
         .toList();
-    return matching;
+    if (matching.isNotEmpty) return matching;
+
+    final distName = _selectedDistrict.isNotEmpty
+        ? MandiDirectory.getStandardDistrictName(_selectedState, _selectedDistrict)
+        : _findDistrictForMarket(market);
+    final d = (distName.isNotEmpty ? distName : _selectedDistrict).toLowerCase();
+    return _allStateRates
+        .where((r) => d.isNotEmpty && (r.district.toLowerCase().contains(d) || d.contains(r.district.toLowerCase())))
+        .map((r) => CommodityHelper.getHindiName(r.commodity))
+        .toSet()
+        .take(4)
+        .toList();
   }
 
   Future<void> fetchRates({String? state, String? district, String? market}) async {
@@ -205,7 +225,7 @@ class MandiProvider extends ChangeNotifier {
     try {
       final liveRates = await MandiService.fetchMandiRates(
         state: _selectedState.isEmpty ? null : _selectedState,
-        limit: 5000,
+        limit: 25000,
       );
 
       if (liveRates.isNotEmpty) {
@@ -248,28 +268,47 @@ class MandiProvider extends ChangeNotifier {
       final m = _cleanMarketName(_selectedMarket).toLowerCase();
       result = _allStateRates.where((r) {
         final rMarket = _cleanMarketName(r.market).toLowerCase();
-        return rMarket.contains(m) || m.contains(rMarket);
+        return rMarket == m || rMarket.contains(m) || m.contains(rMarket);
       }).toList();
     } else if (_selectedDistrict.isNotEmpty) {
       final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, _selectedDistrict);
       final distName = stdDistrict.isNotEmpty ? stdDistrict : _selectedDistrict;
       final d = distName.toLowerCase();
 
-      result = _allStateRates.where((r) =>
-        r.district.toLowerCase().contains(d) ||
-        d.contains(r.district.toLowerCase()) ||
-        r.market.toLowerCase().contains(d) ||
-        d.contains(r.market.toLowerCase())
-      ).toList();
+      final districtMandis = (MandiDirectory.getDistrictMandis(_selectedState)[stdDistrict] ?? [])
+          .map((m) => _cleanMarketName(m).toLowerCase())
+          .toSet();
+
+      result = _allStateRates.where((r) {
+        final rDist = r.district.toLowerCase();
+        final rMarket = _cleanMarketName(r.market).toLowerCase();
+        if (rDist.contains(d) || d.contains(rDist) || rMarket.contains(d) || d.contains(rMarket)) {
+          return true;
+        }
+        return districtMandis.any((dm) => dm.isNotEmpty && (rMarket.contains(dm) || dm.contains(rMarket)));
+      }).toList();
     } else {
       result = List.from(_allStateRates);
     }
 
     // Filter by Category
     if (_selectedCategory == 'crops') {
-      result = result.where((r) => !CommodityHelper.isVegetableOrFruit(r.commodity)).toList();
+      final cropsOnly = result.where((r) => !CommodityHelper.isVegetableOrFruit(r.commodity)).toList();
+      result = cropsOnly.isNotEmpty ? cropsOnly : result;
     } else if (_selectedCategory == 'vegetables') {
       result = result.where((r) => CommodityHelper.isVegetableOrFruit(r.commodity)).toList();
+    } else {
+      // Default / 'all': Strict sorting - Main agricultural crops at the TOP, vegetables/fruits at the BOTTOM!
+      final mainCrops = <MandiRate>[];
+      final vegFruits = <MandiRate>[];
+      for (final r in result) {
+        if (CommodityHelper.isVegetableOrFruit(r.commodity)) {
+          vegFruits.add(r);
+        } else {
+          mainCrops.add(r);
+        }
+      }
+      result = [...mainCrops, ...vegFruits];
     }
 
     // Filter by quick crop filter chip
@@ -306,7 +345,6 @@ class MandiProvider extends ChangeNotifier {
   }
 
   void selectState(String state) {
-    if (_selectedState == state) return;
     _selectedState = state;
     _selectedDistrict = '';
     _selectedMarket = '';
@@ -320,7 +358,7 @@ class MandiProvider extends ChangeNotifier {
     fetchRates(state: state);
   }
 
-  void syncLocationContext({required String state, String? district, String? market}) {
+  void syncLocationContext({required String state, String? district, String? market, String? mandi}) {
     String matchedState = state.isNotEmpty ? state : 'Rajasthan';
     for (final knownState in MandiDirectory.allStates) {
       if (state.toLowerCase().contains(knownState.toLowerCase()) ||
@@ -339,13 +377,17 @@ class MandiProvider extends ChangeNotifier {
       _userHomeDistrict = _selectedDistrict;
     }
 
-    // When location is detected, show ALL mandis of that district, not locked to a single market
-    _selectedMarket = (market != null &&
-            market.isNotEmpty &&
-            market != 'all')
-        ? market
-        : '';
-    _userHomeMarket = _selectedMarket;
+    final targetMandi = (mandi != null && mandi.isNotEmpty)
+        ? mandi
+        : (market != null && market.isNotEmpty ? market : '');
+
+    if (targetMandi.isNotEmpty) {
+      _selectedMarket = targetMandi;
+      _userHomeMarket = targetMandi;
+    } else {
+      _selectedMarket = '';
+      _userHomeMarket = '';
+    }
 
     StorageService.saveMandiLocation(
       state: _selectedState,
@@ -375,19 +417,20 @@ class MandiProvider extends ChangeNotifier {
   }
 
   void resetToHomeDistrict() {
-    if (_userHomeDistrict.isNotEmpty) {
-      _selectedDistrict = _userHomeDistrict;
-      _selectedMarket = '';
-      _selectedCropFilter = '';
-      _searchQuery = '';
-      StorageService.saveMandiLocation(
-        state: _userHomeState,
-        district: _userHomeDistrict,
-        mandi: '',
-      );
-      _recomputeDisplayRates();
-      notifyListeners();
-    }
+    _selectedState = _userHomeState.isNotEmpty ? _userHomeState : 'Rajasthan';
+    _selectedDistrict = _userHomeDistrict.isNotEmpty ? _userHomeDistrict : MandiDirectory.getDefaultDistrict(_selectedState);
+    _selectedMarket = '';
+    _selectedCropFilter = '';
+    _searchQuery = '';
+    StorageService.saveMandiLocation(
+      state: _selectedState,
+      district: _selectedDistrict,
+      mandi: '',
+    );
+    fetchRates(
+      state: _selectedState,
+      district: _selectedDistrict,
+    );
   }
 
   void selectCategory(String category) {
@@ -399,12 +442,14 @@ class MandiProvider extends ChangeNotifier {
   }
 
   void selectDistrict(String district) {
-    _selectedDistrict = (_selectedDistrict == district) ? '' : district;
+    _selectedDistrict = district;
     _selectedMarket = '';
+    _selectedCropFilter = '';
+    _searchQuery = '';
     StorageService.saveMandiLocation(
       state: _selectedState,
       district: _selectedDistrict,
-      mandi: _selectedMarket,
+      mandi: '',
     );
     _recomputeDisplayRates();
     notifyListeners();
@@ -438,6 +483,11 @@ class MandiProvider extends ChangeNotifier {
     _selectedMarket = '';
     _selectedCropFilter = '';
     _searchQuery = '';
+    if (_allStateRates.isEmpty) {
+      _selectedState = _userHomeState.isNotEmpty ? _userHomeState : 'Rajasthan';
+      fetchRates(state: _selectedState);
+      return;
+    }
     _recomputeDisplayRates();
     notifyListeners();
   }

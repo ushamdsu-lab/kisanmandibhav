@@ -5,12 +5,14 @@ import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../data/city_locations.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/mandi_provider.dart';
 import '../../utils/district_helper.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/common/language_toggle_button.dart';
 import '../../widgets/weather/windy_map_widget.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/inline_ad_card.dart';
@@ -227,6 +229,9 @@ class _MausamScreenState extends State<MausamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
+
     return Scaffold(
       body: Consumer<WeatherProvider>(
         builder: (context, provider, _) {
@@ -240,9 +245,9 @@ class _MausamScreenState extends State<MausamScreen> {
                 iconTheme: const IconThemeData(color: Colors.white),
                 actionsIconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
-                  title: const Text(
-                    '🌦️ कृषि मौसम अपडेट',
-                    style: TextStyle(
+                  title: Text(
+                    isHi ? '🌦️ कृषि मौसम अपडेट' : '🌦️ Agri Weather Update',
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
                       color: Colors.white,
@@ -266,9 +271,10 @@ class _MausamScreenState extends State<MausamScreen> {
                   ),
                 ),
                 actions: [
+                  const LanguageToggleButton(),
                   IconButton(
                     icon: const Icon(Icons.my_location_rounded, color: Colors.white),
-                    tooltip: 'वर्तमान GPS लोकेशन लें',
+                    tooltip: isHi ? 'वर्तमान GPS लोकेशन लें' : 'Get GPS Location',
                     onPressed: () async {
                       final mandiProv = context.read<MandiProvider>();
                       final res = await provider.fetchUserLocation(mandiProvider: mandiProv);
@@ -276,8 +282,8 @@ class _MausamScreenState extends State<MausamScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(res.isGps
-                                ? '📍 आपकी लोकेशन (${res.cityName}) और मंडी (${res.mandi}) सेट हो गई!'
-                                : (res.errorMessage ?? 'लोकेशन प्राप्त नहीं हो सकी')),
+                                ? (isHi ? '📍 आपकी लोकेशन (${res.cityName}) और मंडी (${res.mandi}) सेट हो गई!' : '📍 Location (${res.cityName}) & Mandi (${res.mandi}) set!')
+                                : (res.errorMessage ?? (isHi ? 'लोकेशन प्राप्त नहीं हो सकी' : 'Location failed'))),
                             backgroundColor: res.isGps ? Colors.green.shade700 : Colors.orange.shade800,
                           ),
                         );
@@ -287,7 +293,7 @@ class _MausamScreenState extends State<MausamScreen> {
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                     onPressed: () => provider.fetchWeather(),
-                    tooltip: 'रिफ्रेश करें',
+                    tooltip: isHi ? 'रिफ्रेश करें' : 'Refresh',
                   ),
                 ],
               ),

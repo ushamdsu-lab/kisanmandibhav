@@ -15,6 +15,11 @@ class StorageService {
   static Future<void> setDarkMode(bool value) async =>
       await _prefs?.setBool('dark_mode', value);
 
+  // Language (hi: Hindi, en: English)
+  static String getSavedLanguage() => _prefs?.getString('app_language') ?? 'hi';
+  static Future<void> saveLanguage(String lang) async =>
+      await _prefs?.setString('app_language', lang);
+
   // Favorite Commodities
   static List<String> getFavoriteCommodities() =>
       _prefs?.getStringList('fav_commodities') ?? [];
@@ -127,19 +132,19 @@ class StorageService {
     await _prefs?.setString('price_alerts', PriceAlert.encodeList(alerts));
   }
 
-  // --- 🗄️ Offline Cache for Mandi Rates ---
+  // --- 🗄️ Offline Cache for Mandi Rates (v3 for complete 12k records) ---
   static Future<void> saveCachedMandiRates(String state, List<MandiRate> rates) async {
     if (rates.isEmpty) return;
     try {
       final jsonList = rates.map((r) => r.toJson()).toList();
-      await _prefs?.setString('cache_mandi_${state.toLowerCase()}', json.encode(jsonList));
+      await _prefs?.setString('cache_mandi_v3_${state.toLowerCase()}', json.encode(jsonList));
       await _prefs?.setString('cache_mandi_time_${state.toLowerCase()}', DateTime.now().toIso8601String());
     } catch (_) {}
   }
 
   static List<MandiRate> getCachedMandiRates(String state) {
     try {
-      final raw = _prefs?.getString('cache_mandi_${state.toLowerCase()}');
+      final raw = _prefs?.getString('cache_mandi_v3_${state.toLowerCase()}');
       if (raw == null || raw.isEmpty) return [];
       final List<dynamic> decoded = json.decode(raw);
       return decoded.map((e) => MandiRate.fromJson(e)).toList();

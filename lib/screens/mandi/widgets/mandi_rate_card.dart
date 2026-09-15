@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../config/theme.dart';
 import '../../../models/mandi_rate.dart';
+import '../../../providers/locale_provider.dart';
 import '../../../utils/commodity_helper.dart';
+import '../../../utils/district_helper.dart';
 import '../../../utils/whatsapp_share_helper.dart';
 import '../../../data/msp_data.dart';
 import '../../../widgets/mandi/sparkline_chart_widget.dart';
@@ -30,7 +33,13 @@ class MandiRateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProv = context.watch<LocaleProvider>();
+    final isHi = localeProv.isHindi;
     final hindiName = CommodityHelper.getHindiName(rate.commodity);
+    final englishName = CommodityHelper.getEnglishName(rate.commodity);
+    final primaryName = isHi ? hindiName : (englishName.isNotEmpty ? englishName : rate.commodity);
+    final secondaryName = isHi ? (englishName.isNotEmpty ? englishName : rate.commodity) : hindiName;
+    final districtName = isHi ? DistrictHelper.getHindiName(rate.district) : rate.district;
     final mspItem = MspDatabase.getMspForCrop(rate.commodity);
 
     final cardWidget = Card(
@@ -65,10 +74,11 @@ class MandiRateCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                hindiName,
+                                primaryName,
                                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.w900,
-                                      fontSize: 17,
+                                      fontSize: 18,
+                                      color: const Color(0xFF1B5E20),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -89,7 +99,7 @@ class MandiRateCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                rate.isLive ? '🟢 APMC लाइव' : '🟡 संदर्भ दर',
+                                rate.isLive ? (isHi ? '🟢 Agmarknet लाइव' : '🟢 APMC Live') : (isHi ? '🟡 संदर्भ दर' : '🟡 Ref Rate'),
                                 style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
@@ -99,16 +109,37 @@ class MandiRateCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 1),
+                        // Secondary Crop Name underneath
                         Text(
-                          '${rate.market} (${rate.district})',
-                          style: TextStyle(
-                            fontSize: 12,
+                          secondaryName,
+                          style: const TextStyle(
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textSecondary,
+                            letterSpacing: 0.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(Icons.storefront_rounded, size: 12.5, color: Color(0xFFE65100)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                '${rate.market} • $districtName',
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFE65100),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -123,7 +154,7 @@ class MandiRateCard extends StatelessWidget {
                       color: isFavorite ? Colors.amber.shade600 : Colors.grey.shade400,
                     ),
                     onPressed: onToggleFavorite,
-                    tooltip: isFavorite ? 'पसंदीदा से हटाएं' : 'पसंदीदा बनाएं',
+                    tooltip: isFavorite ? (isHi ? 'पसंदीदा से हटाएं' : 'Remove Favorite') : (isHi ? 'पसंदीदा बनाएं' : 'Add Favorite'),
                   ),
                 ],
               ),
@@ -144,9 +175,9 @@ class MandiRateCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'मॉडल भाव (औसत)',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                        Text(
+                          isHi ? 'मॉडल भाव (औसत)' : 'Modal Price (Avg)',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 2),
                         Row(
@@ -161,9 +192,9 @@ class MandiRateCard extends StatelessWidget {
                                 color: Color(0xFF1B5E20),
                               ),
                             ),
-                            const Text(
-                              ' /क्विंटल',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            Text(
+                              isHi ? ' /क्विंटल' : ' /Qtl',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -174,12 +205,12 @@ class MandiRateCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'न्यूनतम: ₹${rate.minPrice.toInt()}',
+                          '${isHi ? 'न्यूनतम' : 'Min'}: ₹${rate.minPrice.toInt()}',
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.blueGrey),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'अधिकतम: ₹${rate.maxPrice.toInt()}',
+                          '${isHi ? 'अधिकतम' : 'Max'}: ₹${rate.maxPrice.toInt()}',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.green.shade800),
                         ),
                       ],
@@ -196,7 +227,7 @@ class MandiRateCard extends StatelessWidget {
                   Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Text(
-                    'आवक: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
+                    '${isHi ? 'आवक' : 'Arrival'}: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
                     style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
@@ -245,14 +276,14 @@ class MandiRateCard extends StatelessWidget {
                           minimumSize: const Size(36, 32),
                         ),
                         icon: const Icon(Icons.compare_arrows_rounded, size: 15, color: AppColors.primary),
-                        label: const Text('तुलना', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                        label: Text(isHi ? 'तुलना' : 'Compare', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
                       ),
                       // Price Alert button
                       IconButton(
                         iconSize: 19,
                         padding: const EdgeInsets.all(4),
                         constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                        tooltip: 'भाव अलर्ट सेट करें',
+                        tooltip: isHi ? 'भाव अलर्ट सेट करें' : 'Set Price Alert',
                         icon: Icon(
                           hasAlert ? Icons.notifications_active_rounded : Icons.notification_add_outlined,
                           color: hasAlert ? Colors.amber.shade800 : Colors.grey.shade600,
@@ -264,7 +295,7 @@ class MandiRateCard extends StatelessWidget {
                         iconSize: 19,
                         padding: const EdgeInsets.all(4),
                         constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                        tooltip: 'भाव बोलकर सुनें (Audio)',
+                        tooltip: isHi ? 'भाव बोलकर सुनें (Audio)' : 'Listen Audio Bulletin',
                         icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF1B5E20)),
                         onPressed: () {
                           TtsService().speakCropRate(rate);
@@ -275,7 +306,7 @@ class MandiRateCard extends StatelessWidget {
                         iconSize: 19,
                         padding: const EdgeInsets.all(4),
                         constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                        tooltip: 'व्हाट्सएप पर पर्ची भेजें',
+                        tooltip: isHi ? 'व्हाट्सएप पर पर्ची भेजें' : 'Share on WhatsApp',
                         icon: const Icon(Icons.share_rounded, color: Color(0xFF25D366)),
                         onPressed: () {
                           WhatsAppShareHelper.shareRateSlip(rate: rate);
