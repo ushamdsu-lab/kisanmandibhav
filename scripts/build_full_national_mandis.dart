@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:kisan_mitra/data/mandi_directory.dart';
-import 'package:kisan_mitra/models/mandi_rate.dart';
 
 String _cleanMarketName(String market) {
   return market
