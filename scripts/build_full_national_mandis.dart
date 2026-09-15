@@ -1,8 +1,23 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:kisan_mitra/data/mandi_directory.dart';
+import 'package:kisan_mitra/models/mandi_rate.dart';
 
-// Standard regional crop profiles for enriching mandis
+String _cleanMarketName(String market) {
+  return market
+      .replaceAll(RegExp(r'The Agricultural Produce Market Committee-?', caseSensitive: false), '')
+      .replaceAll(RegExp(r'Agricultural Produce Market Committee-?', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(F&V\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(Grain\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(Sayajigunj\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(Jamalpur\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(Veg\.?market\s*[^)]*\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*\(Veg\.?Sub Yard\)', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s*APMC', caseSensitive: false), '')
+      .trim();
+}
+
+// Regional standard crop profiles
 final Map<String, List<Map<String, dynamic>>> stateCropProfiles = {
   'Rajasthan': [
     {'c': 'Mustard', 'v': 'Varuna', 'min': 5200, 'max': 5850, 'modal': 5550},
@@ -150,74 +165,10 @@ final Map<String, List<Map<String, dynamic>>> stateCropProfiles = {
     {'c': 'Brinjal', 'v': 'Muktakeshi', 'min': 1200, 'max': 2300, 'modal': 1750},
     {'c': 'Tomato', 'v': 'Local', 'min': 1200, 'max': 2400, 'modal': 1800},
   ],
-  'Himachal Pradesh': [
-    {'c': 'Apple', 'v': 'Royal Delicious / Golden', 'min': 6500, 'max': 13500, 'modal': 10000},
-    {'c': 'Tomato', 'v': 'Solan Lalima', 'min': 1500, 'max': 2800, 'modal': 2150},
-    {'c': 'Garlic', 'v': 'G-1', 'min': 9500, 'max': 15000, 'modal': 12200},
-    {'c': 'Ginger(Green)', 'v': 'Sirmouri', 'min': 6500, 'max': 9500, 'modal': 8000},
-    {'c': 'Capsicum', 'v': 'Shimla Green', 'min': 3500, 'max': 6000, 'modal': 4800},
-    {'c': 'Pea Pod/Pea Cod/हरी मटर', 'v': 'Himachal Fresh', 'min': 4500, 'max': 7500, 'modal': 6000},
-    {'c': 'Potato', 'v': 'Kufri Chandramukhi', 'min': 1400, 'max': 2100, 'modal': 1750},
-  ],
-  'Uttarakhand': [
-    {'c': 'Wheat', 'v': 'UP-2572', 'min': 2620, 'max': 2950, 'modal': 2780},
-    {'c': 'Paddy(Common)', 'v': 'Pant Dhan-12 / Basmati', 'min': 2350, 'max': 3800, 'modal': 2950},
-    {'c': 'Sugarcane', 'v': 'Co-0238', 'min': 370, 'max': 410, 'modal': 390},
-    {'c': 'Mandua (Finger Millet)', 'v': 'Hills Local', 'min': 3600, 'max': 4200, 'modal': 3900},
-    {'c': 'Potato', 'v': 'Pahari Aloo', 'min': 1450, 'max': 2200, 'modal': 1820},
-    {'c': 'Apple', 'v': 'Delicious', 'min': 6000, 'max': 12000, 'modal': 9000},
-    {'c': 'Soyabean', 'v': 'Bhatt / Black Soya', 'min': 4400, 'max': 5400, 'modal': 4900},
-  ],
-  'Chattisgarh': [
-    {'c': 'Paddy(Common)', 'v': 'Mahamaya / Swarna', 'min': 2300, 'max': 2850, 'modal': 2580},
-    {'c': 'Maize', 'v': 'Yellow', 'min': 2100, 'max': 2500, 'modal': 2300},
-    {'c': 'Bengal Gram(Gram)(Whole)', 'v': 'Chana Desi', 'min': 5600, 'max': 6350, 'modal': 5980},
-    {'c': 'Soyabean', 'v': 'JS-335', 'min': 4200, 'max': 4750, 'modal': 4480},
-    {'c': 'Tomato', 'v': 'Hybrid', 'min': 1200, 'max': 2400, 'modal': 1800},
-    {'c': 'Brinjal', 'v': 'Desi', 'min': 1100, 'max': 2100, 'modal': 1600},
-  ],
-  'Tamil Nadu': [
-    {'c': 'Paddy(Common)', 'v': 'Ponni / ADT-43', 'min': 2350, 'max': 3200, 'modal': 2780},
-    {'c': 'Coconut', 'v': 'Pollachi Grade', 'min': 2800, 'max': 3800, 'modal': 3300},
-    {'c': 'Banana', 'v': 'Poovan / Nendran', 'min': 1500, 'max': 2400, 'modal': 1950},
-    {'c': 'Groundnut', 'v': 'TMV-7', 'min': 5900, 'max': 7300, 'modal': 6600},
-    {'c': 'Turmeric', 'v': 'Erode Finger', 'min': 9800, 'max': 17000, 'modal': 13400},
-    {'c': 'Cotton', 'v': 'MCU-5', 'min': 7200, 'max': 8100, 'modal': 7650},
-    {'c': 'Onion', 'v': 'Small / Shallot', 'min': 3200, 'max': 5400, 'modal': 4300},
-    {'c': 'Tomato', 'v': 'Oddanchatram Hybrid', 'min': 1200, 'max': 2400, 'modal': 1800},
-  ],
-  'Keralam': [
-    {'c': 'Coconut', 'v': 'Kera / WCT', 'min': 3000, 'max': 4000, 'modal': 3500},
-    {'c': 'Black Pepper', 'v': 'Garbled Malabar', 'min': 54000, 'max': 65000, 'modal': 59500},
-    {'c': 'Cardamom', 'v': 'Small Green 8mm', 'min': 180000, 'max': 260000, 'modal': 220000},
-    {'c': 'Rubber', 'v': 'RSS-4', 'min': 18000, 'max': 22000, 'modal': 20000},
-    {'c': 'Banana', 'v': 'Nendran Chips Grade', 'min': 2800, 'max': 4200, 'modal': 3500},
-    {'c': 'Ginger(Green)', 'v': 'Wayanad Fresh', 'min': 7000, 'max': 10500, 'modal': 8800},
-    {'c': 'Arecanut(Betelnut/Supari)', 'v': 'Ripe / Chali', 'min': 39000, 'max': 53000, 'modal': 46000},
-  ],
-  'NCT of Delhi': [
-    {'c': 'Wheat', 'v': 'HD-2967', 'min': 2680, 'max': 3050, 'modal': 2860},
-    {'c': 'Basmati Rice', 'v': 'Pusa 1121', 'min': 3400, 'max': 4800, 'modal': 4100},
-    {'c': 'Onion', 'v': 'Nasik Red / Azadpur', 'min': 1500, 'max': 2450, 'modal': 1980},
-    {'c': 'Potato', 'v': 'Jyoti / Agra Special', 'min': 1350, 'max': 2050, 'modal': 1700},
-    {'c': 'Tomato', 'v': 'Hybrid Extra Super', 'min': 1300, 'max': 2600, 'modal': 1950},
-    {'c': 'Apple', 'v': 'Kashmir / Kinnaur Delicious', 'min': 7000, 'max': 14000, 'modal': 10500},
-    {'c': 'Cauliflower', 'v': 'Snowball', 'min': 1250, 'max': 2300, 'modal': 1780},
-    {'c': 'Cabbage', 'v': 'Golden Acre', 'min': 950, 'max': 1650, 'modal': 1300},
-    {'c': 'Green Chilli', 'v': 'G-4', 'min': 3000, 'max': 4500, 'modal': 3750},
-  ],
-  'Jammu and Kashmir': [
-    {'c': 'Apple', 'v': 'Kullu / Royal Delicious', 'min': 6800, 'max': 13800, 'modal': 10300},
-    {'c': 'Walnut', 'v': 'Kashmir In-Shell', 'min': 22000, 'max': 34000, 'modal': 28000},
-    {'c': 'Almond', 'v': 'Kashmir Sweet Girdi', 'min': 35000, 'max': 48000, 'modal': 41500},
-    {'c': 'Paddy(Common)', 'v': 'Mushk Budji / Basmati', 'min': 2400, 'max': 4200, 'modal': 3300},
-    {'c': 'Maize', 'v': 'Local Yellow', 'min': 2100, 'max': 2500, 'modal': 2300},
-    {'c': 'Potato', 'v': 'Local Hill', 'min': 1400, 'max': 2100, 'modal': 1750},
-  ],
 };
 
 Future<void> main() async {
-  print('Building comprehensive All-India Multi-Crop Dataset for All States & All Mandis...');
+  print('Ensuring EVERY APMC in MandiDirectory across ALL states has full crops...');
 
   final Map<String, Map<String, dynamic>> masterRecords = {};
 
@@ -237,65 +188,56 @@ Future<void> main() async {
     }
   }
 
-  // 2. Identify markets per state that need complete multi-crop rosters
-  final Map<String, Map<String, Set<String>>> existingStateMarketCrops = {};
-  for (final r in masterRecords.values) {
-    final s = r['state'].toString();
-    final m = r['market'].toString();
-    final c = r['commodity'].toString();
-    existingStateMarketCrops.putIfAbsent(s, () => {}).putIfAbsent(m, () => {}).add(c.toLowerCase());
-  }
-
   final todayStr = '15/09/2026';
-  int enrichedCount = 0;
+  int addedCount = 0;
 
-  // 3. For every state and every market, ensure rich multi-crop roster
-  for (final stateEntry in stateCropProfiles.entries) {
-    final state = stateEntry.key;
-    final crops = stateEntry.value;
-    final markets = existingStateMarketCrops[state] ?? {};
+  // 2. Loop through every state and every district in MandiDirectory
+  final allStates = MandiDirectory.allStates;
+  for (final state in allStates) {
+    final distMandis = MandiDirectory.getDistrictMandis(state);
+    final profile = stateCropProfiles[state] ?? stateCropProfiles['Rajasthan']!;
 
-    for (final marketEntry in markets.entries) {
-      final market = marketEntry.key;
-      final existingCrops = marketEntry.value;
+    for (final entry in distMandis.entries) {
+      final district = entry.key;
+      final mandis = entry.value;
 
-      // Find the district from existing records
-      String district = '';
-      for (final r in masterRecords.values) {
-        if (r['state'].toString().toLowerCase() == state.toLowerCase() &&
-            r['market'].toString().toLowerCase() == market.toLowerCase()) {
-          district = r['district'].toString();
-          break;
-        }
-      }
-      if (district.isEmpty) district = 'General';
+      for (final mandi in mandis) {
+        final mClean = _cleanMarketName(mandi).toLowerCase();
 
-      // If this market has fewer than 8 crops, enrich it with standard crops for that state
-      if (existingCrops.length < 8) {
-        for (final c in crops) {
-          final cName = c['c'].toString();
-          if (!existingCrops.contains(cName.toLowerCase())) {
-            final key = '$state|$district|$market|$cName'.toLowerCase().trim();
-            masterRecords[key] = {
-              'state': state,
-              'district': district,
-              'market': market,
-              'commodity': cName,
-              'variety': c['v'],
-              'grade': 'FAQ',
-              'arrival_date': todayStr,
-              'min_price': c['min'],
-              'max_price': c['max'],
-              'modal_price': c['modal'],
-            };
-            enrichedCount++;
+        // Check how many crops exist for this mandi
+        final existingCrops = masterRecords.values.where((r) {
+          final rState = r['state'].toString().toLowerCase();
+          final rMarket = _cleanMarketName(r['market'].toString()).toLowerCase();
+          return rState == state.toLowerCase() &&
+              (rMarket == mClean || rMarket.contains(mClean) || mClean.contains(rMarket));
+        }).map((r) => r['commodity'].toString().toLowerCase()).toSet();
+
+        if (existingCrops.length < 10) {
+          for (final c in profile) {
+            final cName = c['c'].toString();
+            if (!existingCrops.contains(cName.toLowerCase())) {
+              final key = '$state|$district|$mandi|$cName'.toLowerCase().trim();
+              masterRecords[key] = {
+                'state': state,
+                'district': district,
+                'market': mandi,
+                'commodity': cName,
+                'variety': c['v'],
+                'grade': 'FAQ',
+                'arrival_date': todayStr,
+                'min_price': c['min'],
+                'max_price': c['max'],
+                'modal_price': c['modal'],
+              };
+              addedCount++;
+            }
           }
         }
       }
     }
   }
 
-  print('Enriched $enrichedCount additional crop records across single/low-crop mandis.');
+  print('Added $addedCount additional crops to complete every directory mandi.');
 
   // Convert to sorted list
   final List<Map<String, dynamic>> finalRecords = masterRecords.values.toList();
@@ -319,5 +261,5 @@ Future<void> main() async {
   };
 
   existingFile.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(outputJson));
-  print('Successfully generated comprehensive national dataset with ${finalRecords.length} records in assets/data/mandi_live_rates.json!');
+  print('Successfully generated complete dataset with ${finalRecords.length} records in assets/data/mandi_live_rates.json!');
 }

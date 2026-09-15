@@ -85,8 +85,22 @@ class MandiService {
       // A. Try Vercel Serverless API if endpoint is set
       if (vercelApiBaseUrl != null && vercelApiBaseUrl!.isNotEmpty) {
         try {
-          final uri = Uri.parse('$vercelApiBaseUrl/api/mandi-rates${state != null ? '?state=${Uri.encodeComponent(state)}' : '?limit=5000'}');
-          final response = await http.get(uri).timeout(const Duration(seconds: 4));
+          final queryParts = <String>[];
+          if (state != null && state.isNotEmpty) {
+            queryParts.add('state=${Uri.encodeComponent(state)}');
+          }
+          if (district != null && district.isNotEmpty) {
+            queryParts.add('district=${Uri.encodeComponent(district)}');
+          }
+          if (market != null && market.isNotEmpty) {
+            queryParts.add('market=${Uri.encodeComponent(market)}');
+          }
+          if (commodity != null && commodity.isNotEmpty) {
+            queryParts.add('commodity=${Uri.encodeComponent(commodity)}');
+          }
+          queryParts.add('limit=10000');
+          final uri = Uri.parse('$vercelApiBaseUrl/api/mandi-rates?${queryParts.join('&')}');
+          final response = await http.get(uri).timeout(const Duration(seconds: 10));
           if (response.statusCode == 200 && response.body.isNotEmpty) {
             liveGovRates = _parseJsonRecords(response.body);
           }
@@ -104,7 +118,7 @@ class MandiService {
             '?api-key=579b464db66ec23bdd000001592db4fa842b480f7171a34c0956c64d'
             '&format=json&limit=5000$stateFilter',
           );
-          final response = await http.get(uri).timeout(const Duration(seconds: 5));
+          final response = await http.get(uri).timeout(const Duration(seconds: 10));
           if (response.statusCode == 200 && response.body.isNotEmpty) {
             final parsed = _parseJsonRecords(response.body);
             if (parsed.isNotEmpty) {
@@ -119,10 +133,10 @@ class MandiService {
         try {
           final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1800000;
           final cdnUrl = 'https://cdn.jsdelivr.net/gh/ushamdsu-lab/kisanmandibhav@main/assets/data/mandi_live_rates.json?v=$timestamp';
-          final response = await http.get(Uri.parse(cdnUrl)).timeout(const Duration(seconds: 5));
+          final response = await http.get(Uri.parse(cdnUrl)).timeout(const Duration(seconds: 12));
           if (response.statusCode == 200 && response.body.isNotEmpty) {
             final cdnRates = await _parseAsync(response.body);
-            if (cdnRates.length >= 5000) {
+            if (cdnRates.isNotEmpty) {
               liveGovRates = cdnRates;
             }
           }

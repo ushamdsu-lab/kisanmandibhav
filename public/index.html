@@ -202,10 +202,11 @@
     <!-- Interactive Live Search Tool -->
     <div class="search-box">
       <select id="stateSelect">
-        <option value="Gujarat">🌾 Gujarat (गुजरात)</option>
+        <option value="">🇮🇳 All India (सभी राज्य)</option>
         <option value="Rajasthan" selected>🌾 Rajasthan (राजस्थान)</option>
         <option value="Madhya Pradesh">🌾 Madhya Pradesh (मध्य प्रदेश)</option>
         <option value="Uttar Pradesh">🌾 Uttar Pradesh (उत्तर प्रदेश)</option>
+        <option value="Gujarat">🌾 Gujarat (गुजरात)</option>
         <option value="Maharashtra">🌾 Maharashtra (महाराष्ट्र)</option>
         <option value="Punjab">🌾 Punjab (पंजाब)</option>
         <option value="Haryana">🌾 Haryana (हरियाणा)</option>
@@ -215,13 +216,23 @@
         <option value="Andhra Pradesh">🌾 Andhra Pradesh (आंध्र प्रदेश)</option>
         <option value="Tamil Nadu">🌾 Tamil Nadu (तमिलनाडु)</option>
         <option value="West Bengal">🌾 West Bengal (पश्चिम बंगाल)</option>
-        <option value="Himachal Pradesh">🌾 Himachal Pradesh (हिमाचल)</option>
-        <option value="Uttarakhand">🌾 Uttarakhand (उत्तराखंड)</option>
-        <option value="Chattisgarh">🌾 Chhattisgarh (छत्तीसगढ़)</option>
-        <option value="Keralam">🌾 Kerala (केरल)</option>
-        <option value="NCT of Delhi">🌾 Delhi (दिल्ली)</option>
-        <option value="Jammu and Kashmir">🌾 Jammu & Kashmir (जम्मू कश्मीर)</option>
         <option value="Odisha">🌾 Odisha (ओडिशा)</option>
+        <option value="Chattisgarh">🌾 Chhattisgarh (छत्तीसगढ़)</option>
+        <option value="Himachal Pradesh">🌾 Himachal Pradesh (हिमाचल प्रदेश)</option>
+        <option value="Uttarakhand">🌾 Uttarakhand (उत्तराखंड)</option>
+        <option value="Jharkhand">🌾 Jharkhand (झारखंड)</option>
+        <option value="Assam">🌾 Assam (असम)</option>
+        <option value="Keralam">🌾 Kerala (केरल)</option>
+        <option value="Jammu and Kashmir">🌾 Jammu & Kashmir (जम्मू कश्मीर)</option>
+        <option value="Tripura">🌾 Tripura (त्रिपुरा)</option>
+        <option value="Meghalaya">🌾 Meghalaya (मेघालय)</option>
+        <option value="Manipur">🌾 Manipur (मणिपुर)</option>
+        <option value="Nagaland">🌾 Nagaland (नागालैंड)</option>
+        <option value="Goa">🌾 Goa (गोवा)</option>
+        <option value="NCT of Delhi">🌾 Delhi (दिल्ली)</option>
+        <option value="Chandigarh">🌾 Chandigarh (चंडीगढ़)</option>
+        <option value="Puducherry">🌾 Puducherry (पुडुचेरी)</option>
+        <option value="Andaman and Nicobar">🌾 Andaman & Nicobar (अंडमान निकोबार)</option>
       </select>
       <input type="text" id="marketInput" placeholder="Filter by Mandi (e.g. Rajkot, Jodhpur, Indore)...">
       <button class="btn" onclick="fetchLiveData()">⚡ Get Live Crops</button>
@@ -274,7 +285,8 @@
       container.innerHTML = '';
 
       try {
-        const res = await fetch(`/api/mandi-rates?state=${encodeURIComponent(state)}`);
+        const url = state ? `/api/mandi-rates?state=${encodeURIComponent(state)}` : '/api/mandi-rates?limit=5000';
+        const res = await fetch(url);
         const data = await res.json();
         loading.style.display = 'none';
 
@@ -288,14 +300,14 @@
         }
 
         if (records.length === 0) {
-          container.innerHTML = `<div style="text-align:center; padding: 2rem; color: #94a3b8;">No matching crops found for "${marketQuery || state}".</div>`;
+          container.innerHTML = `<div style="text-align:center; padding: 2rem; color: #94a3b8;">No matching crops found for "${marketQuery || state || 'All India'}".</div>`;
           return;
         }
 
         let html = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <h3 style="color:#34d399;">📊 ${state} — ${records.length} Crops / Bhav Found</h3>
-            <span style="font-size:0.85rem; color:#94a3b8;">Source: ${data.source}</span>
+            <h3 style="color:#34d399;">📊 ${state || 'All India'} — ${records.length} Crops / Bhav Found</h3>
+            <span style="font-size:0.85rem; color:#94a3b8;">Source: ${data.engine || data.source}</span>
           </div>
           <table class="results-table">
             <thead>
