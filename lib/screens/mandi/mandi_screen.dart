@@ -7,6 +7,7 @@ import '../../providers/weather_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../utils/commodity_helper.dart';
 import '../../utils/district_helper.dart';
+import '../../data/mandi_directory.dart';
 import '../../widgets/common/loading_shimmer.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/notification_center_sheet.dart';
@@ -46,15 +47,24 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
           _showAllDistrictRates = false;
         });
         if (_tabController.index == 1) {
-          if (provider.selectedDistrict.isNotEmpty) {
-            provider.viewAllMandis();
-          }
+          provider.viewAllMandis();
+        } else if (_tabController.index == 0) {
+          final targetDist = provider.userHomeDistrict.isNotEmpty
+              ? provider.userHomeDistrict
+              : MandiDirectory.getDefaultDistrict(provider.selectedState);
+          provider.selectDistrict(targetDist);
         }
       }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<MandiProvider>();
+      if (_tabController.index == 0 && provider.selectedDistrict.isEmpty) {
+        final targetDist = provider.userHomeDistrict.isNotEmpty
+            ? provider.userHomeDistrict
+            : MandiDirectory.getDefaultDistrict(provider.selectedState);
+        provider.selectDistrict(targetDist);
+      }
       if (provider.rates.isEmpty && !provider.isLoading) {
         provider.fetchRates(
           state: provider.selectedState,
@@ -404,7 +414,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                 },
                               ),
                             ),
-                          if (provider.selectedMarket.isNotEmpty || provider.selectedDistrict.isNotEmpty || provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty)
+                          if (provider.searchQuery.isNotEmpty || provider.selectedCropFilter.isNotEmpty || (_tabController.index == 1 && (provider.selectedDistrict.isNotEmpty || provider.selectedMarket.isNotEmpty)))
                             GestureDetector(
                               onTap: () {
                                 _searchController.clear();

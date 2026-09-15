@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../providers/mandi_provider.dart';
 import '../../../utils/district_helper.dart';
 import '../../../utils/commodity_helper.dart';
+import '../../../data/mandi_directory.dart';
 
 class DashboardMandiSpotlight extends StatelessWidget {
   final MandiProvider provider;
@@ -11,20 +12,27 @@ class DashboardMandiSpotlight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dist = provider.selectedDistrict.isNotEmpty
-        ? provider.selectedDistrict
-        : (provider.userHomeDistrict.isNotEmpty
-            ? provider.userHomeDistrict
-            : (provider.rates.isNotEmpty ? provider.rates.first.district : provider.selectedState));
+    final dist = provider.userHomeDistrict.isNotEmpty
+        ? provider.userHomeDistrict
+        : (provider.selectedDistrict.isNotEmpty
+            ? provider.selectedDistrict
+            : MandiDirectory.getDefaultDistrict(provider.selectedState));
     final distHindi = DistrictHelper.getHindiName(dist);
-    final topRates = provider.rates.take(3).toList();
+    final districtRates = provider.getRatesForDistrict(dist);
+    final topRates = districtRates.isNotEmpty
+        ? districtRates.take(3).toList()
+        : provider.rates.take(3).toList();
+    final districtMarkets = provider.getMarketsForDistrict(dist);
 
-    final titleText = provider.selectedMarket.isNotEmpty
+    final titleText = provider.selectedMarket.isNotEmpty && provider.selectedDistrict == dist
         ? '📍 ${provider.selectedMarket}'
         : '📍 $distHindi ($dist) मंडी';
 
     return InkWell(
-      onTap: () => context.go('/mandi'),
+      onTap: () {
+        provider.selectDistrict(dist);
+        context.go('/mandi');
+      },
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -142,7 +150,7 @@ class DashboardMandiSpotlight extends StatelessWidget {
                 ),
               ),
             ],
-            if (provider.availableMarkets.length > 1) ...[
+            if (districtMarkets.isNotEmpty) ...[
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -169,13 +177,14 @@ class DashboardMandiSpotlight extends StatelessWidget {
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          ...provider.availableMarkets.map((m) {
+                          ...districtMarkets.map((m) {
                             final isCur = provider.selectedMarket == m;
                             final shortName = m.replaceAll('APMC', '').trim();
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: InkWell(
                                 onTap: () {
+                                  provider.selectDistrict(dist);
                                   provider.selectMarket(m);
                                   context.go('/mandi');
                                 },

@@ -189,6 +189,51 @@ class MandiProvider extends ChangeNotifier {
     return list;
   }
 
+  List<MandiRate> getRatesForDistrict(String district) {
+    if (district.isEmpty) return _allStateRates;
+    final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, district);
+    final d = (stdDistrict.isNotEmpty ? stdDistrict : district).toLowerCase().trim();
+
+    final districtMandis = (MandiDirectory.getDistrictMandis(_selectedState)[stdDistrict] ?? [])
+        .map((m) => _cleanMarketName(m).toLowerCase().trim())
+        .toSet();
+
+    final matched = _allStateRates.where((r) {
+      final rDist = r.district.toLowerCase().trim();
+      final rMarket = _cleanMarketName(r.market).toLowerCase().trim();
+      if (rDist == d || rDist.contains(d) || d.contains(rDist) || rMarket.contains(d) || d.contains(rMarket)) {
+        return true;
+      }
+      return districtMandis.any((dm) => dm.isNotEmpty && (rMarket.contains(dm) || dm.contains(rMarket)));
+    }).toList();
+
+    return matched;
+  }
+
+  List<String> getMarketsForDistrict(String district) {
+    if (district.isEmpty) return availableMarkets;
+    final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, district);
+    final targetDist = (stdDistrict.isNotEmpty ? stdDistrict : district).toLowerCase().trim();
+
+    final Set<String> markets = {};
+    final dirMandis = MandiDirectory.getDistrictMandis(_selectedState)[stdDistrict] ?? [];
+    markets.addAll(dirMandis);
+
+    for (final r in _allStateRates) {
+      final rDist = MandiDirectory.getStandardDistrictName(_selectedState, r.district).toLowerCase().trim();
+      final rawDist = r.district.trim().toLowerCase();
+      if (rDist == targetDist || rawDist == targetDist || rDist.contains(targetDist) || targetDist.contains(rDist)) {
+        if (r.market.trim().isNotEmpty) {
+          markets.add(r.market.trim());
+        }
+      }
+    }
+
+    final list = markets.where((m) => m.isNotEmpty).toList();
+    list.sort();
+    return list;
+  }
+
   int getRatesCountForMarket(String market) {
     final m = _cleanMarketName(market).toLowerCase();
     final count = _allStateRates.where((r) {
