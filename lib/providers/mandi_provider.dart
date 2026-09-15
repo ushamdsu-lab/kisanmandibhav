@@ -59,17 +59,15 @@ class MandiProvider extends ChangeNotifier {
       _userHomeState = savedState;
     }
     if (savedDistrict.isNotEmpty) {
-      _selectedDistrict = savedDistrict;
       _userHomeDistrict = savedDistrict;
     } else {
-      _selectedDistrict = MandiDirectory.getDefaultDistrict(_selectedState);
-      _userHomeDistrict = _selectedDistrict;
+      _userHomeDistrict = MandiDirectory.getDefaultDistrict(_selectedState);
     }
-    // Location detection and home view show all mandis in the district by default
+    // Always start with all mandis of the state (no auto filter)
+    _selectedDistrict = '';
     _selectedMarket = '';
-    if (savedMandi.isNotEmpty && !savedMandi.toLowerCase().contains('mathania')) {
-      _userHomeMarket = savedMandi;
-    }
+    _selectedCropFilter = '';
+    _searchQuery = '';
 
     _favoriteCommodities = StorageService.getFavoriteCommodities();
     _priceAlerts = StorageService.getPriceAlerts();
@@ -406,32 +404,22 @@ class MandiProvider extends ChangeNotifier {
 
     if (district != null && district.isNotEmpty) {
       final stdDistrict = MandiDirectory.getStandardDistrictName(_selectedState, district);
-      _selectedDistrict = stdDistrict.isNotEmpty ? stdDistrict : district;
-      _userHomeDistrict = _selectedDistrict;
+      _userHomeDistrict = stdDistrict.isNotEmpty ? stdDistrict : district;
     }
 
-    final targetMandi = (mandi != null && mandi.isNotEmpty)
-        ? mandi
-        : (market != null && market.isNotEmpty ? market : '');
-
-    if (targetMandi.isNotEmpty) {
-      _selectedMarket = targetMandi;
-      _userHomeMarket = targetMandi;
-    } else {
-      _selectedMarket = '';
-      _userHomeMarket = '';
-    }
+    // Do NOT auto-filter the mandi screen by district: Keep all mandis visible!
+    _selectedDistrict = '';
+    _selectedMarket = '';
+    _userHomeMarket = (mandi != null && mandi.isNotEmpty) ? mandi : (market ?? '');
 
     StorageService.saveMandiLocation(
       state: _selectedState,
-      district: _selectedDistrict,
-      mandi: _selectedMarket,
+      district: '',
+      mandi: '',
     );
 
     fetchRates(
       state: _selectedState,
-      district: _selectedDistrict,
-      market: _selectedMarket.isNotEmpty ? _selectedMarket : null,
     );
   }
 
