@@ -1,4 +1,4 @@
-# 🌾 Kisan Mandi Bhav & Weather - Google Play Store & Legal Links
+# 🌾 Kisan Mandi Bhav - Google Play Store & Legal Links
 
 Official documentation and links for Google Play Console submission and user compliance.
 
