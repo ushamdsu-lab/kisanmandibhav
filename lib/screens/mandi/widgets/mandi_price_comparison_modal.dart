@@ -92,183 +92,236 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 48,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 16, 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$hindiName भाव तुलना',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 18),
-                      ),
-                      Text(
-                        'राज्य की सभी ${comparisonRates.length} मंडियों में आज के दाम',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-
-          // Summary Stats Banner
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      const Text('राज्य में उच्चतम भाव', style: TextStyle(fontSize: 10.5, color: Colors.green, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Text('₹${highestPrice.toInt()}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
-                      Text(highestMandi, style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary), maxLines: 1),
-                    ],
-                  ),
-                  Container(width: 1, height: 36, color: Colors.green.withValues(alpha: 0.3)),
-                  Column(
-                    children: [
-                      const Text('न्यूनतम दर्ज', style: TextStyle(fontSize: 10.5, color: Colors.blueGrey, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Text('₹${lowestPrice.toInt()}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blueGrey)),
-                      Text('औसत भाव', style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ],
               ),
             ),
-          ),
-
-          // 7-Day Rolling Price History Chart (FIFO Window)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SparklineChartWidget(
-              state: widget.targetRate.state,
-              commodity: widget.targetRate.commodity,
-              modalPrice: widget.targetRate.modalPrice,
-              minPrice: widget.targetRate.minPrice,
-              maxPrice: widget.targetRate.maxPrice,
-              compact: false,
-            ),
-          ),
-
-          // Search Field & Scope Filters
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'मंडी या जिला खोजें (उदा: मेड़ता, नोखा, जयपुर)...',
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear_rounded, size: 18), onPressed: () => setState(() => _searchCtrl.clear()))
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              ),
-            ),
-          ),
-
-          // Filter Scope Chips
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 12, 6),
               child: Row(
                 children: [
-                  _buildScopeChip('सभी मंडियां (${comparisonRates.length})', _filterScope == 'all', () => setState(() => _filterScope = 'all')),
-                  const SizedBox(width: 6),
-                  _buildScopeChip('$distHindi ज़िला (${districtRates.length})', _filterScope == 'district', () => setState(() => _filterScope = 'district')),
-                  const SizedBox(width: 6),
-                  _buildScopeChip('राज्य की अन्य मंडियां (${stateRates.length})', _filterScope == 'state', () => setState(() => _filterScope = 'state')),
-                ],
-              ),
-            ),
-          ),
-
-          const Divider(height: 8),
-
-          // Mandis List
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              children: [
-                // 1. District Section (if scope allows)
-                if (_filterScope != 'state' && displayedDistrict.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
-                    child: Row(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
-                        const SizedBox(width: 4),
                         Text(
-                          '📍 $distHindi जिले की सभी मंडियां (${displayedDistrict.length})',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primaryDark),
+                          '$hindiName भाव तुलना',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'राज्य की सभी ${comparisonRates.length} मंडियों में आज के दाम',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  ...displayedDistrict.asMap().entries.map((entry) => _buildRateItem(context, entry.value, entry.key)),
-                ],
-
-                // 2. State Section (if scope allows)
-                if (_filterScope != 'district' && displayedState.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.account_balance_rounded, color: AppColors.mandiAccent, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          '🏛️ राज्य के अन्य जिलों की मंडियां (${displayedState.length})',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.mandiAccent),
-                        ),
-                      ],
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  ...displayedState.asMap().entries.map((entry) => _buildRateItem(context, entry.value, displayedDistrict.length + entry.key)),
                 ],
-
-                if (displayedDistrict.isEmpty && displayedState.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('कोई मंडी नहीं मिली')),
-                  ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
-        ],
+
+            // Summary Stats Banner
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text(
+                            'राज्य में उच्चतम भाव',
+                            style: TextStyle(fontSize: 10.5, color: Colors.green, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '₹${highestPrice.toInt()}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
+                            ),
+                          ),
+                          Text(
+                            highestMandi,
+                            style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(width: 1, height: 36, color: Colors.green.withValues(alpha: 0.3)),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text(
+                            'न्यूनतम दर्ज',
+                            style: TextStyle(fontSize: 10.5, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '₹${lowestPrice.toInt()}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blueGrey),
+                            ),
+                          ),
+                          const Text(
+                            'न्यूनतम भाव',
+                            style: TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // 7-Day Rolling Price History Chart (FIFO Window)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SparklineChartWidget(
+                state: widget.targetRate.state,
+                commodity: widget.targetRate.commodity,
+                modalPrice: widget.targetRate.modalPrice,
+                minPrice: widget.targetRate.minPrice,
+                maxPrice: widget.targetRate.maxPrice,
+                compact: false,
+              ),
+            ),
+
+            // Search Field & Scope Filters
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'मंडी या जिला खोजें (उदा: मेड़ता, नोखा, जयपुर)...',
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  suffixIcon: _searchCtrl.text.isNotEmpty
+                      ? IconButton(icon: const Icon(Icons.clear_rounded, size: 18), onPressed: () => setState(() => _searchCtrl.clear()))
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+            ),
+
+            // Filter Scope Chips
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildScopeChip('सभी मंडियां (${comparisonRates.length})', _filterScope == 'all', () => setState(() => _filterScope = 'all')),
+                    const SizedBox(width: 6),
+                    _buildScopeChip('$distHindi ज़िला (${districtRates.length})', _filterScope == 'district', () => setState(() => _filterScope = 'district')),
+                    const SizedBox(width: 6),
+                    _buildScopeChip('राज्य की अन्य मंडियां (${stateRates.length})', _filterScope == 'state', () => setState(() => _filterScope = 'state')),
+                  ],
+                ),
+              ),
+            ),
+
+            const Divider(height: 8),
+
+            // Mandis List
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                children: [
+                  // 1. District Section (if scope allows)
+                  if (_filterScope != 'state' && displayedDistrict.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '📍 $distHindi जिले की सभी मंडियां (${displayedDistrict.length})',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primaryDark),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...displayedDistrict.asMap().entries.map((entry) => _buildRateItem(context, entry.value, entry.key)),
+                  ],
+
+                  // 2. State Section (if scope allows)
+                  if (_filterScope != 'district' && displayedState.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.account_balance_rounded, color: AppColors.mandiAccent, size: 16),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '🏛️ राज्य के अन्य जिलों की मंडियां (${displayedState.length})',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.mandiAccent),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...displayedState.asMap().entries.map((entry) => _buildRateItem(context, entry.value, displayedDistrict.length + entry.key)),
+                  ],
+
+                  if (displayedDistrict.isEmpty && displayedState.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Center(child: Text('कोई मंडी नहीं मिली')),
+                    ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -287,7 +340,7 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isCurrentTarget
             ? AppColors.primary.withValues(alpha: 0.12)
@@ -303,18 +356,18 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 14,
+            radius: 13,
             backgroundColor: index == 0 ? Colors.amber.shade700 : Colors.grey.shade300,
             child: Text(
               '${index + 1}',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: FontWeight.bold,
                 color: index == 0 ? Colors.white : Colors.black87,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +379,7 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
                         r.market,
                         style: TextStyle(
                           fontWeight: isCurrentTarget ? FontWeight.w900 : FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13.5,
                           color: isCurrentTarget ? AppColors.primary : null,
                         ),
                         maxLines: 1,
@@ -346,20 +399,29 @@ class _MandiPriceComparisonModalState extends State<MandiPriceComparisonModal> {
                     ],
                   ],
                 ),
-                Text('${DistrictHelper.getHindiName(r.district)} (${r.district}) • ${r.variety}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                const SizedBox(height: 2),
+                Text(
+                  '${DistrictHelper.getHindiName(r.district)} (${r.district})${r.variety.isNotEmpty ? " • ${r.variety}" : ""}',
+                  style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '₹${r.modalPrice.toInt()}',
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
               ),
               Text(
                 '₹${r.minPrice.toInt()} - ₹${r.maxPrice.toInt()}',
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                maxLines: 1,
               ),
             ],
           ),

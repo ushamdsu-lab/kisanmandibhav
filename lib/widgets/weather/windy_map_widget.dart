@@ -103,7 +103,7 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
     final lon = widget.longitude.toStringAsFixed(4);
     return 'https://embed.windy.com/embed2.html?'
         'lat=$lat&lon=$lon&detailLat=$lat&detailLon=$lon'
-        '&width=650&height=400&zoom=$activeZoom&level=surface'
+        '&width=100%25&height=100%25&zoom=$activeZoom&level=surface'
         '&overlay=$activeOverlay&product=$activeModel'
         '&menu=&message=true&marker=true&calendar=now'
         '&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1';
@@ -355,49 +355,54 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
         : widget.locationName;
 
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Row(
             children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppColors.mausamAccent.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.satellite_alt_rounded, color: AppColors.mausamAccent, size: 18),
+              ),
+              const SizedBox(width: 8),
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: AppColors.mausamAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '📡 लाइव वेदर रडार व पवन मैप',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13.5,
+                            ),
                       ),
-                      child: const Icon(Icons.satellite_alt_rounded, color: AppColors.mausamAccent, size: 18),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '🗺️ लाइव राडार व सैटेलाइट',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, fontSize: 13),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Windy • ${_selectedModel.toUpperCase()} • $cleanName',
-                            style: TextStyle(fontSize: 10, color: Theme.of(context).textTheme.bodySmall?.color),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    Text(
+                      'Windy • ${_selectedModel.toUpperCase()} • $cleanName',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey.shade400,
+                        fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
-              // Forecast Model Picker Menu
+              const SizedBox(width: 4),
+              // Forecast Model Picker
               PopupMenuButton<String>(
                 initialValue: _selectedModel,
                 tooltip: 'मौसम मॉडल बदलें',
@@ -411,117 +416,139 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.mausamAccent.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.mausamAccent.withValues(alpha: 0.3)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.tune_rounded, size: 11, color: AppColors.mausamAccent),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: 3),
                       Text(
                         _selectedModel.toUpperCase(),
-                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.mausamAccent),
+                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppColors.mausamAccent),
                       ),
                       const Icon(Icons.arrow_drop_down_rounded, size: 13, color: AppColors.mausamAccent),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 4),
               // Fullscreen Button
               InkWell(
                 onTap: () => _openInAppFullScreen(context),
+                borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.mausamAccent,
+                    color: AppColors.mausamAccent.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.mausamAccent.withValues(alpha: 0.35)),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.fullscreen_rounded, color: Colors.white, size: 13),
-                      SizedBox(width: 2),
-                      Text(
-                        'फुल स्क्रीन',
-                        style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  child: const Icon(Icons.fullscreen_rounded, color: AppColors.mausamAccent, size: 17),
+                ),
+              ),
+              const SizedBox(width: 4),
+              // Refresh Button
+              InkWell(
+                onTap: () => setState(_initMap),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
+                  child: const Icon(Icons.refresh_rounded, color: Colors.white, size: 17),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
 
-          // 🎛️ Interactive Quick Control Bar (Zoom +, Zoom -, My Farm, India View, Reload)
+          // 🎛️ Modern Toolbar (Scope Toggle + Zoom Control)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  // Zoom In Button
-                  _buildToolActionBtn(
-                    icon: Icons.add_rounded,
-                    label: 'ज़ूम +',
-                    tooltip: 'नक्शा बड़ा करें',
-                    onTap: () => _changeZoom(1),
+            child: Row(
+              children: [
+                // Scope Toggle: My Farm vs India
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildScopeSegment(
+                          title: '📍 मेरा खेत',
+                          isActive: _zoomLevel > 6,
+                          onTap: _recenterFarm,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: _buildScopeSegment(
+                          title: '🇮🇳 पूरा भारत',
+                          isActive: _zoomLevel <= 6,
+                          onTap: _toggleIndiaView,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  // Zoom Out Button
-                  _buildToolActionBtn(
-                    icon: Icons.remove_rounded,
-                    label: 'ज़ूम -',
-                    tooltip: 'नक्शा छोटा करें',
-                    onTap: () => _changeZoom(-1),
-                  ),
-                  const SizedBox(width: 4),
-                  Container(width: 1, height: 18, color: Colors.grey.withValues(alpha: 0.3)),
-                  const SizedBox(width: 4),
-                  // My Farm Location Button
-                  _buildToolActionBtn(
-                    icon: Icons.my_location_rounded,
-                    label: '📍 मेरा खेत',
-                    tooltip: 'खेत पर केंद्रित करें',
-                    color: Colors.green,
-                    onTap: _recenterFarm,
-                  ),
-                  const SizedBox(width: 4),
-                  // All India View Toggle
-                  _buildToolActionBtn(
-                    icon: Icons.public_rounded,
-                    label: _zoomLevel <= 5 ? '🗺️ जिला व्यू' : '🇮🇳 पूरा भारत',
-                    tooltip: 'भारत/जिला व्यू बदलें',
-                    color: Colors.indigo,
-                    onTap: _toggleIndiaView,
-                  ),
-                  const SizedBox(width: 4),
-                  Container(width: 1, height: 18, color: Colors.grey.withValues(alpha: 0.3)),
-                  const SizedBox(width: 4),
-                  // Reload Button
-                  _buildToolActionBtn(
-                    icon: Icons.refresh_rounded,
-                    label: 'रीलोड',
-                    tooltip: 'नक्शा रीफ्रेश करें',
-                    onTap: () => setState(_initMap),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                Container(width: 1, height: 22, color: Colors.grey.withValues(alpha: 0.25)),
+                const SizedBox(width: 8),
+                // Zoom In / Out Compact Pill
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      onTap: () => _changeZoom(-1),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.remove_rounded, size: 16),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(
+                        '${_zoomLevel}x',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => _changeZoom(1),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.add_rounded, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Layer Switcher Chips (8 Comprehensive Weather Overlays)
+          // Layer Switcher Chips (Horizontal Scroll)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             child: Row(
               children: _overlays.map((ov) {
                 return Padding(
@@ -536,13 +563,13 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
               }).toList(),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           // Dynamic Interactive Embedded Map (Web / Mobile Native WebView)
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              height: 330,
+              height: 450,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
@@ -582,12 +609,12 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
           // Footer info
           Row(
             children: [
-              const Icon(Icons.touch_app_rounded, size: 12, color: Colors.grey),
-              const SizedBox(width: 4),
+              const Icon(Icons.touch_app_rounded, size: 13, color: AppColors.mausamAccent),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
-                  'ऊपर दिए बटनों से ज़ूम (+/-), मेरा खेत, पूरा भारत और आंधी/बारिश/बादल लेयर बदलें',
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                  '💡 नक्शे को ड्रैग या पिंच-ज़ूम करके अपने गांव व तहसील का लाइव मौसम देखें',
+                  style: TextStyle(fontSize: 10.5, color: Colors.grey.shade400, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -597,40 +624,40 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
     );
   }
 
-  Widget _buildToolActionBtn({
-    required IconData icon,
-    required String label,
-    required String tooltip,
+  Widget _buildScopeSegment({
+    required String title,
+    required bool isActive,
     required VoidCallback onTap,
-    Color? color,
   }) {
-    final effectiveColor = color ?? AppColors.mausamAccent;
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: effectiveColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: effectiveColor.withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 13, color: effectiveColor),
-              const SizedBox(width: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  color: effectiveColor,
-                ),
-              ),
-            ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
+              color: isActive ? Colors.white : null,
+            ),
           ),
         ),
       ),
@@ -641,29 +668,42 @@ class _WindyMapWidgetState extends State<WindyMapWidget> {
     final isSelected = _selectedOverlay == value;
     return InkWell(
       onTap: () => _changeOverlay(value),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? color : Colors.grey.withValues(alpha: 0.3),
+            color: isSelected ? Colors.white.withValues(alpha: 0.7) : Colors.grey.withValues(alpha: 0.25),
             width: isSelected ? 1.5 : 1.0,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.45),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? color : Colors.grey, size: 13),
-            const SizedBox(width: 4),
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.grey.shade400,
+              size: 15,
+            ),
+            const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : Colors.grey,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 11,
+                color: isSelected ? Colors.white : null,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                fontSize: 12,
               ),
             ),
           ],

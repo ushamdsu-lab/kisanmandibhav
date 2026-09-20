@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 *.apk
 *.aab
+node_modules/
+out/

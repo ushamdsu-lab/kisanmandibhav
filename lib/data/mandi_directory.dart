@@ -881,7 +881,7 @@ class MandiDirectory {
   /// Get default district for a state
   static String getDefaultDistrict(String state) {
     final s = state.toLowerCase();
-    if (s.contains('rajasthan')) return 'Jaipur';
+    if (s.contains('rajasthan')) return 'Kota';
     if (s.contains('madhya')) return 'Indore';
     if (s.contains('gujarat')) return 'Rajkot';
     if (s.contains('punjab')) return 'Ludhiana';
@@ -901,6 +901,6 @@ class MandiDirectory {
     if (s.contains('himachal')) return 'Shimla';
     if (s.contains('assam')) return 'Guwahati';
     if (s.contains('kerala')) return 'Ernakulam';
-    return 'Jaipur';
+    return 'Kota';
   }
 }

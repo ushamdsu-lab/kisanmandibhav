@@ -22,8 +22,7 @@ class CropDoctorScreen extends StatefulWidget {
 class _CropDoctorScreenState extends State<CropDoctorScreen>
     with SingleTickerProviderStateMixin {
   int _selectedModeIndex = 0; // 0: Photo Scan, 1: Symptom Checklist, 2: All Diseases Directory
-  String _selectedCropId = 'wheat';
-  String _selectedCategory = 'all';
+  String _selectedCropId = 'auto';
   String _directorySearchQuery = '';
 
   // Photo State
@@ -50,18 +49,24 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
   ];
 
   static const List<Map<String, String>> supportedCrops = [
+    {'id': 'auto', 'name': '🤖 ऑटो-डिटेक्ट (सभी 56 फसलें)', 'category': 'all', 'icon': '🔍'},
+
     // 🌾 अनाज व मोटा अनाज (Grains & Millets)
     {'id': 'wheat', 'name': 'गेहूं', 'category': 'grains', 'icon': '🌾'},
     {'id': 'paddy', 'name': 'धान/चावल', 'category': 'grains', 'icon': '🌾'},
     {'id': 'maize', 'name': 'मक्का', 'category': 'grains', 'icon': '🌽'},
     {'id': 'bajra', 'name': 'बाजरा', 'category': 'grains', 'icon': '🌾'},
+    {'id': 'jowar', 'name': 'ज्वार', 'category': 'grains', 'icon': '🌾'},
+    {'id': 'barley', 'name': 'जौ', 'category': 'grains', 'icon': '🌾'},
 
     // 🫘 दलहन व तिलहन (Pulses & Oilseeds)
     {'id': 'mustard', 'name': 'सरसों/राई', 'category': 'pulses', 'icon': '🌱'},
     {'id': 'soybean', 'name': 'सोयाबीन', 'category': 'pulses', 'icon': '🫘'},
     {'id': 'gram', 'name': 'चना', 'category': 'pulses', 'icon': '🌱'},
+    {'id': 'arhar', 'name': 'अरहर/तुअर', 'category': 'pulses', 'icon': '🫘'},
     {'id': 'moong', 'name': 'मूंग', 'category': 'pulses', 'icon': '🫘'},
     {'id': 'urad', 'name': 'उड़द', 'category': 'pulses', 'icon': '🫘'},
+    {'id': 'lentil', 'name': 'मसूर', 'category': 'pulses', 'icon': '🫘'},
     {'id': 'groundnut', 'name': 'मूंगफली', 'category': 'pulses', 'icon': '🥜'},
     {'id': 'castor', 'name': 'अरंडी', 'category': 'pulses', 'icon': '🫘'},
     {'id': 'sunflower', 'name': 'सूरजमुखी', 'category': 'pulses', 'icon': '🌻'},
@@ -78,6 +83,12 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
     {'id': 'okra', 'name': 'भिंडी', 'category': 'vegetables', 'icon': '🌿'},
     {'id': 'cauliflower', 'name': 'गोभी', 'category': 'vegetables', 'icon': '🥦'},
     {'id': 'pea', 'name': 'मटर', 'category': 'vegetables', 'icon': '🫛'},
+    {'id': 'capsicum', 'name': 'शिमला मिर्च', 'category': 'vegetables', 'icon': '🫑'},
+    {'id': 'carrot', 'name': 'गाजर', 'category': 'vegetables', 'icon': '🥕'},
+    {'id': 'radish', 'name': 'मूली', 'category': 'vegetables', 'icon': '⚪'},
+    {'id': 'spinach', 'name': 'पालक', 'category': 'vegetables', 'icon': '🥬'},
+    {'id': 'bottle_gourd', 'name': 'लौकी/घिया', 'category': 'vegetables', 'icon': '🥒'},
+    {'id': 'bitter_gourd', 'name': 'करेला', 'category': 'vegetables', 'icon': '🥒'},
 
     // 🌿 मसाले व औषधीय फसलें (Spices)
     {'id': 'jeera', 'name': 'जीरा', 'category': 'spices', 'icon': '🌿'},
@@ -92,6 +103,8 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
     {'id': 'sugarcane', 'name': 'गन्ना', 'category': 'commercial', 'icon': '🎋'},
     {'id': 'guar', 'name': 'ग्वार', 'category': 'commercial', 'icon': '🌱'},
     {'id': 'isabgol', 'name': 'इसबगोल', 'category': 'commercial', 'icon': '🌾'},
+    {'id': 'tea', 'name': 'चाय', 'category': 'commercial', 'icon': '🍵'},
+    {'id': 'coffee', 'name': 'कॉफ़ी', 'category': 'commercial', 'icon': '☕'},
 
     // 🍎 फल व बागवानी (Fruits & Horticulture)
     {'id': 'pomegranate', 'name': 'अनार', 'category': 'fruits', 'icon': '🍎'},
@@ -102,7 +115,12 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
     {'id': 'watermelon', 'name': 'तरबूज/खरबूजा', 'category': 'fruits', 'icon': '🍉'},
     {'id': 'banana', 'name': 'केला', 'category': 'fruits', 'icon': '🍌'},
     {'id': 'apple', 'name': 'सेब', 'category': 'fruits', 'icon': '🍎'},
+    {'id': 'grapes', 'name': 'अंगूर', 'category': 'fruits', 'icon': '🍇'},
+    {'id': 'ber', 'name': 'बेर', 'category': 'fruits', 'icon': '🫐'},
+    {'id': 'date_palm', 'name': 'खजूर', 'category': 'fruits', 'icon': '🌴'},
   ];
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -119,7 +137,20 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
   @override
   void dispose() {
     _scanAnimController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToReport() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
   }
 
   void _resetDiagnosis() {
@@ -162,6 +193,7 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
             _diagnosisResult = result;
             _isAnalyzing = false;
           });
+          _scrollToReport();
         }
       }
     } catch (e) {
@@ -175,6 +207,46 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
           ),
         );
       }
+    }
+  }
+
+  /// Run demo test with a sample leaf image to test AI doctor instantly
+  Future<void> _runSampleLeafTest({
+    required String cropId,
+    required String diseaseKeyword,
+  }) async {
+    setState(() {
+      _selectedCropId = cropId;
+      _isAnalyzing = true;
+      _diagnosisResult = null;
+      _selectedImage = null;
+      _imageBytes = null;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 700));
+
+    final cropDiseases = CropDiseaseDatabase.getDiseasesByCrop(cropId);
+    final matched = cropDiseases.firstWhere(
+      (d) =>
+          d.diseaseNameHindi.contains(diseaseKeyword) ||
+          d.diseaseNameEnglish.toLowerCase().contains(diseaseKeyword.toLowerCase()),
+      orElse: () => cropDiseases.isNotEmpty ? cropDiseases.first : CropDiseaseDatabase.diagnose(cropId: cropId),
+    );
+
+    final alternatives = cropDiseases.where((d) => d.id != matched.id).toList();
+
+    if (mounted) {
+      setState(() {
+        _diagnosisResult = CropDiagnosisResult(
+          disease: matched,
+          alternativeDiseases: alternatives,
+          confidence: matched.confidenceScore,
+          timestamp: DateTime.now(),
+          isOfflineAi: true,
+        );
+        _isAnalyzing = false;
+      });
+      _scrollToReport();
     }
   }
 
@@ -204,7 +276,151 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
         _diagnosisResult = result;
         _isAnalyzing = false;
       });
+      _scrollToReport();
     }
+  }
+
+  void _showCropPickerBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        String query = '';
+        String selectedCat = 'all';
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final list = supportedCrops.where((c) {
+              final matchesCat = selectedCat == 'all' || c['category'] == selectedCat;
+              final matchesQuery = query.isEmpty ||
+                  c['name']!.toLowerCase().contains(query.toLowerCase()) ||
+                  c['id']!.toLowerCase().contains(query.toLowerCase());
+              return matchesCat && matchesQuery;
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.78,
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('🌾 सभी 56+ फसलें व 100+ रोग चुनें', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                      IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    onChanged: (val) => setSheetState(() => query = val.trim()),
+                    decoration: InputDecoration(
+                      hintText: 'फसल खोजें (उदा: सरसों, कपास, जीरा, सोयाबीन)...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Categories
+                  SizedBox(
+                    height: 32,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: cropCategories.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 6),
+                      itemBuilder: (_, i) {
+                        final cat = cropCategories[i];
+                        final isSel = selectedCat == cat['id'];
+                        return InkWell(
+                          onTap: () => setSheetState(() => selectedCat = cat['id']!),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF1B5E20) : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              cat['name']!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                color: isSel ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 2.2,
+                      ),
+                      itemCount: list.length,
+                      itemBuilder: (_, i) {
+                        final crop = list[i];
+                        final isSel = _selectedCropId == crop['id'];
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedCropId = crop['id']!;
+                              _resetDiagnosis();
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF1B5E20) : Theme.of(context).cardTheme.color,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: isSel ? const Color(0xFF1B5E20) : Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(crop['icon']!, style: const TextStyle(fontSize: 16)),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    crop['name']!,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: isSel ? FontWeight.w900 : FontWeight.w700,
+                                      color: isSel ? Colors.white : null,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -212,15 +428,15 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
     final localeProv = context.watch<LocaleProvider>();
     final isHi = localeProv.isHindi;
 
-    final filteredCrops = _selectedCategory == 'all'
-        ? supportedCrops
-        : supportedCrops.where((c) => c['category'] == _selectedCategory).toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          isHi ? '📸 AI फसल डॉक्टर (रोग व दवा)' : '📸 AI Crop Doctor (Prescription)',
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white),
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            isHi ? '📸 AI फसल डॉक्टर' : '📸 AI Crop Doctor',
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Colors.white),
+          ),
         ),
         actions: [
           const LanguageToggleButton(),
@@ -242,6 +458,7 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -271,94 +488,147 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
 
             const SizedBox(height: 16),
 
-            // Step 1: Crop Category & Selection
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '1️⃣ फसल चुनें:',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, fontSize: 15),
-                ),
-                Text(
-                  'कुल 41+ फसलें',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green.shade800),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
+            // Step 1: Active Crop Card & Quick Picker
+            Builder(
+              builder: (context) {
+                final selectedCrop = supportedCrops.firstWhere(
+                  (c) => c['id'] == _selectedCropId,
+                  orElse: () => {'id': _selectedCropId, 'name': _selectedCropId, 'icon': '🌱'},
+                );
+                const quickCrops = [
+                  {'id': 'auto', 'name': '🤖 ऑटो-डिटेक्ट', 'icon': '🔍'},
+                  {'id': 'wheat', 'name': 'गेहूं', 'icon': '🌾'},
+                  {'id': 'paddy', 'name': 'धान', 'icon': '🌾'},
+                  {'id': 'mustard', 'name': 'सरसों', 'icon': '🌱'},
+                  {'id': 'cotton', 'name': 'कपास', 'icon': '⚪'},
+                  {'id': 'tomato', 'name': 'टमाटर', 'icon': '🍅'},
+                  {'id': 'onion', 'name': 'प्याज', 'icon': '🧅'},
+                  {'id': 'potato', 'name': 'आलू', 'icon': '🥔'},
+                  {'id': 'jeera', 'name': 'जीरा', 'icon': '🌿'},
+                  {'id': 'gram', 'name': 'चना', 'icon': '🌱'},
+                  {'id': 'soybean', 'name': 'सोयाबीन', 'icon': '🫘'},
+                ];
 
-            // Category Chips
-            SizedBox(
-              height: 32,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: cropCategories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 6),
-                itemBuilder: (context, index) {
-                  final cat = cropCategories[index];
-                  final isCatSelected = _selectedCategory == cat['id'];
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = cat['id']!;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isCatSelected ? const Color(0xFF1B5E20) : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(20),
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color ?? Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF1B5E20).withValues(alpha: 0.3), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      child: Text(
-                        cat['name']!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isCatSelected ? FontWeight.w800 : FontWeight.w600,
-                          color: isCatSelected ? Colors.white : Colors.black87,
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1B5E20).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(selectedCrop['icon'] ?? '🌱', style: const TextStyle(fontSize: 22)),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isHi ? '1️⃣ चुनी हुई फसल:' : '1️⃣ Selected Crop:',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                                ),
+                                Text(
+                                  selectedCrop['name'] ?? _selectedCropId,
+                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF1B5E20)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1B5E20),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            icon: const Icon(Icons.swap_horiz_rounded, size: 15),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                isHi ? 'बदलें (56+ फसलें)' : 'Change (56+)',
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5),
+                              ),
+                            ),
+                            onPressed: () => _showCropPickerBottomSheet(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      Text(
+                        isHi ? '⚡ मुख्य फसलें (तुरंत चुनें):' : '⚡ Popular Crops:',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 36,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          children: [
+                            ...quickCrops.map((c) {
+                              final isSel = _selectedCropId == c['id'];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: ChoiceChip(
+                                  avatar: Text(c['icon']!, style: const TextStyle(fontSize: 13)),
+                                  label: Text(c['name']!, style: const TextStyle(fontSize: 12)),
+                                  selected: isSel,
+                                  selectedColor: const Color(0xFF1B5E20),
+                                  labelStyle: TextStyle(
+                                    color: isSel ? Colors.white : Colors.black87,
+                                    fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                  onSelected: (val) {
+                                    if (val) {
+                                      setState(() {
+                                        _selectedCropId = c['id']!;
+                                        _resetDiagnosis();
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                            }),
+                            ActionChip(
+                              avatar: const Icon(Icons.grid_view_rounded, size: 14, color: Color(0xFF1B5E20)),
+                              label: Text(
+                                isHi ? 'अन्य सभी 41+ 🔍' : 'All 41+ Crops 🔍',
+                                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                              ),
+                              backgroundColor: const Color(0xFF1B5E20).withValues(alpha: 0.1),
+                              side: const BorderSide(color: Color(0xFF1B5E20), width: 1),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => _showCropPickerBottomSheet(context),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Crop Choice Chips
-            SizedBox(
-              height: 42,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: filteredCrops.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final crop = filteredCrops[index];
-                  final isSelected = _selectedCropId == crop['id'];
-
-                  return ChoiceChip(
-                    avatar: Text(crop['icon']!, style: const TextStyle(fontSize: 14)),
-                    label: Text(crop['name']!, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF1B5E20),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : null,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() {
-                          _selectedCropId = crop['id']!;
-                          _diagnosisResult = null;
-                          _selectedSymptoms.clear();
-                        });
-                      }
-                    },
-                  );
-                },
-              ),
+                    ],
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -412,32 +682,40 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 9),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         decoration: BoxDecoration(
           color: isSel ? const Color(0xFF1B5E20) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: isSel ? [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)] : null,
+          boxShadow: isSel ? [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 4, offset: const Offset(0, 1))] : null,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: isSel ? Colors.white : Colors.black87),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: isSel ? Colors.white : Colors.black87,
-              ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: isSel ? Colors.white : Colors.black87),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11.5,
+                    color: isSel ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildPhotoScanSection(BuildContext context) {
+    final isHi = context.watch<LocaleProvider>().isHindi;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -549,30 +827,104 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1B5E20),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           elevation: 2,
                         ),
-                        icon: const Icon(Icons.camera_alt_rounded, size: 20),
-                        label: const Text('कैमरा खोलें', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                        icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(isHi ? 'कैमरा खोलें' : 'Open Camera', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                        ),
                         onPressed: () => _pickImage(ImageSource.camera),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF1B5E20),
                           side: const BorderSide(color: Color(0xFF1B5E20), width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
-                        icon: const Icon(Icons.photo_library_rounded, size: 20),
-                        label: const Text('गैलरी से चुनें', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                        icon: const Icon(Icons.photo_library_rounded, size: 18),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(isHi ? 'गैलरी से चुनें' : 'From Gallery', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                        ),
                         onPressed: () => _pickImage(ImageSource.gallery),
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.amber.shade400, width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.science_rounded, size: 16, color: Colors.amber.shade900),
+                          const SizedBox(width: 6),
+                          Text(
+                            context.watch<LocaleProvider>().isHindi
+                                ? '🧪 बिना फोटो के तुरंत टेस्ट करें (नमूना बीमारी):'
+                                : '🧪 Instant Demo Test (Sample Leaf Diseases):',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.brown.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          ActionChip(
+                            avatar: const Text('🌾', style: TextStyle(fontSize: 12)),
+                            label: const Text('गेहूं (पीला रतुआ)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            backgroundColor: Colors.white,
+                            onPressed: () => _runSampleLeafTest(cropId: 'wheat', diseaseKeyword: 'रतुआ'),
+                          ),
+                          ActionChip(
+                            avatar: const Text('🌾', style: TextStyle(fontSize: 12)),
+                            label: const Text('धान (शीथ ब्लाइट)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            backgroundColor: Colors.white,
+                            onPressed: () => _runSampleLeafTest(cropId: 'paddy', diseaseKeyword: 'ब्लाइट'),
+                          ),
+                          ActionChip(
+                            avatar: const Text('🍅', style: TextStyle(fontSize: 12)),
+                            label: const Text('टमाटर (झुलसा)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            backgroundColor: Colors.white,
+                            onPressed: () => _runSampleLeafTest(cropId: 'tomato', diseaseKeyword: 'झुलसा'),
+                          ),
+                          ActionChip(
+                            avatar: const Text('🌱', style: TextStyle(fontSize: 12)),
+                            label: const Text('सरसों (सफेद रतुआ)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            backgroundColor: Colors.white,
+                            onPressed: () => _runSampleLeafTest(cropId: 'mustard', diseaseKeyword: 'सफेद'),
+                          ),
+                          ActionChip(
+                            avatar: const Text('⚪', style: TextStyle(fontSize: 12)),
+                            label: const Text('कपास (पत्ती मरोड़)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            backgroundColor: Colors.white,
+                            onPressed: () => _runSampleLeafTest(cropId: 'cotton', diseaseKeyword: 'पत्ती मरोड़'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -639,12 +991,15 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               elevation: _selectedSymptoms.isNotEmpty ? 3 : 0,
             ),
-            icon: const Icon(Icons.search_rounded, size: 22),
-            label: Text(
-              _selectedSymptoms.isNotEmpty
-                  ? 'रोग पहचानें व इलाज देखें (${_selectedSymptoms.length} चुने)'
-                  : 'कम से कम 1 लक्षण चुनें',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            icon: const Icon(Icons.search_rounded, size: 20),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _selectedSymptoms.isNotEmpty
+                    ? 'रोग पहचानें व इलाज देखें (${_selectedSymptoms.length} चुने)'
+                    : 'कम से कम 1 लक्षण चुनें',
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5),
+              ),
             ),
             onPressed: _selectedSymptoms.isNotEmpty ? _diagnoseBySymptoms : null,
           ),
@@ -792,6 +1147,7 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
   }
 
   Widget _buildDiagnosisReport(BuildContext context, CropDiagnosisResult result) {
+    final isHi = context.watch<LocaleProvider>().isHindi;
     final d = result.disease;
     final alternatives = result.alternativeDiseases;
 
@@ -801,16 +1157,23 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.verified_rounded, color: Color(0xFF1B5E20), size: 22),
-                const SizedBox(width: 6),
-                Text(
-                  'जांच रिपोर्ट (Diagnosis Result):',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, fontSize: 16),
-                ),
-              ],
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_rounded, color: Color(0xFF1B5E20), size: 22),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'जांच रिपोर्ट (Diagnosis Result):',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 6),
             TextButton.icon(
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: const Text('नई जांच', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
@@ -844,17 +1207,22 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${d.cropHindi} (${d.cropName})',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${d.cropHindi} (${d.cropName})',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
@@ -1015,26 +1383,32 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF25D366),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   elevation: 2,
                 ),
                 icon: const Icon(Icons.share_rounded, size: 18),
-                label: const Text('पर्ची WhatsApp करें', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(isHi ? 'पर्ची WhatsApp करें' : 'Share Prescription', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5)),
+                ),
                 onPressed: () => CropDoctorService.sharePrescriptionSlip(d),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1B5E20),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 elevation: 2,
               ),
               icon: const Icon(Icons.volume_up_rounded, size: 18, color: Colors.amberAccent),
-              label: const Text('बोलकर सुनें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(isHi ? 'बोलकर सुनें' : 'Listen', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
               onPressed: () {
                 final text = '${d.cropHindi} में ${d.diseaseNameHindi} के लक्षण हैं। इसके उपचार के लिए ${d.chemicalMedicine} का ${d.sprayDosage} के हिसाब से छिड़काव करें।';
                 TtsService().speak(text);

@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/custom_ad.dart';
 
@@ -13,7 +11,7 @@ class AdService {
   static bool get isInitialized => _isInitialized;
 
   /// SET TO `false` IN PRODUCTION WHEN USING YOUR REAL ADMOB AD UNIT IDS
-  static bool isTestMode = true;
+  static bool isTestMode = false;
 
   /// Online URL to update manual sponsor ads without rebuilding app
   static String remoteSponsorUrl =
@@ -26,7 +24,7 @@ class AdService {
   /// Poore App mein sabhi Ads ko ek sath ON/OFF karne ka Master Switch
   static bool enableAllAds = true;
 
-  /// Manual / Direct Sponsor Ads Toggle
+  /// Manual / Direct Sponsor Ads Toggle (Disabled - Google Ads only)
   static bool enableCustomSponsorAds = false;
 
   /// Specific Screens ke liye ON/OFF Switches:
@@ -38,35 +36,24 @@ class AdService {
   static bool enableYojnaInlineCards = true;
   static bool enableKhetiBanner = true;
   static bool enableCalculatorBanner = true;
-  static bool enableInterstitialAds = true; // Full screen ads
+  static bool enableInterstitialAds = false; // Full screen ads disabled for smooth farmer experience
 
   // ==========================================
   // 📢 DIRECT / MANUAL SPONSORED ADS LIST
-  // (Local sponsor/dealer ka banner yahan set kar sakte hain)
+  // (Empty - Google Ads preferred)
   // ==========================================
-  static List<CustomAd> customAds = [
-    const CustomAd(
-      id: 'local_sponsor_1',
-      title: '🌾 श्री राम कृषि सेवा केंद्र - प्रमाणित बीज एवं खाद',
-      subtitle: 'उन्नत किस्म के बीज, कीटनाशक दवाइयां व जैविक खाद उपलब्ध। होम डिलीवरी सुविधा!',
-      tag: 'प्रायोजित विज्ञापन',
-      actionType: 'whatsapp', // 'whatsapp', 'call', 'url'
-      actionValue: '919876543210',
-      actionButtonText: '💬 WhatsApp पर आर्डर करें',
-      isActive: true,
-    ),
-  ];
+  static List<CustomAd> customAds = [];
 
   // ==========================================
   // PRODUCTION AD UNIT IDS
   // (Paste your real AdMob Ad Unit IDs here)
   // ==========================================
-  static const String _prodAndroidBannerId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
+  static const String _prodAndroidBannerId = 'ca-app-pub-7650949194753110/5674116546';
   static const String _prodAndroidInterstitialId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodAndroidRewardedId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodAndroidNativeId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
 
-  static const String _prodIosBannerId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
+  static const String _prodIosBannerId = 'ca-app-pub-7650949194753110/5674116546';
   static const String _prodIosInterstitialId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodIosRewardedId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodIosNativeId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
@@ -90,9 +77,9 @@ class AdService {
   static String get bannerAdUnitId {
     if (kIsWeb) return '';
     if (isTestMode) {
-      return Platform.isAndroid ? _testAndroidBannerId : _testIosBannerId;
+      return Platform.isIOS ? _testIosBannerId : _testAndroidBannerId;
     }
-    return Platform.isAndroid ? _prodAndroidBannerId : _prodIosBannerId;
+    return Platform.isIOS ? _prodIosBannerId : _prodAndroidBannerId;
   }
 
   static String get interstitialAdUnitId {
@@ -120,7 +107,7 @@ class AdService {
   }
 
   // ==========================================
-  // INITIALIZATION
+  // INITIALIZATION & UMP CONSENT (GDPR / 2026 POLICY COMPLIANT)
   // ==========================================
   static Future<void> init() async {
     if (kIsWeb) {
@@ -130,19 +117,25 @@ class AdService {
 
     try {
       if (Platform.isAndroid || Platform.isIOS) {
+        // 1. Google UMP Consent Management (Required for EEA / UK / Global Compliance)
+        await _requestUserConsent();
+
+        // 2. Initialize MobileAds SDK
         await MobileAds.instance.initialize();
         
-        // Register test device for safe ad testing
+        // 3. Register test devices and set family-friendly content rating (2026 AdMob Policy)
         await MobileAds.instance.updateRequestConfiguration(
           RequestConfiguration(
             testDeviceIds: [
               '7cf83247-f5b2-4386-b1cf-b95d171ee5c2',
             ],
+            // Blocks adult, gambling and inappropriate ads for farmer safety
+            maxAdContentRating: MaxAdContentRating.pg,
           ),
         );
 
         _isInitialized = true;
-        debugPrint('[AdService] MobileAds initialized with Test Device registered.');
+        debugPrint('[AdService] MobileAds initialized with UMP consent and Test Device registered.');
         
         // Preload first interstitial ad
         loadInterstitialAd();
@@ -155,28 +148,36 @@ class AdService {
     }
   }
 
-  /// Fetch remote sponsor ads dynamically without rebuilding app
-  static Future<void> fetchRemoteSponsorAds() async {
+  /// Request User Messaging Platform (UMP) consent (Compliant with Google AdMob 2026 Policy)
+  static Future<void> _requestUserConsent() async {
     try {
-      if (remoteSponsorUrl.isEmpty) return;
-      final response = await http
-          .get(Uri.parse(remoteSponsorUrl))
-          .timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic>) {
-          if (data['enabled'] != null) {
-            enableCustomSponsorAds = data['enabled'] == true;
-          }
-          if (data['ad'] != null && data['ad'] is Map<String, dynamic>) {
-            customAds = [CustomAd.fromJson(data['ad'] as Map<String, dynamic>)];
-          }
-          debugPrint('[AdService] Remote sponsor ad updated successfully.');
-        }
-      }
+      final params = ConsentRequestParameters();
+      ConsentInformation.instance.requestConsentInfoUpdate(
+        params,
+        () async {
+          ConsentForm.loadAndShowConsentFormIfRequired(
+            (FormError? formError) {
+              if (formError != null) {
+                debugPrint('[AdService] UMP Consent Form error: ${formError.message}');
+              } else {
+                debugPrint('[AdService] UMP Consent status checked / updated.');
+              }
+            },
+          );
+        },
+        (FormError error) {
+          debugPrint('[AdService] UMP Consent info update failed: ${error.message}');
+        },
+      );
     } catch (e) {
-      debugPrint('[AdService] Remote sponsor fetch skipped/offline: $e');
+      debugPrint('[AdService] UMP consent check skipped: $e');
     }
+  }
+
+  /// Fetch remote sponsor ads dynamically without rebuilding app (Disabled)
+  static Future<void> fetchRemoteSponsorAds() async {
+    // Custom sponsor ads disabled as user prefers official Google Ads
+    return;
   }
 
   // ==========================================

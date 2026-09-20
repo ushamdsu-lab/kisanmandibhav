@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/price_alert.dart';
 import '../models/mandi_rate.dart';
+import '../models/farm_khata_entry.dart';
+import '../models/dairy_record.dart';
+import '../models/udhar_entry.dart';
+import '../models/livestock_animal.dart';
+import '../models/dairy_expense.dart';
 
 class StorageService {
   static SharedPreferences? _prefs;
@@ -241,4 +246,164 @@ class StorageService {
 
     return [];
   }
+
+  // --- 📒 Farm Khata (कृषि बहीखाता) Local-First Persistence ---
+  static List<FarmKhataEntry> getFarmKhataEntries() {
+    final raw = _prefs?.getString('farm_khata_entries_v1') ?? '';
+    return FarmKhataEntry.decodeList(raw);
+  }
+
+  static Future<void> saveFarmKhataEntry(FarmKhataEntry entry) async {
+    final entries = getFarmKhataEntries();
+    entries.removeWhere((e) => e.id == entry.id);
+    entries.insert(0, entry);
+    await _prefs?.setString('farm_khata_entries_v1', FarmKhataEntry.encodeList(entries));
+  }
+
+  static Future<void> deleteFarmKhataEntry(String id) async {
+    final entries = getFarmKhataEntries();
+    entries.removeWhere((e) => e.id == id);
+    await _prefs?.setString('farm_khata_entries_v1', FarmKhataEntry.encodeList(entries));
+  }
+
+  static Future<void> clearCropKhata(String cropName) async {
+    final entries = getFarmKhataEntries();
+    entries.removeWhere((e) => e.cropName.toLowerCase() == cropName.toLowerCase());
+    await _prefs?.setString('farm_khata_entries_v1', FarmKhataEntry.encodeList(entries));
+  }
+
+  // --- 🐄 Dairy & Animal Records (पशुपालन डायरी) Local-First Persistence ---
+  static List<DairyRecord> getDairyRecords() {
+    final raw = _prefs?.getString('dairy_records_v1') ?? '';
+    return DairyRecord.decodeList(raw);
+  }
+
+  static Future<void> saveDairyRecord(DairyRecord record) async {
+    final records = getDairyRecords();
+    records.removeWhere((r) => r.id == record.id);
+    records.insert(0, record);
+    await _prefs?.setString('dairy_records_v1', DairyRecord.encodeList(records));
+  }
+
+  static Future<void> deleteDairyRecord(String id) async {
+    final records = getDairyRecords();
+    records.removeWhere((r) => r.id == id);
+    await _prefs?.setString('dairy_records_v1', DairyRecord.encodeList(records));
+  }
+
+  // --- 🤝 Kisan Udhar & Baaki Khata (उधारी व देनदारी) ---
+  static List<UdharEntry> getUdharEntries() {
+    final raw = _prefs?.getString('kisan_udhar_entries_v1') ?? '';
+    return UdharEntry.decodeList(raw);
+  }
+
+  static Future<void> saveUdharEntry(UdharEntry entry) async {
+    final entries = getUdharEntries();
+    entries.removeWhere((e) => e.id == entry.id);
+    entries.insert(0, entry);
+    await _prefs?.setString('kisan_udhar_entries_v1', UdharEntry.encodeList(entries));
+  }
+
+  static Future<void> deleteUdharEntry(String id) async {
+    final entries = getUdharEntries();
+    entries.removeWhere((e) => e.id == id);
+    await _prefs?.setString('kisan_udhar_entries_v1', UdharEntry.encodeList(entries));
+  }
+
+  static Future<void> toggleUdharSettled(String id) async {
+    final entries = getUdharEntries();
+    final index = entries.indexWhere((e) => e.id == id);
+    if (index != -1) {
+      final old = entries[index];
+      entries[index] = old.copyWith(isSettled: !old.isSettled);
+      await _prefs?.setString('kisan_udhar_entries_v1', UdharEntry.encodeList(entries));
+    }
+  }
+
+  // --- 🐄 Livestock Herd Management (मेरे पशु) ---
+  static List<LivestockAnimal> getLivestockAnimals() {
+    final raw = _prefs?.getString('livestock_animals_v1') ?? '';
+    return LivestockAnimal.decodeList(raw);
+  }
+
+  static Future<void> saveLivestockAnimal(LivestockAnimal animal) async {
+    final animals = getLivestockAnimals();
+    animals.removeWhere((a) => a.id == animal.id);
+    animals.insert(0, animal);
+    await _prefs?.setString('livestock_animals_v1', LivestockAnimal.encodeList(animals));
+  }
+
+  static Future<void> deleteLivestockAnimal(String id) async {
+    final animals = getLivestockAnimals();
+    animals.removeWhere((a) => a.id == id);
+    await _prefs?.setString('livestock_animals_v1', LivestockAnimal.encodeList(animals));
+  }
+
+  // --- 🌾 Dairy Feed & Vet Expenses (डेयरी खर्च) ---
+  static List<DairyExpense> getDairyExpenses() {
+    final raw = _prefs?.getString('dairy_expenses_v1') ?? '';
+    return DairyExpense.decodeList(raw);
+  }
+
+  static Future<void> saveDairyExpense(DairyExpense expense) async {
+    final expenses = getDairyExpenses();
+    expenses.removeWhere((e) => e.id == expense.id);
+    expenses.insert(0, expense);
+    await _prefs?.setString('dairy_expenses_v1', DairyExpense.encodeList(expenses));
+  }
+
+  static Future<void> deleteDairyExpense(String id) async {
+    final expenses = getDairyExpenses();
+    expenses.removeWhere((e) => e.id == id);
+    await _prefs?.setString('dairy_expenses_v1', DairyExpense.encodeList(expenses));
+  }
+
+  // --- 💾 Bahi Khata & Dairy Full Cloud/JSON Backup & Restore ---
+  static String exportAllKhataBackupJson() {
+    final payload = {
+      'backupVersion': '1.0',
+      'exportedAt': DateTime.now().toIso8601String(),
+      'farmKhataEntries': getFarmKhataEntries().map((e) => e.toJson()).toList(),
+      'udharEntries': getUdharEntries().map((e) => e.toJson()).toList(),
+      'dairyRecords': getDairyRecords().map((e) => e.toJson()).toList(),
+      'livestockAnimals': getLivestockAnimals().map((e) => e.toJson()).toList(),
+      'dairyExpenses': getDairyExpenses().map((e) => e.toJson()).toList(),
+    };
+    return json.encode(payload);
+  }
+
+  static Future<bool> importKhataBackupJson(String rawJson) async {
+    try {
+      final Map<String, dynamic> data = json.decode(rawJson);
+      if (data.containsKey('farmKhataEntries')) {
+        final List list = data['farmKhataEntries'];
+        final entries = list.map((e) => FarmKhataEntry.fromJson(e)).toList();
+        await _prefs?.setString('farm_khata_entries_v1', FarmKhataEntry.encodeList(entries));
+      }
+      if (data.containsKey('udharEntries')) {
+        final List list = data['udharEntries'];
+        final entries = list.map((e) => UdharEntry.fromJson(e)).toList();
+        await _prefs?.setString('kisan_udhar_entries_v1', UdharEntry.encodeList(entries));
+      }
+      if (data.containsKey('dairyRecords')) {
+        final List list = data['dairyRecords'];
+        final entries = list.map((e) => DairyRecord.fromJson(e)).toList();
+        await _prefs?.setString('dairy_records_v1', DairyRecord.encodeList(entries));
+      }
+      if (data.containsKey('livestockAnimals')) {
+        final List list = data['livestockAnimals'];
+        final entries = list.map((e) => LivestockAnimal.fromJson(e)).toList();
+        await _prefs?.setString('livestock_animals_v1', LivestockAnimal.encodeList(entries));
+      }
+      if (data.containsKey('dairyExpenses')) {
+        final List list = data['dairyExpenses'];
+        final entries = list.map((e) => DairyExpense.fromJson(e)).toList();
+        await _prefs?.setString('dairy_expenses_v1', DairyExpense.encodeList(entries));
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }
+

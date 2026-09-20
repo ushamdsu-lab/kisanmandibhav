@@ -12,6 +12,7 @@ import 'providers/mandi_provider.dart';
 import 'providers/kheti_provider.dart';
 import 'providers/yojna_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/farm_khata_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,7 @@ void main() async {
   await AdService.init();
 
   // Load crop diseases database & sync from CDN in background
-  CropDiseaseDatabase.loadFromAsset();
+  await CropDiseaseDatabase.loadFromAsset();
   CropDiseaseDatabase.syncFromCdn();
 
   // Set system UI style
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => KhetiProvider()),
         ChangeNotifierProvider(create: (_) => YojnaProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => FarmKhataProvider()),
       ],
       child: const KisanMitraApp(),
     ),

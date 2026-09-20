@@ -7,9 +7,13 @@ import '../screens/mausam/mausam_screen.dart';
 import '../screens/kheti/kheti_screen.dart';
 import '../screens/kheti/crop_detail_screen.dart';
 import '../screens/kheti/calculator_screen.dart';
+import '../screens/kheti/farm_khata_screen.dart';
+import '../screens/kheti/dairy_tracker_screen.dart';
 import '../screens/yojna/yojna_screen.dart';
 import '../screens/yojna/scheme_detail_screen.dart';
 import '../screens/crop_doctor/crop_doctor_screen.dart';
+import '../screens/kheti/crop_calendar_screen.dart';
+import '../screens/kheti/kisan_directory_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -75,6 +79,26 @@ final GoRouter appRouter = GoRouter(
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) => const CropDoctorScreen(),
                 ),
+                GoRoute(
+                  path: 'khata',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const FarmKhataScreen(),
+                ),
+                GoRoute(
+                  path: 'dairy',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const DairyTrackerScreen(),
+                ),
+                GoRoute(
+                  path: 'calendar',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const CropCalendarScreen(),
+                ),
+                GoRoute(
+                  path: 'directory',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const KisanDirectoryScreen(),
+                ),
               ],
             ),
           ],
@@ -111,8 +135,18 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const CropDoctorScreen(),
     ),
     GoRoute(
+      path: '/farm-khata',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const FarmKhataScreen(),
+    ),
+    GoRoute(
+      path: '/dairy-tracker',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const DairyTrackerScreen(),
+    ),
+    GoRoute(
       path: '/schemes',
-      redirect: (_, __) => '/yojna',
+      redirect: (_, _) => '/yojna',
     ),
   ],
 );

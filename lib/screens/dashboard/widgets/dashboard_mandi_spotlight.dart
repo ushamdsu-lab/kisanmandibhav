@@ -1,22 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../providers/mandi_provider.dart';
+import '../../../providers/weather_provider.dart';
 import '../../../utils/district_helper.dart';
 import '../../../utils/commodity_helper.dart';
 import '../../../data/mandi_directory.dart';
 
 class DashboardMandiSpotlight extends StatelessWidget {
   final MandiProvider provider;
+  final WeatherProvider? weatherProvider;
 
-  const DashboardMandiSpotlight({super.key, required this.provider});
+  const DashboardMandiSpotlight({
+    super.key,
+    required this.provider,
+    this.weatherProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final dist = provider.userHomeDistrict.isNotEmpty
-        ? provider.userHomeDistrict
-        : (provider.selectedDistrict.isNotEmpty
-            ? provider.selectedDistrict
-            : MandiDirectory.getDefaultDistrict(provider.selectedState));
+    // 1. Determine active district prioritizing the user's active weather location
+    String activeDistrict = '';
+
+    if (weatherProvider != null) {
+      if (weatherProvider!.detectedDistrict.isNotEmpty) {
+        activeDistrict = MandiDirectory.getStandardDistrictName(
+          provider.selectedState,
+          weatherProvider!.detectedDistrict,
+        );
+      }
+      if (activeDistrict.isEmpty && weatherProvider!.cityName.isNotEmpty) {
+        final cleanCity = weatherProvider!.cityName.contains('(')
+            ? weatherProvider!.cityName.substring(weatherProvider!.cityName.indexOf('(') + 1).replaceAll(')', '').trim()
+            : weatherProvider!.cityName.split(',').first.trim();
+        activeDistrict = MandiDirectory.getStandardDistrictName(provider.selectedState, cleanCity);
+        if (activeDistrict.isEmpty) {
+          activeDistrict = MandiDirectory.getStandardDistrictName(provider.selectedState, weatherProvider!.cityName.split('(').first.trim());
+        }
+      }
+    }
+
+    if (activeDistrict.isEmpty && provider.selectedDistrict.isNotEmpty) {
+      activeDistrict = provider.selectedDistrict;
+    }
+
+    if (activeDistrict.isEmpty && provider.userHomeDistrict.isNotEmpty) {
+      activeDistrict = provider.userHomeDistrict;
+    }
+
+    if (activeDistrict.isEmpty) {
+      activeDistrict = MandiDirectory.getDefaultDistrict(provider.selectedState);
+    }
+
+    final dist = activeDistrict;
     final distHindi = DistrictHelper.getHindiName(dist);
     final districtRates = provider.getRatesForDistrict(dist);
     final topRates = districtRates.isNotEmpty

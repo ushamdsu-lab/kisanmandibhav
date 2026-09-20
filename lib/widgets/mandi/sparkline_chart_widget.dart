@@ -50,8 +50,8 @@ class SparklineChartWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 70,
-            height: 28,
+            width: 60,
+            height: 24,
             child: CustomPaint(
               painter: _MiniSparklinePainter(
                 prices: prices,
@@ -59,11 +59,11 @@ class SparklineChartWidget extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Text(
             '${isUp ? '+' : ''}${diff.toInt()} (${pct.toStringAsFixed(1)}%)',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w800,
               color: trendColor,
             ),
@@ -74,7 +74,7 @@ class SparklineChartWidget extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(16),
@@ -84,24 +84,30 @@ class SparklineChartWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    isUp ? Icons.trending_up_rounded : (isDown ? Icons.trending_down_rounded : Icons.trending_flat_rounded),
-                    color: trendColor,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    '7 दिन का भाव ट्रेंड (Rolling 7D)',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      isUp ? Icons.trending_up_rounded : (isDown ? Icons.trending_down_rounded : Icons.trending_flat_rounded),
+                      color: trendColor,
+                      size: 17,
+                    ),
+                    const SizedBox(width: 5),
+                    const Expanded(
+                      child: Text(
+                        '7 दिन का भाव ट्रेंड',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: trendColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -109,17 +115,19 @@ class SparklineChartWidget extends StatelessWidget {
                 child: Text(
                   '${isUp ? 'तेजी 📈 +' : (isDown ? 'मंदी 📉 ' : 'स्थिर ➖ ')}₹${diff.abs().toInt()} (${pct.abs().toStringAsFixed(1)}%)',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     color: trendColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 70,
+            height: 64,
             width: double.infinity,
             child: CustomPaint(
               painter: _DetailedSparklinePainter(
@@ -131,11 +139,15 @@ class SparklineChartWidget extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: points.map((p) {
-              return Text(
-                p['date'].toString(),
-                style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              return Expanded(
+                child: Text(
+                  p['date'].toString(),
+                  style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                ),
               );
             }).toList(),
           ),

@@ -156,7 +156,7 @@ class YojnaProvider extends ChangeNotifier {
   }
 
   void clearFilters() {
-    _selectedGovtType = 'all';
+    _selectedGovtType = 'recommended';
     _selectedStateFilter = 'all';
     _selectedCategory = 'all';
     _searchQuery = '';

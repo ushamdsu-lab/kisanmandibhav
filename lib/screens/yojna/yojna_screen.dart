@@ -16,7 +16,6 @@ import '../../utils/district_helper.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/inline_ad_card.dart';
-import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
 
 class YojnaScreen extends StatefulWidget {
@@ -412,7 +411,7 @@ class _YojnaScreenState extends State<YojnaScreen> {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const Spacer(),
-                      if (provider.searchQuery.isNotEmpty || provider.selectedGovtType != 'all' || provider.selectedStateFilter != 'all')
+                      if (provider.searchQuery.isNotEmpty || provider.selectedGovtType != 'recommended' || provider.selectedStateFilter != 'all' || provider.selectedCategory != 'all')
                         GestureDetector(
                           onTap: () {
                             _searchController.clear();
@@ -459,14 +458,10 @@ class _YojnaScreenState extends State<YojnaScreen> {
                       final card = _buildSchemeCard(context, scheme, provider, index);
 
                       if (index > 0 && index % 4 == 0) {
-                        final showCustom = AdService.enableCustomSponsorAds && AdService.customAds.isNotEmpty;
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (showCustom)
-                              CustomSponsorCard(ad: AdService.customAds.first)
-                            else
-                              InlineAdCard(enabled: AdService.enableYojnaInlineCards),
+                            InlineAdCard(enabled: AdService.enableYojnaInlineCards),
                             card,
                           ],
                         );
@@ -652,18 +647,22 @@ class _YojnaScreenState extends State<YojnaScreen> {
                   ),
                   const SizedBox(width: 6),
                   // Category Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      scheme.category,
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        scheme.category,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 6),
                   IconButton(
                     icon: Icon(
                       isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,

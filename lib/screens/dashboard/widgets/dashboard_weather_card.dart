@@ -154,12 +154,16 @@ class DashboardWeatherCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            weatherInfo?['label'] ?? 'साफ़ मौसम',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white.withValues(alpha: 0.95),
+                          Flexible(
+                            child: Text(
+                              weatherInfo?['label'] ?? 'साफ़ मौसम',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white.withValues(alpha: 0.95),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -188,22 +192,30 @@ class DashboardWeatherCard extends StatelessWidget {
                 color: Colors.black.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _miniStat('💧 नमी', '$humidity%'),
-                  Container(width: 1, height: 16, color: Colors.white.withValues(alpha: 0.2)),
-                  _miniStat('💨 हवा', '${windSpeed.round()} km/h'),
-                  Container(width: 1, height: 16, color: Colors.white.withValues(alpha: 0.2)),
-                  const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('7 दिन पूर्वानुमान', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.w800)),
-                      SizedBox(width: 2),
-                      Icon(Icons.arrow_forward_ios_rounded, color: Colors.amberAccent, size: 10),
-                    ],
-                  ),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _miniStat('💧 नमी', '$humidity%'),
+                    const SizedBox(width: 10),
+                    Container(width: 1, height: 16, color: Colors.white.withValues(alpha: 0.2)),
+                    const SizedBox(width: 10),
+                    _miniStat('💨 हवा', '${windSpeed.round()} km/h'),
+                    const SizedBox(width: 10),
+                    Container(width: 1, height: 16, color: Colors.white.withValues(alpha: 0.2)),
+                    const SizedBox(width: 10),
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('7 दिन पूर्वानुमान', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.w800)),
+                        SizedBox(width: 2),
+                        Icon(Icons.arrow_forward_ios_rounded, color: Colors.amberAccent, size: 10),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

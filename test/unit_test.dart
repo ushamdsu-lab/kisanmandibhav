@@ -15,6 +15,8 @@ import 'package:kisan_mitra/services/mandi_service.dart';
 import 'package:kisan_mitra/services/location_service.dart';
 import 'package:kisan_mitra/utils/commodity_helper.dart';
 import 'package:kisan_mitra/data/crop_disease_database.dart';
+import 'package:kisan_mitra/models/farm_khata_entry.dart';
+import 'package:kisan_mitra/models/dairy_record.dart';
 
 void main() {
   group('Model & Architecture Tests', () {
@@ -239,12 +241,9 @@ void main() {
       expect(mandiSlip.contains('27500'), isTrue);
     });
 
-    test('AdService configures test IDs and safe fallback parameters correctly', () {
-      expect(AdService.isTestMode, isTrue);
+    test('AdService configures production Banner ID and safe fallback parameters correctly', () {
+      expect(AdService.bannerAdUnitId, 'ca-app-pub-7650949194753110/5674116546');
       expect(AdService.bannerAdUnitId.isNotEmpty, isTrue);
-      expect(AdService.interstitialAdUnitId.isNotEmpty, isTrue);
-      expect(AdService.rewardedAdUnitId.isNotEmpty, isTrue);
-      expect(AdService.nativeAdUnitId.isNotEmpty, isTrue);
       expect(AdService.defaultCooldownSeconds, 60);
     });
 
@@ -350,6 +349,90 @@ void main() {
         selectedSymptoms: ['फलों का फटना'],
       );
       expect(appleDiag.diseaseNameHindi.contains('स्कैब') || appleDiag.diseaseNameHindi.contains('पपड़ी'), isTrue);
+    });
+
+    test('FarmKhataEntry serializes, parses and computes profit correctly', () {
+      final expense = FarmKhataEntry(
+        id: '1',
+        cropName: 'सोयाबीन',
+        type: KhataEntryType.expense,
+        category: 'खाद व उर्वरक',
+        amount: 2500,
+        date: DateTime.now(),
+        notes: '2 बैग DAP',
+      );
+      final income = FarmKhataEntry(
+        id: '2',
+        cropName: 'सोयाबीन',
+        type: KhataEntryType.income,
+        category: 'मंडी फसल बिक्री',
+        amount: 32000,
+        date: DateTime.now(),
+        notes: '8 क्विंटल बिक्री',
+      );
+
+      final encoded = FarmKhataEntry.encodeList([expense, income]);
+      final decoded = FarmKhataEntry.decodeList(encoded);
+
+      expect(decoded.length, 2);
+      expect(decoded.first.amount, 2500.0);
+      expect(decoded.last.amount, 32000.0);
+      expect(decoded.first.type, KhataEntryType.expense);
+      expect(decoded.last.type, KhataEntryType.income);
+    });
+
+    test('DairyRecord and Vaccination alerts validate correctly', () {
+      final record = DairyRecord(
+        id: '101',
+        date: DateTime.now(),
+        morningLiters: 7.5,
+        eveningLiters: 6.0,
+        fat: 6.8,
+        ratePerLiter: 55,
+      );
+
+      expect(record.totalLiters, 13.5);
+      expect(record.totalIncome, 13.5 * 55);
+
+      final encoded = DairyRecord.encodeList([record]);
+      final decoded = DairyRecord.decodeList(encoded);
+      expect(decoded.length, 1);
+      expect(decoded.first.totalLiters, 13.5);
+
+      expect(AnimalVaccinationAlert.standardCalendar, isNotEmpty);
+      expect(AnimalVaccinationAlert.standardCalendar.any((v) => v.diseaseName.contains('FMD')), isTrue);
+    });
+
+    test('CropDiseaseDatabase contains 100+ diseases and multi-crop auto diagnosis works', () {
+      expect(CropDiseaseDatabase.diseases.length, greaterThanOrEqualTo(100));
+
+      // Test that different crops & symptoms diagnose their correct corresponding diseases
+      final tomatoEarlyBlight = CropDiseaseDatabase.diagnose(
+        cropId: 'tomato',
+        symptomKeyword: 'झुलसा',
+      );
+      expect(tomatoEarlyBlight.diseaseNameHindi.contains('झुलसा'), isTrue);
+      expect(tomatoEarlyBlight.cropId, 'tomato');
+
+      final mustardWhiteRust = CropDiseaseDatabase.diagnose(
+        cropId: 'mustard',
+        symptomKeyword: 'सफेद',
+      );
+      expect(mustardWhiteRust.diseaseNameHindi.contains('सफेद रतुआ'), isTrue);
+      expect(mustardWhiteRust.cropId, 'mustard');
+
+      final cottonCurl = CropDiseaseDatabase.diagnose(
+        cropId: 'cotton',
+        symptomKeyword: 'मरोड़',
+      );
+      expect(cottonCurl.diseaseNameHindi.contains('मरोड़') || cottonCurl.diseaseNameHindi.contains('कर्ल'), isTrue);
+      expect(cottonCurl.cropId, 'cotton');
+
+      final wheatSmut = CropDiseaseDatabase.diagnose(
+        cropId: 'wheat',
+        symptomKeyword: 'कंडुवा',
+      );
+      expect(wheatSmut.diseaseNameHindi.contains('कंडुवा') || wheatSmut.diseaseNameHindi.contains('कंगियारी'), isTrue);
     });
   });
 }

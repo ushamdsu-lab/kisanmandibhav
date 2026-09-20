@@ -19,7 +19,6 @@ import 'widgets/mandi_price_comparison_modal.dart';
 import 'widgets/mandi_price_alert_modal.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/inline_ad_card.dart';
-import '../../widgets/ads/custom_sponsor_card.dart';
 import '../../services/ad_service.dart';
 import '../../services/tts_service.dart';
 
@@ -33,25 +32,42 @@ class MandiScreen extends StatefulWidget {
 class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _searchController = TextEditingController();
-  bool _showAllDistrictRates = false;
+
+  String _resolveActiveDistrict(WeatherProvider weatherProv, MandiProvider mandiProv) {
+    if (weatherProv.detectedDistrict.isNotEmpty) {
+      final std = MandiDirectory.getStandardDistrictName(mandiProv.selectedState, weatherProv.detectedDistrict);
+      if (std.isNotEmpty) return std;
+      return weatherProv.detectedDistrict;
+    }
+    if (weatherProv.cityName.isNotEmpty) {
+      final cleanCity = weatherProv.cityName.contains('(')
+          ? weatherProv.cityName.substring(weatherProv.cityName.indexOf('(') + 1).replaceAll(')', '').trim()
+          : weatherProv.cityName.split(',').first.trim();
+      final std = MandiDirectory.getStandardDistrictName(mandiProv.selectedState, cleanCity);
+      if (std.isNotEmpty) return std;
+    }
+    if (mandiProv.userHomeDistrict.isNotEmpty) {
+      return mandiProv.userHomeDistrict;
+    }
+    return MandiDirectory.getDefaultDistrict(mandiProv.selectedState);
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    // Default to Tab 1 ("ज़िला व मंडियां") so that the user's active location (e.g. Kota) is shown immediately
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         final provider = context.read<MandiProvider>();
-        setState(() {
-          _showAllDistrictRates = false;
-        });
-        if (_tabController.index == 1) {
+        final weatherProv = context.read<WeatherProvider>();
+        if (_tabController.index == 0) {
+          // Tab 0: सभी मंडियां (All Mandis of the state)
           provider.viewAllMandis();
-        } else if (_tabController.index == 0) {
-          final targetDist = provider.userHomeDistrict.isNotEmpty
-              ? provider.userHomeDistrict
-              : MandiDirectory.getDefaultDistrict(provider.selectedState);
+        } else if (_tabController.index == 1) {
+          // Tab 1: जिले की मंडियां (District Mandis)
+          final targetDist = _resolveActiveDistrict(weatherProv, provider);
           provider.selectDistrict(targetDist);
         }
       }
@@ -59,17 +75,23 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<MandiProvider>();
-      if (_tabController.index == 0 && provider.selectedDistrict.isEmpty) {
-        final targetDist = provider.userHomeDistrict.isNotEmpty
-            ? provider.userHomeDistrict
-            : MandiDirectory.getDefaultDistrict(provider.selectedState);
-        provider.selectDistrict(targetDist);
+      final weatherProv = context.read<WeatherProvider>();
+      final activeDist = _resolveActiveDistrict(weatherProv, provider);
+
+      // On startup, ensure active district (Kota) is selected for Tab 1
+      if (_tabController.index == 1) {
+        if (provider.selectedDistrict != activeDist) {
+          provider.selectDistrict(activeDist);
+        }
+      } else if (provider.selectedDistrict.isNotEmpty && _tabController.index != 1) {
+        _tabController.index = 1;
       }
+
       if (provider.rates.isEmpty && !provider.isLoading) {
         provider.fetchRates(
           state: provider.selectedState,
-          district: provider.selectedDistrict,
-          market: provider.selectedMarket,
+          district: provider.selectedDistrict.isNotEmpty ? provider.selectedDistrict : activeDist,
+          market: provider.selectedMarket.isNotEmpty ? provider.selectedMarket : null,
         );
       }
     });
@@ -90,12 +112,6 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
     return Scaffold(
       body: Consumer<MandiProvider>(
         builder: (context, provider, _) {
-          final isDistrictMandiListView = _tabController.index == 0 &&
-              provider.selectedDistrict.isNotEmpty &&
-              provider.selectedMarket.isEmpty &&
-              !_showAllDistrictRates &&
-              provider.availableMarkets.isNotEmpty;
-
           return RefreshIndicator(
             onRefresh: () => provider.fetchRates(state: provider.selectedState),
             child: CustomScrollView(
@@ -130,6 +146,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                       ),
                       child: TabBar(
                         controller: _tabController,
+                        dividerColor: Colors.transparent,
                         indicator: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -152,9 +169,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.location_on_rounded, size: 16),
+                                const Icon(Icons.account_balance_rounded, size: 16),
                                 const SizedBox(width: 6),
-                                Text(localeProv.t('tab_district_mandis')),
+                                Text(localeProv.t('tab_all_mandis')),
                               ],
                             ),
                           ),
@@ -163,9 +180,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.account_balance_rounded, size: 16),
+                                const Icon(Icons.location_on_rounded, size: 16),
                                 const SizedBox(width: 6),
-                                Text(localeProv.t('tab_all_mandis')),
+                                Text(localeProv.t('tab_district_mandis')),
                               ],
                             ),
                           ),
@@ -241,21 +258,18 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   child: _buildLocationBar(context, provider),
                 ),
 
-                if (isDistrictMandiListView) ...[
-                  // 1. District Mandis Selection View (First screen when district is active)
-                  ..._buildDistrictMandisSlivers(context, provider),
-                ] else ...[
-                  // 2. Mandi Crop Prices Board (When a mandi is clicked or viewing all rates)
-                  if (provider.selectedMarket.isNotEmpty || _showAllDistrictRates)
-                    SliverToBoxAdapter(
-                      child: _buildSelectedMandiHeader(context, provider),
-                    ),
+                // Selected Market Header (if a specific market is clicked from strip)
+                if (provider.selectedMarket.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildSelectedMandiHeader(context, provider),
+                  ),
 
-                  // District Mandis Quick Switcher Strip
-                  if (provider.availableMarkets.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: _buildMandiSelector(context, provider),
-                    ),
+                // District Mandis Quick Switcher Strip
+                if (provider.availableMarkets.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildMandiSelector(context, provider),
+                  ),
+
 
                   // Offline Notice Bar (if viewing cached data)
                   if (provider.isOffline)
@@ -305,45 +319,40 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     ),
                   ),
 
-                  // Quick Popular Crops Filter
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 38,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: FilterChip(
-                              label: Text(localeProv.t('all_filter'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                              selected: provider.selectedCropFilter.isEmpty,
-                              onSelected: (_) => provider.selectCropFilter(''),
-                            ),
-                          ),
-                          ...(provider.selectedCategory == 'vegetables'
-                                  ? CommodityHelper.popularVegetables
-                                  : CommodityHelper.popularCrops)
-                              .map((c) {
-                            final isSelected = provider.selectedCropFilter == c['key'];
-                            final chipLabel = isHi
-                                ? c['name']!
-                                : (CommodityHelper.getEnglishName(c['key']!).isNotEmpty
-                                    ? CommodityHelper.getEnglishName(c['key']!)
-                                    : c['name']!);
-                            return Padding(
+                  // Quick Available Crops Filter (Shows ONLY crops that ACTUALLY exist in this Mandi!)
+                  if (provider.availableCropsInCurrentView.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 38,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          children: [
+                            Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: FilterChip(
-                                label: Text(chipLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                                selected: isSelected,
-                                onSelected: (_) => provider.selectCropFilter(c['key']!),
+                                label: Text(localeProv.t('all_filter'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                selected: provider.selectedCropFilter.isEmpty,
+                                onSelected: (_) => provider.selectCropFilter(''),
                               ),
-                            );
-                          }),
-                        ],
+                            ),
+                            ...provider.availableCropsInCurrentView.map((c) {
+                              final isSelected = provider.selectedCropFilter.toLowerCase() == c['key']!.toLowerCase() ||
+                                  CommodityHelper.getHindiName(provider.selectedCropFilter).toLowerCase() == c['name']!.toLowerCase();
+                              final chipLabel = isHi ? c['name']! : c['english']!;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: FilterChip(
+                                  label: Text(chipLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                  selected: isSelected,
+                                  onSelected: (_) => provider.selectCropFilter(c['key']!),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
                   // Search Bar
                   SliverToBoxAdapter(
@@ -370,6 +379,84 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                       ),
                     ),
                   ),
+
+                  // Active Crop/Search Banner (Clear explanation & 1-tap view all without losing Mandi)
+                  if (provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Builder(
+                        builder: (context) {
+                          String activeFilterName = '';
+                          if (provider.selectedCropFilter.isNotEmpty) {
+                            activeFilterName = isHi
+                                ? CommodityHelper.getHindiName(provider.selectedCropFilter)
+                                : (CommodityHelper.getEnglishName(provider.selectedCropFilter).isNotEmpty
+                                    ? CommodityHelper.getEnglishName(provider.selectedCropFilter)
+                                    : provider.selectedCropFilter);
+                          } else if (provider.searchQuery.isNotEmpty) {
+                            activeFilterName = '"${provider.searchQuery}"';
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFA5D6A7), width: 1.2),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.filter_alt_rounded, size: 16, color: Color(0xFF2E7D32)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: isHi ? 'दिखा रहे हैं: ' : 'Showing: ',
+                                          style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32)),
+                                        ),
+                                        TextSpan(
+                                          text: activeFilterName,
+                                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
+                                        ),
+                                      ],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    _searchController.clear();
+                                    provider.clearCropAndSearchFilter();
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E7D32),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.refresh_rounded, size: 13, color: Colors.white),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          isHi ? 'सभी फसलें देखें' : 'View All Crops',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
 
                   // Total Count, Voice Bulletin Button & Active Filter Indicator
                   SliverToBoxAdapter(
@@ -414,15 +501,26 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                                 },
                               ),
                             ),
-                          if (provider.searchQuery.isNotEmpty || provider.selectedCropFilter.isNotEmpty || (_tabController.index == 1 && (provider.selectedDistrict.isNotEmpty || provider.selectedMarket.isNotEmpty)))
-                            GestureDetector(
+                          if (provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty)
+                            InkWell(
                               onTap: () {
                                 _searchController.clear();
-                                provider.clearFilters();
+                                provider.clearCropAndSearchFilter();
                               },
-                              child: Text(
-                                isHi ? 'फ़िल्टर हटाएं ✕' : 'Clear Filters ✕',
-                                style: const TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.bold),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.refresh_rounded, size: 14, color: Color(0xFF2E7D32)),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      isHi ? 'सभी भाव देखें' : 'All Crops',
+                                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF2E7D32), fontWeight: FontWeight.w800),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                         ],
@@ -447,84 +545,153 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     )
                   else if (provider.rates.isEmpty)
                     SliverToBoxAdapter(
-                      child: Container(
-                        margin: const EdgeInsets.all(20),
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inventory_2_outlined, size: 54, color: AppColors.mandiAccent.withValues(alpha: 0.8)),
-                            const SizedBox(height: 12),
-                            Text(
-                              provider.selectedMarket.isNotEmpty
-                                  ? '${provider.selectedMarket} में आज कोई नई आवक दर्ज नहीं हुई'
-                                  : (provider.selectedDistrict.isNotEmpty
-                                      ? '${provider.selectedDistrict} जिले में आज कोई आवक दर्ज नहीं हुई'
-                                      : '${DistrictHelper.getHindiStateName(provider.selectedState)} राज्य में आज कोई मंडी भाव दर्ज नहीं हुआ'),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      child: Builder(
+                        builder: (context) {
+                          final isCropOrSearchEmpty = provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty;
+                          String emptyFilterName = '';
+                          if (provider.selectedCropFilter.isNotEmpty) {
+                            emptyFilterName = isHi
+                                ? CommodityHelper.getHindiName(provider.selectedCropFilter)
+                                : (CommodityHelper.getEnglishName(provider.selectedCropFilter).isNotEmpty
+                                    ? CommodityHelper.getEnglishName(provider.selectedCropFilter)
+                                    : provider.selectedCropFilter);
+                          } else if (provider.searchQuery.isNotEmpty) {
+                            emptyFilterName = '"${provider.searchQuery}"';
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardTheme.color,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'सरकारी पोर्टल (Agmarknet) पर आज की नीलामी/आवक दर्ज होते ही यहाँ ताज़ा भाव दिखने लगेंगे।',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
-                            ),
-                            const SizedBox(height: 20),
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 10,
-                              runSpacing: 10,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.mandiAccent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-                                  ),
-                                  icon: const Icon(Icons.storefront_rounded, size: 18),
-                                  label: const Text('सभी प्रमुख मंडियों के भाव देखें', style: TextStyle(fontWeight: FontWeight.w800)),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    provider.clearFilters();
-                                  },
+                                Icon(
+                                  isCropOrSearchEmpty ? Icons.search_off_rounded : Icons.inventory_2_outlined,
+                                  size: 54,
+                                  color: isCropOrSearchEmpty ? Colors.orange.shade700 : AppColors.mandiAccent.withValues(alpha: 0.8),
                                 ),
-                                OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    side: const BorderSide(color: AppColors.primary, width: 1.2),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                                  ),
-                                  icon: const Icon(Icons.map_rounded, size: 18),
-                                  label: const Text('दूसरा राज्य / ज़िला चुनें', style: TextStyle(fontWeight: FontWeight.w800)),
-                                  onPressed: () {
-                                    MandiStatePickerModal.show(context, provider);
-                                  },
+                                const SizedBox(height: 12),
+                                Text(
+                                  isCropOrSearchEmpty
+                                      ? (isHi
+                                          ? '${provider.selectedMarket.isNotEmpty ? provider.selectedMarket : (provider.selectedDistrict.isNotEmpty ? provider.selectedDistrict : "मंडी")} में आज $emptyFilterName का भाव दर्ज नहीं हुआ'
+                                          : 'No rates for $emptyFilterName today in ${provider.selectedMarket.isNotEmpty ? provider.selectedMarket : provider.selectedDistrict}')
+                                      : (provider.selectedMarket.isNotEmpty
+                                          ? '${provider.selectedMarket} में आज कोई नई आवक दर्ज नहीं हुई'
+                                          : (provider.selectedDistrict.isNotEmpty
+                                              ? '${provider.selectedDistrict} जिले में आज कोई आवक दर्ज नहीं हुई'
+                                              : '${DistrictHelper.getHindiStateName(provider.selectedState)} राज्य में आज कोई मंडी भाव दर्ज नहीं हुआ')),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                                 ),
-                                OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.grey.shade700,
-                                    side: BorderSide(color: Colors.grey.shade400, width: 1.0),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                                  ),
-                                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                                  label: const Text('ताज़ा करें', style: TextStyle(fontWeight: FontWeight.w700)),
-                                  onPressed: () {
-                                    provider.fetchRates(state: provider.selectedState);
-                                  },
+                                const SizedBox(height: 8),
+                                Text(
+                                  isCropOrSearchEmpty
+                                      ? (isHi
+                                          ? 'आज इस मंडी में इस फसल की नीलामी/आवक दर्ज नहीं हुई है। इस मंडी की अन्य फसलों के भाव देखने के लिए नीचे बटन दबाएं:'
+                                          : 'No trading recorded for this crop today. Tap below to see all other crop rates in this mandi:')
+                                      : (isHi
+                                          ? 'सरकारी पोर्टल (Agmarknet) पर आज की नीलामी/आवक दर्ज होते ही यहाँ ताज़ा भाव दिखने लगेंगे।'
+                                          : 'Fresh arrivals will appear once updated on Agmarknet.'),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                                ),
+                                const SizedBox(height: 20),
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: [
+                                    if (isCropOrSearchEmpty) ...[
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF1B5E20),
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                                        ),
+                                        icon: const Icon(Icons.grain_rounded, size: 18),
+                                        label: Text(
+                                          isHi ? '🌾 मंडी की अन्य सभी फसलें देखें' : '🌾 View All Other Crops In Mandi',
+                                          style: const TextStyle(fontWeight: FontWeight.w800),
+                                        ),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          provider.clearCropAndSearchFilter();
+                                        },
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: AppColors.mandiAccent,
+                                          side: const BorderSide(color: AppColors.mandiAccent, width: 1.2),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                                        ),
+                                        icon: const Icon(Icons.storefront_rounded, size: 18),
+                                        label: Text(
+                                          isHi ? 'अन्य मंडियों में खोजें' : 'Search Across All Mandis',
+                                          style: const TextStyle(fontWeight: FontWeight.w800),
+                                        ),
+                                        onPressed: () {
+                                          provider.viewAllMandis();
+                                        },
+                                      ),
+                                    ] else ...[
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.mandiAccent,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                                        ),
+                                        icon: const Icon(Icons.storefront_rounded, size: 18),
+                                        label: const Text('सभी प्रमुख मंडियों के भाव देखें', style: TextStyle(fontWeight: FontWeight.w800)),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          provider.clearFilters();
+                                          if (_tabController.index != 0) {
+                                            _tabController.animateTo(0);
+                                          }
+                                        },
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: AppColors.primary,
+                                          side: const BorderSide(color: AppColors.primary, width: 1.2),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                                        ),
+                                        icon: const Icon(Icons.map_rounded, size: 18),
+                                        label: const Text('दूसरा राज्य / ज़िला चुनें', style: TextStyle(fontWeight: FontWeight.w800)),
+                                        onPressed: () {
+                                          MandiStatePickerModal.show(context, provider);
+                                        },
+                                      ),
+                                      OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.grey.shade700,
+                                          side: BorderSide(color: Colors.grey.shade400, width: 1.0),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                                        ),
+                                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                                        label: const Text('ताज़ा करें', style: TextStyle(fontWeight: FontWeight.w700)),
+                                        onPressed: () {
+                                          provider.fetchRates(state: provider.selectedState);
+                                        },
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     )
                   else
@@ -547,16 +714,12 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             },
                           );
 
-                          // Show custom sponsor ad or Google AdMob inline ad after every 5 items
+                          // Show Google AdMob inline ad after every 5 items
                           if (index > 0 && index % 5 == 0) {
-                            final showCustom = AdService.enableCustomSponsorAds && AdService.customAds.isNotEmpty;
                             return Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (showCustom)
-                                  CustomSponsorCard(ad: AdService.customAds.first)
-                                else
-                                  InlineAdCard(enabled: AdService.enableMandiInlineCards),
+                                InlineAdCard(enabled: AdService.enableMandiInlineCards),
                                 card,
                               ],
                             );
@@ -567,7 +730,6 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                         childCount: provider.rates.length,
                       ),
                     ),
-                ],
 
                 SliverToBoxAdapter(
                   child: Padding(
@@ -709,264 +871,6 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
     );
   }
 
-  List<Widget> _buildDistrictMandisSlivers(BuildContext context, MandiProvider provider) {
-    final localeProv = context.watch<LocaleProvider>();
-    final isHi = localeProv.isHindi;
-    final distName = isHi ? DistrictHelper.getHindiName(provider.selectedDistrict) : provider.selectedDistrict;
-    final markets = provider.availableMarkets;
-
-    return [
-      // District Mandis Header Banner
-      SliverToBoxAdapter(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFE65100).withValues(alpha: 0.12),
-                AppColors.primary.withValues(alpha: 0.08),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE65100).withValues(alpha: 0.25)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE65100),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isHi ? '📍 $distName जिले की प्रमुख मंडियां (${markets.length})' : '📍 $distName District Markets (${markets.length})',
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      isHi ? 'फसलों के ताज़ा भाव देखने के लिए अपनी मंडी चुनें:' : 'Select your APMC market to view live crop prices:',
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      // List of Mandis Cards
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final market = markets[index];
-            final isNearest = provider.userHomeMarket.isNotEmpty &&
-                (provider.userHomeMarket.toLowerCase() == market.toLowerCase() ||
-                    market.toLowerCase().contains(provider.userHomeMarket.toLowerCase()));
-            final count = provider.getRatesCountForMarket(market);
-            final sampleCrops = provider.getSampleCropsForMarket(market);
-
-            return Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isNearest
-                      ? const Color(0xFFE65100).withValues(alpha: 0.6)
-                      : Colors.grey.withValues(alpha: 0.18),
-                  width: isNearest ? 1.5 : 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isNearest
-                        ? const Color(0xFFE65100).withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.03),
-                    blurRadius: isNearest ? 10 : 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    provider.selectMarket(market);
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (isNearest)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.amber.shade800, width: 0.8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.my_location_rounded, size: 12, color: Colors.brown.shade800),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isHi ? '📍 आपकी सबसे नजदीकी मंडी (Nearest APMC)' : '📍 Your Nearest APMC Market',
-                                  style: TextStyle(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.brown.shade900,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isNearest
-                                    ? const Color(0xFFE65100)
-                                    : const Color(0xFFE65100).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                Icons.storefront_rounded,
-                                color: isNearest ? Colors.white : const Color(0xFFE65100),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    market,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.green,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        count > 0
-                                            ? (isHi ? '$count फसलों के ताज़ा भाव उपलब्ध' : '$count crop rates live')
-                                            : (isHi ? 'आज की नीलामी भाव' : 'Live Auction Rates'),
-                                        style: TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: count > 0 ? Colors.green.shade700 : AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1B5E20),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isHi ? 'भाव देखें' : 'View Rates',
-                                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (sampleCrops.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            children: sampleCrops.map((crop) {
-                              final cropLabel = isHi ? crop : (CommodityHelper.getEnglishName(crop).isNotEmpty ? CommodityHelper.getEnglishName(crop) : crop);
-                              return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                                ),
-                                child: Text(
-                                  cropLabel,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          childCount: markets.length,
-        ),
-      ),
-
-      // View All District Crops Button
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
-            ),
-            icon: const Icon(Icons.grid_view_rounded, size: 18, color: AppColors.primary),
-            label: Text(
-              isHi ? '📊 $distName जिले के सभी भाव एक साथ देखें' : '📊 View All $distName Rates Together',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primary),
-            ),
-            onPressed: () {
-              setState(() {
-                _showAllDistrictRates = true;
-              });
-            },
-          ),
-        ),
-      ),
-    ];
-  }
 
   Widget _buildSelectedMandiHeader(BuildContext context, MandiProvider provider) {
     final localeProv = context.watch<LocaleProvider>();
@@ -988,9 +892,6 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
         children: [
           InkWell(
             onTap: () {
-              setState(() {
-                _showAllDistrictRates = false;
-              });
               provider.selectMarket('');
             },
             borderRadius: BorderRadius.circular(8),
