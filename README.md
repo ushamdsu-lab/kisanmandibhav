@@ -87,5 +87,11 @@ flutter build web --release
 
 ---
 
+## 📚 महत्वपूर्ण तकनीकी दस्तावेज़ (Key Technical Docs)
+- **[🤖 InsForge AI Crop Chatbot & Llama 3.2 Vision Spec](docs/INSFORGE_CROP_CHATBOT_SPEC.md)**: Full architecture guide for InsForge (Project ID: `5dc72ac3-ba67-4c4a-906e-c6f439abcd43`), Llama 3.2 Vision Model Gateway, Postgres `crop_diseases` schema, in-memory compression (<300KB), zero-storage cleanup, and 5-min caching.
+- **[📱 Google Play Store Master Record](PLAY_STORE_MASTER_RECORD.md)**: Keystore credentials, AdMob production IDs, release bundle records, and Play Store policies.
+
+---
+
 ## 📄 लाइसेंस (License)
 यह प्रोजेक्ट ओपन-सोर्स है और किसानों के कल्याण हेतु समर्पित है।
