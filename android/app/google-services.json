@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "787097310112",
+    "project_id": "kisan-mandi-bhav-10973",
+    "storage_bucket": "kisan-mandi-bhav-10973.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787097310112:android:832cbc9b437af468640ac5",
+        "android_client_info": {
+          "package_name": "com.kisanmitra.kisan_mitra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeR6WcdcfVKCozEWTnwXxlHz9jEdjeAEg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,6 +25,9 @@ dependencies:
   audioplayers: ^6.1.1
   image_picker: ^1.1.2
   image: ^4.3.0
+  firebase_core: ^4.15.0
+  firebase_analytics: ^12.6.0
+  firebase_crashlytics: ^5.4.0
 
 dev_dependencies:
   flutter_test:
