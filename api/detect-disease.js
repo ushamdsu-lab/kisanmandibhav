@@ -196,8 +196,13 @@ Respond ONLY with valid JSON in this exact structure:
   "visual_symptoms": "काले-भूरे गोल छल्ले और निचली पत्तियों का पीला पड़ना"
 }`;
 
+        // 3.5-second strict timeout so farmer never waits or hangs
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
         const aiResponse = await fetch(NVIDIA_INVOKE_URL, {
           method: 'POST',
+          signal: controller.signal,
           headers: {
             'Authorization': `Bearer ${NVIDIA_API_KEY}`,
             'Content-Type': 'application/json',
@@ -225,6 +230,8 @@ Respond ONLY with valid JSON in this exact structure:
           })
         });
 
+        clearTimeout(timeoutId);
+
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           const content = aiData?.choices?.[0]?.message?.content || '';
@@ -235,10 +242,11 @@ Respond ONLY with valid JSON in this exact structure:
             aiDiagnosis = JSON.parse(jsonMatch[0]);
           }
         } else {
-          console.warn('[Disease API] AI Call returned status:', aiResponse.status);
+          // If status is 429 (Rate Limit) or 503 (Busy), silently fallback to local engine
+          console.warn(`[Disease API] AI service returned ${aiResponse.status} (Rate limit/busy). Activating zero-delay local fallback.`);
         }
       } catch (err) {
-        console.warn('[Disease API] Llama Vision invocation error, falling back to database matcher:', err.message);
+        console.warn('[Disease API] AI call bypassed/timed out, serving instantly from local Indian database:', err.message);
       }
     }
 
