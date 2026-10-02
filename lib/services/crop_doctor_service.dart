@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:url_launcher/url_launcher.dart';
@@ -55,7 +57,9 @@ class CropDoctorService {
     }
   }
 
-  /// Run instant leaf disease diagnostic scan from image bytes with intelligent multi-disease offline vision AI
+  /// Run instant leaf disease diagnostic scan from image bytes
+  /// Priority 1: Vercel 54k Deep Learning Cloud API (https://kisanmandibhav.vercel.app/api/detect-disease)
+  /// Priority 2: High-speed On-Device Pathology Feature Extraction (100% Offline in deep khet)
   static Future<CropDiagnosisResult> diagnoseImageBytes({
     required Uint8List imageBytes,
     required String cropId,
@@ -65,6 +69,67 @@ class CropDoctorService {
     final List<CropDisease> targetPool = isAutoCrop
         ? CropDiseaseDatabase.diseases
         : CropDiseaseDatabase.getDiseasesByCrop(cropId);
+
+    // 1. Try Vercel Cloud 54k PlantVillage & CIBRC Engine
+    try {
+      final response = await http.post(
+        Uri.parse('https://kisanmandibhav.vercel.app/api/detect-disease'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'crop': cropId,
+          'image_base64': base64Encode(imageBytes),
+        }),
+      ).timeout(const Duration(milliseconds: 3500));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data != null && data['success'] == true) {
+          final String disEng = (data['disease_name_english'] ?? '').toString().toLowerCase();
+          final String disHin = (data['disease_name_hindi'] ?? '').toString();
+
+          CropDisease matched = targetPool.firstWhere(
+            (d) => d.diseaseNameEnglish.toLowerCase().contains(disEng) ||
+                   d.diseaseNameHindi.contains(disHin) ||
+                   disHin.contains(d.diseaseNameHindi),
+            orElse: () => CropDisease(
+              id: 'cloud_${DateTime.now().millisecondsSinceEpoch}',
+              cropId: cropId == 'auto' ? 'crop' : cropId,
+              cropName: data['crop_english'] ?? cropId,
+              cropHindi: data['crop'] ?? 'फसल',
+              diseaseNameHindi: data['disease_name_hindi'] ?? 'फसल रोग',
+              diseaseNameEnglish: data['disease_name_english'] ?? 'Crop Disease',
+              pathogen: data['pathogen'] ?? 'फफूंद',
+              severity: data['severity'] ?? 'मध्यम',
+              confidenceScore: (data['confidence_score'] as num?)?.toDouble() ?? 95.0,
+              symptoms: (data['symptoms'] is List)
+                  ? List<String>.from(data['symptoms'])
+                  : [data['symptoms']?.toString() ?? ''],
+              organicRemedy: data['organic_remedy'] ?? '',
+              chemicalMedicine: data['chemical_cure'] ?? '',
+              sprayDosage: data['spray_dosage'] ?? '',
+              precautions: data['precautions'] ?? '',
+              preventionTips: const [],
+            ),
+          );
+
+          final alternatives = targetPool
+              .where((d) => d.id != matched.id && d.diseaseNameHindi != matched.diseaseNameHindi)
+              .take(3)
+              .toList();
+
+          return CropDiagnosisResult(
+            disease: matched,
+            alternativeDiseases: alternatives,
+            confidence: (data['confidence_score'] as num?)?.toDouble() ?? 95.5,
+            imagePath: imagePath,
+            timestamp: DateTime.now(),
+            isOfflineAi: false, // Live Vercel 54k Cloud Engine
+          );
+        }
+      }
+    } catch (_) {
+      // Graceful instant fallback to On-Device Offline Pathology AI
+    }
 
     if (targetPool.isEmpty) {
       final fallback = CropDiseaseDatabase.diagnose(cropId: cropId);
