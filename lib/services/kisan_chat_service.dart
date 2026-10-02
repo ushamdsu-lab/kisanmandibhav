@@ -195,8 +195,10 @@ class KisanChatService {
         query.contains('बिक') ||
         matchedMarket != null;
 
-    if (isMandiQuery || matchedMarket != null) {
-      final nationalPool = await _getMasterRates(liveRates);
+    final nationalPool = await _getMasterRates(liveRates);
+
+    // 4. Check for Mandi Bhav Intent (Triggers on market, 'भाव' keyword, or crop name)
+    if (isMandiQuery || matchedMarket != null || matchedCropKey != null) {
       final mandiResult = _handleMandiQuery(
         query: query,
         matchedMarket: matchedMarket,
