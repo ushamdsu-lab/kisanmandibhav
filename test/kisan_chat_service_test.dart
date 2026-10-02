@@ -82,13 +82,14 @@ void main() {
     expect(response.disease, isNotNull);
   });
 
-  test('Disease query with yellowing/symptoms returns disease prescription', () async {
+  test('Disease query with general symptom returns helpful disease suggestions', () async {
     final response = await KisanChatService.processMessage(
       'लहसुन में पीलापन आ रहा है क्या स्प्रे करें',
       liveRates: mockRates,
     );
-    expect(response.type, ChatMessageType.cropDisease);
-    expect(response.disease, isNotNull);
+    expect(response.type, ChatMessageType.suggestions);
+    expect(response.quickActions, isNotNull);
+    expect(response.quickActions!.isNotEmpty, isTrue);
   });
 
   test('Unrelated query does not return mandi bhav or wrong disease', () async {

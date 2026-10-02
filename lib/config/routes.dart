@@ -138,7 +138,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/chat',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const KisanChatScreen(),
+      builder: (context, state) => KisanChatScreen(
+        initialQuery: state.extra is String ? state.extra as String : null,
+      ),
     ),
     GoRoute(
       path: '/farm-khata',
