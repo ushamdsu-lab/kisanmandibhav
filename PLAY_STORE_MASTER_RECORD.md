@@ -14,7 +14,7 @@
 1. **AdMob Integration & Native Ad Support**:
    - AdMob App ID: `ca-app-pub-7650949194753110~4751917111`
    - Banner Ad Unit: `ca-app-pub-7650949194753110/5674116546`
-   - Native Ad Unit (`native app bich aala`): `ca-app-pub-7650949194753110/5373252690`
+   - Native Ad Unit (`bich walo ads`): `ca-app-pub-7650949194753110/5522618474`
    - Integrated `NativeTemplateStyle(templateType: TemplateType.small)` in `InlineAdCard` with seamless `BannerAd` fallback.
    - `AdService.isTestMode = false` configured for live production revenue.
 2. **Cell-Tower + GPS Hybrid Location Detection**:

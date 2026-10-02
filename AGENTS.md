@@ -30,7 +30,7 @@
    - AdMob IDs:
      - App ID: `ca-app-pub-7650949194753110~4751917111`
      - Banner Ad: `ca-app-pub-7650949194753110/5674116546`
-     - Native Ad: `ca-app-pub-7650949194753110/5373252690` (Use `NativeAd` with `NativeTemplateStyle.small`, never load as BannerAd).
+     - Native Ad: `ca-app-pub-7650949194753110/5522618474` (bich walo ads - Use `NativeAd` with `NativeTemplateStyle.small`, never load as BannerAd).
 
 ---
 
