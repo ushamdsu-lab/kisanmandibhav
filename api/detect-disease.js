@@ -25,6 +25,42 @@ function getDiseasesDb() {
   return diseasesDb;
 }
 
+// Load PlantVillage 38 Deep Learning TFLite labels
+let plantVillageLabels = null;
+function getPlantVillageLabels() {
+  if (!plantVillageLabels) {
+    try {
+      const labelsPath = path.join(__dirname, '..', 'assets', 'models', 'labels.txt');
+      if (fs.existsSync(labelsPath)) {
+        plantVillageLabels = fs.readFileSync(labelsPath, 'utf8')
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean);
+      }
+    } catch (err) {
+      console.warn('[Disease API] Error loading labels.txt:', err.message);
+    }
+  }
+  return plantVillageLabels || [];
+}
+
+// Check if on-device / serverless TFLite binary model exists
+function getTfliteModelStatus() {
+  try {
+    const modelPath = path.join(__dirname, '..', 'assets', 'models', 'plant_disease_model.tflite');
+    if (fs.existsSync(modelPath)) {
+      const stats = fs.statSync(modelPath);
+      return {
+        available: true,
+        filename: 'plant_disease_model.tflite',
+        size_bytes: stats.size,
+        size_mb: (stats.size / (1024 * 1024)).toFixed(2)
+      };
+    }
+  } catch (_) {}
+  return { available: false, size_bytes: 0, size_mb: '0' };
+}
+
 // Find closest matching verified Indian remedy from database
 function findVerifiedRemedy(cropName, diseaseName) {
   const db = getDiseasesDb();
@@ -81,10 +117,14 @@ module.exports = async (req, res) => {
   // Health check / GET status
   if (req.method === 'GET') {
     const db = getDiseasesDb();
+    const tfliteStatus = getTfliteModelStatus();
+    const labels = getPlantVillageLabels();
     return res.status(200).json({
       status: 'active',
       service: 'Kisan AI Crop Disease Doctor',
       engine: VISION_MODEL,
+      tflite_model: tfliteStatus,
+      plantvillage_labels_count: labels.length,
       total_crops_supported: db ? db.totalCrops : 40,
       total_diseases_cataloged: db ? db.totalDiseases : 40,
       timestamp: new Date().toISOString(),
