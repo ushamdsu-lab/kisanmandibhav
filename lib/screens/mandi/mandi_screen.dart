@@ -464,29 +464,33 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                       child: Row(
                         children: [
-                          Text(
-                            isHi
-                                ? 'कुल ${provider.rates.length} भाव उपलब्ध'
-                                : 'Total ${provider.rates.length} rates available',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                          Expanded(
+                            child: Text(
+                              isHi
+                                  ? 'कुल ${provider.rates.length} भाव उपलब्ध'
+                                  : 'Total ${provider.rates.length} rates available',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          const Spacer(),
                           if (provider.rates.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(left: 6),
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF1B5E20),
                                   foregroundColor: Colors.white,
                                   elevation: 1,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  minimumSize: const Size(0, 30),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: const Size(0, 28),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
-                                icon: const Icon(Icons.volume_up_rounded, size: 15, color: Colors.amberAccent),
+                                icon: const Icon(Icons.volume_up_rounded, size: 14, color: Colors.amberAccent),
                                 label: Text(
-                                  isHi ? 'भाव सुनें' : 'Listen Bulletin',
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                  isHi ? 'भाव सुनें' : 'Listen',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                                 ),
                                 onPressed: () {
                                   final loc = provider.selectedMarket.isNotEmpty
@@ -502,24 +506,27 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                               ),
                             ),
                           if (provider.selectedCropFilter.isNotEmpty || provider.searchQuery.isNotEmpty)
-                            InkWell(
-                              onTap: () {
-                                _searchController.clear();
-                                provider.clearCropAndSearchFilter();
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.refresh_rounded, size: 14, color: Color(0xFF2E7D32)),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      isHi ? 'सभी भाव देखें' : 'All Crops',
-                                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF2E7D32), fontWeight: FontWeight.w800),
-                                    ),
-                                  ],
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: InkWell(
+                                onTap: () {
+                                  _searchController.clear();
+                                  provider.clearCropAndSearchFilter();
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.refresh_rounded, size: 13, color: Color(0xFF2E7D32)),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        isHi ? 'सभी फसलें' : 'All Crops',
+                                        style: const TextStyle(fontSize: 11, color: Color(0xFF2E7D32), fontWeight: FontWeight.w800),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -776,11 +783,12 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.brown),
                   ),
                 ),
+                const SizedBox(width: 6),
                 InkWell(
                   onTap: () => provider.resetToHomeDistrict(),
                   borderRadius: BorderRadius.circular(6),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE65100),
                       borderRadius: BorderRadius.circular(6),
@@ -792,7 +800,9 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                         const SizedBox(width: 4),
                         Text(
                           isHi ? 'मेरी लोकेशन ($homeDistName)' : 'My Location ($homeDistName)',
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                          style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w900),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -952,12 +962,16 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
             children: [
               const Icon(Icons.storefront_rounded, size: 16, color: Color(0xFFE65100)),
               const SizedBox(width: 6),
-              Text(
-                isHi ? '🏬 $distName की प्रमुख मंडियां (${markets.length})' : '🏬 $distName Markets (${markets.length})',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+              Expanded(
+                child: Text(
+                  isHi ? '🏬 $distName की प्रमुख मंडियां (${markets.length})' : '🏬 $distName Markets (${markets.length})',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
-              if (provider.selectedMarket.isNotEmpty)
+              if (provider.selectedMarket.isNotEmpty) ...[
+                const SizedBox(width: 6),
                 GestureDetector(
                   onTap: () => provider.selectMarket(''),
                   child: Container(
@@ -977,6 +991,7 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 8),
@@ -1059,13 +1074,19 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, size: 14, color: isSelected ? Colors.white : AppColors.textSecondary),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+              const SizedBox(width: 3),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                  ),
                 ),
               ),
             ],

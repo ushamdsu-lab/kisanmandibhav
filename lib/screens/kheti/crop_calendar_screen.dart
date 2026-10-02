@@ -72,10 +72,15 @@ class _CropCalendarScreenState extends State<CropCalendarScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${_selectedCrop.emoji} ${_selectedCrop.hindiName} फसल चक्र',
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                    Expanded(
+                      child: Text(
+                        '${_selectedCrop.emoji} ${_selectedCrop.hindiName} फसल चक्र',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(

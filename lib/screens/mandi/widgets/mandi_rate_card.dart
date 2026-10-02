@@ -224,14 +224,18 @@ class MandiRateCard extends StatelessWidget {
               // 3. Metadata & MSP comparison row
               Row(
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textSecondary),
+                  const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
-                  Text(
-                    '${isHi ? 'आवक' : 'Arrival'}: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Text(
+                      '${isHi ? 'आवक' : 'Arrival'}: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Spacer(),
-                  if (mspItem != null)
+                  if (mspItem != null) ...[
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
@@ -243,6 +247,7 @@ class MandiRateCard extends StatelessWidget {
                         style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
                       ),
                     ),
+                  ],
                 ],
               ),
 

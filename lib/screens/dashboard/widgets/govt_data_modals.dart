@@ -51,22 +51,32 @@ class GovtDataModals {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '🏛️ सरकारी MSP न्यूनतम समर्थन मूल्य',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
-                            ),
-                            const Text('CACP / कृषि एवं किसान कल्याण मंत्रालय (2024-25)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '🏛️ सरकारी MSP न्यूनतम समर्थन मूल्य',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
+                              ),
+                              const Text(
+                                'CACP / कृषि एवं किसान कल्याण मंत्रालय (2024-25)',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
                         ),
                         IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
                       ],
                     ),
                   ),
                   // Filter Season Chips
-                  Padding(
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Row(
                       children: [
@@ -105,7 +115,14 @@ class GovtDataModals {
                             ),
                             title: Row(
                               children: [
-                                Text(item.nameHindi, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                                Expanded(
+                                  child: Text(
+                                    item.nameHindi,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                                  ),
+                                ),
                                 const SizedBox(width: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -169,15 +186,24 @@ class GovtDataModals {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '🌱 उर्वरक उपलब्धता व सरकारी MRP',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
-                        ),
-                        const Text('उर्वरक विभाग, रसायन एवं उर्वरक मंत्रालय (iFMS dbtfert.nic.in)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🌱 उर्वरक उपलब्धता व सरकारी MRP',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
+                          ),
+                          const Text(
+                            'उर्वरक विभाग, रसायन एवं उर्वरक मंत्रालय (iFMS dbtfert.nic.in)',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
                   ],
@@ -200,7 +226,15 @@ class GovtDataModals {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(f.nameHindi, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                Expanded(
+                                  child: Text(
+                                    f.nameHindi,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
                                 Text(f.mrpPrice, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppColors.primary)),
                               ],
                             ),
@@ -269,15 +303,24 @@ class GovtDataModals {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '🧪 मृदा स्वास्थ्य व मिट्टी जांच केंद्र',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
-                        ),
-                        const Text('Soil Health Card Portal (soilhealth.dac.gov.in)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🧪 मृदा स्वास्थ्य व मिट्टी जांच केंद्र',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
+                          ),
+                          const Text(
+                            'Soil Health Card Portal (soilhealth.dac.gov.in)',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
                   ],
@@ -345,15 +388,24 @@ class GovtDataModals {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '📞 24x7 किसान हेल्पलाइन',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
-                        ),
-                        const Text('निःशुल्क सरकारी सहायता नंबर', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '📞 24x7 किसान हेल्पलाइन',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 17),
+                          ),
+                          const Text(
+                            'निःशुल्क सरकारी सहायता नंबर',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
                   ],

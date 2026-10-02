@@ -316,7 +316,14 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('🌾 सभी 56+ फसलें व 100+ रोग चुनें', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                      const Expanded(
+                        child: Text(
+                          '🌾 सभी 56+ फसलें व 100+ रोग चुनें',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        ),
+                      ),
                       IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
                     ],
                   ),
@@ -1424,9 +1431,13 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
             children: [
               const Icon(Icons.alt_route_rounded, color: Colors.teal, size: 20),
               const SizedBox(width: 6),
-              Text(
-                '🌾 इसी फसल के अन्य संभावित रोग (${alternatives.length}):',
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+              Expanded(
+                child: Text(
+                  '🌾 इसी फसल के अन्य संभावित रोग (${alternatives.length}):',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                ),
               ),
             ],
           ),

@@ -155,7 +155,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 Row(
                   children: [
                     Expanded(
-                      flex: 2,
+                      flex: 6,
                       child: TextField(
                         controller: _areaController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -171,17 +171,40 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
+                      flex: 5,
                       child: DropdownButtonFormField<String>(
                         initialValue: _unit,
+                        isExpanded: true,
                         decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'acre', child: Text('एकड़ (Acre)', style: TextStyle(fontWeight: FontWeight.w600))),
-                          DropdownMenuItem(value: 'bigha', child: Text('बीघा (Bigha)', style: TextStyle(fontWeight: FontWeight.w600))),
-                          DropdownMenuItem(value: 'hectare', child: Text('हेक्टेयर (Ha)', style: TextStyle(fontWeight: FontWeight.w600))),
+                          DropdownMenuItem(
+                            value: 'acre',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text('एकड़ (Acre)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'bigha',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text('बीघा (Bigha)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'hectare',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text('हेक्टेयर (Ha)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            ),
+                          ),
                         ],
                         onChanged: (v) => setState(() => _unit = v ?? 'acre'),
                       ),
@@ -362,18 +385,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                       ),
-                      child: Text(
-                        calculatedAmountStr,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          calculatedAmountStr,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ),
@@ -381,6 +407,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       const SizedBox(height: 3),
                       Text(
                         bagEstimation,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.deepOrange),
                       ),
                     ],

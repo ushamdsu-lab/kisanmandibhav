@@ -202,13 +202,19 @@ class _FarmKhataScreenState extends State<FarmKhataScreen> with SingleTickerProv
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Text(
-                            currencyFmt.format(provider.netProfit.abs()),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                currencyFmt.format(provider.netProfit.abs()),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -243,9 +249,13 @@ class _FarmKhataScreenState extends State<FarmKhataScreen> with SingleTickerProv
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    currencyFmt.format(provider.totalIncome),
-                                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      currencyFmt.format(provider.totalIncome),
+                                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -265,9 +275,13 @@ class _FarmKhataScreenState extends State<FarmKhataScreen> with SingleTickerProv
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      currencyFmt.format(provider.totalExpense),
-                                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        currencyFmt.format(provider.totalExpense),
+                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ],
                                 ),

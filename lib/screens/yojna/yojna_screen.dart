@@ -155,11 +155,15 @@ class _YojnaScreenState extends State<YojnaScreen> {
                         children: [
                           const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
                           const SizedBox(width: 6),
-                          Text(
-                            isHi ? '📍 आपका राज्य: $stateName (${provider.userHomeState})' : '📍 Your State: $stateName',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          Expanded(
+                            child: Text(
+                              isHi ? '📍 आपका राज्य: $stateName (${provider.userHomeState})' : '📍 Your State: $stateName',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(

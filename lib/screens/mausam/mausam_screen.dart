@@ -1000,13 +1000,18 @@ class _MausamScreenState extends State<MausamScreen> {
                       children: [
                         Icon(Icons.volume_up_rounded, color: Colors.white, size: 19),
                         SizedBox(width: 8),
-                        Text(
-                          'आज का कृषि मौसम बुलेटिन सुनें (Audio)',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.2,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'आज का कृषि मौसम बुलेटिन सुनें (Audio)',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -1625,7 +1630,9 @@ class _MausamScreenState extends State<MausamScreen> {
                         builder: (context, constraints) {
                           final barWidth = constraints.maxWidth;
                           final leftMargin = barWidth * minFraction;
-                          final width = ((barWidth * maxFraction) - leftMargin).clamp(10.0, barWidth);
+                          final clampedLeft = leftMargin.clamp(0.0, (barWidth - 6.0).clamp(0.0, barWidth));
+                          final maxWidthPossible = (barWidth - clampedLeft).clamp(0.0, barWidth);
+                          final width = ((barWidth * maxFraction) - clampedLeft).clamp(6.0, maxWidthPossible);
 
                           return Stack(
                             children: [
@@ -1638,7 +1645,7 @@ class _MausamScreenState extends State<MausamScreen> {
                               ),
                               // Active Temp Range Capsule
                               Positioned(
-                                left: leftMargin.clamp(0.0, barWidth - 10),
+                                left: clampedLeft,
                                 width: width,
                                 top: 0,
                                 bottom: 0,

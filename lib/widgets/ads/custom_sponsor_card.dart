@@ -155,9 +155,12 @@ class CustomSponsorCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _handleAction(context),
                     icon: Icon(_getActionIcon(ad.actionType), size: 16),
-                    label: Text(
-                      ad.actionButtonText,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        ad.actionButtonText,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _getActionColor(ad.actionType),

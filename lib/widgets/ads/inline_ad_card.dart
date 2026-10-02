@@ -19,8 +19,10 @@ class InlineAdCard extends StatefulWidget {
 }
 
 class _InlineAdCardState extends State<InlineAdCard> {
+  NativeAd? _nativeAd;
   BannerAd? _bannerAd;
-  bool _isAdLoaded = false;
+  bool _isNativeAdLoaded = false;
+  bool _isBannerAdLoaded = false;
   bool _hasFailed = false;
 
   @override
@@ -35,6 +37,42 @@ class _InlineAdCardState extends State<InlineAdCard> {
       return;
     }
 
+    final nativeId = AdService.nativeAdUnitId;
+    if (nativeId.isNotEmpty && !nativeId.contains('XXXXX')) {
+      _nativeAd = NativeAd(
+        adUnitId: nativeId,
+        request: const AdRequest(),
+        nativeTemplateStyle: NativeTemplateStyle(
+          templateType: TemplateType.small,
+          mainBackgroundColor: Colors.transparent,
+          cornerRadius: 12.0,
+        ),
+        listener: NativeAdListener(
+          onAdLoaded: (ad) {
+            if (mounted) {
+              setState(() {
+                _isNativeAdLoaded = true;
+                _hasFailed = false;
+              });
+            }
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('[InlineAdCard] Native ad failed (${error.code}): ${error.message}. Falling back to banner.');
+            ad.dispose();
+            _nativeAd = null;
+            if (mounted) {
+              _loadBannerAd();
+            }
+          },
+        ),
+      );
+      _nativeAd?.load();
+    } else {
+      _loadBannerAd();
+    }
+  }
+
+  void _loadBannerAd() {
     _bannerAd = BannerAd(
       adUnitId: AdService.bannerAdUnitId,
       size: AdSize.largeBanner, // 320x100
@@ -43,17 +81,18 @@ class _InlineAdCardState extends State<InlineAdCard> {
         onAdLoaded: (ad) {
           if (mounted) {
             setState(() {
-              _isAdLoaded = true;
+              _isBannerAdLoaded = true;
               _hasFailed = false;
             });
           }
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('[InlineAdCard] Failed to load inline ad: ${error.message}');
+          debugPrint('[InlineAdCard] Banner ad fallback failed (${error.code}): ${error.message}');
           ad.dispose();
+          _bannerAd = null;
           if (mounted) {
             setState(() {
-              _isAdLoaded = false;
+              _isBannerAdLoaded = false;
               _hasFailed = true;
             });
           }
@@ -66,17 +105,48 @@ class _InlineAdCardState extends State<InlineAdCard> {
 
   @override
   void dispose() {
+    _nativeAd?.dispose();
     _bannerAd?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!AdService.isSupportedPlatform || _hasFailed || !_isAdLoaded || _bannerAd == null) {
+    if (!AdService.isSupportedPlatform || _hasFailed) {
       return const SizedBox.shrink();
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 1. Native Ad (Native Template)
+    if (_isNativeAdLoaded && _nativeAd != null) {
+      return Container(
+        margin: widget.margin,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : AppColors.divider,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        height: 105,
+        child: AdWidget(ad: _nativeAd!),
+      );
+    }
+
+    // 2. Banner Ad Fallback
+    if (!_isBannerAdLoaded || _bannerAd == null) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       margin: widget.margin,
@@ -127,10 +197,13 @@ class _InlineAdCardState extends State<InlineAdCard> {
           ),
           const SizedBox(height: 6),
           Center(
-            child: SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
             ),
           ),
         ],

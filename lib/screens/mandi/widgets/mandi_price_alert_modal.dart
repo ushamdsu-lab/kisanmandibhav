@@ -80,9 +80,13 @@ class _MandiPriceAlertModalState extends State<MandiPriceAlertModal> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '🔔 $hindiName भाव अलर्ट',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              Expanded(
+                child: Text(
+                  '🔔 $hindiName भाव अलर्ट',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
@@ -93,6 +97,8 @@ class _MandiPriceAlertModalState extends State<MandiPriceAlertModal> {
           const SizedBox(height: 6),
           Text(
             'वर्तमान मॉडल भाव: ₹${widget.rate.modalPrice.toInt()}/क्विंटल (${widget.rate.market})',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
@@ -102,7 +108,13 @@ class _MandiPriceAlertModalState extends State<MandiPriceAlertModal> {
             children: [
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('भाव इससे ऊपर जाने पर (≥)'),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  label: const Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('भाव इससे ऊपर (≥)', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
                   selected: _condition == 'above',
                   onSelected: (v) => setState(() => _condition = 'above'),
                 ),
@@ -110,7 +122,13 @@ class _MandiPriceAlertModalState extends State<MandiPriceAlertModal> {
               const SizedBox(width: 8),
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('भाव नीचे आने पर (≤)'),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  label: const Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('भाव नीचे आने पर (≤)', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
                   selected: _condition == 'below',
                   onSelected: (v) => setState(() => _condition = 'below'),
                 ),

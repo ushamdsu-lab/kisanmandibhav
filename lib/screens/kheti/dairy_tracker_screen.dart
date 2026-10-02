@@ -147,10 +147,18 @@ class _DairyTrackerScreenState extends State<DairyTrackerScreen> with SingleTick
                   ),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('🥛 कुल डेयरी उत्पादन व शुद्ध मुनाफा', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                        children: const [
+                          Expanded(
+                            child: Text(
+                              '🥛 कुल डेयरी उत्पादन व शुद्ध मुनाफा',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          SizedBox(width: 8),
                           Text('100% ऑफ़लाइन', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                         ],
                       ),
@@ -158,37 +166,52 @@ class _DairyTrackerScreenState extends State<DairyTrackerScreen> with SingleTick
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Column(
-                            children: [
-                              Text(
-                                '${provider.dairyTotalLiters.toStringAsFixed(1)} L',
-                                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text('कुल दूध', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                            ],
+                          Expanded(
+                            child: Column(
+                              children: [
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '${provider.dairyTotalLiters.toStringAsFixed(1)} L',
+                                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text('कुल दूध', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ],
+                            ),
                           ),
                           Container(width: 1, height: 36, color: Colors.white24),
-                          Column(
-                            children: [
-                              Text(
-                                currencyFmt.format(provider.dairyTotalIncome),
-                                style: const TextStyle(color: Colors.greenAccent, fontSize: 22, fontWeight: FontWeight.w900),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text('दूध आय', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                            ],
+                          Expanded(
+                            child: Column(
+                              children: [
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    currencyFmt.format(provider.dairyTotalIncome),
+                                    style: const TextStyle(color: Colors.greenAccent, fontSize: 22, fontWeight: FontWeight.w900),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text('दूध आय', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ],
+                            ),
                           ),
                           Container(width: 1, height: 36, color: Colors.white24),
-                          Column(
-                            children: [
-                              Text(
-                                currencyFmt.format(provider.netDairyProfit),
-                                style: const TextStyle(color: Colors.amberAccent, fontSize: 22, fontWeight: FontWeight.w900),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text('शुद्ध डेयरी बचत', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                            ],
+                          Expanded(
+                            child: Column(
+                              children: [
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    currencyFmt.format(provider.netDairyProfit),
+                                    style: const TextStyle(color: Colors.amberAccent, fontSize: 22, fontWeight: FontWeight.w900),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text('शुद्ध डेयरी बचत', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -196,9 +219,14 @@ class _DairyTrackerScreenState extends State<DairyTrackerScreen> with SingleTick
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'औसत फैट: ${provider.dairyAverageFat > 0 ? '${provider.dairyAverageFat.toStringAsFixed(1)}%' : '--'} • चारा/खर्च: ${currencyFmt.format(provider.totalDairyExpense)}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          Flexible(
+                            child: Text(
+                              'औसत फैट: ${provider.dairyAverageFat > 0 ? '${provider.dairyAverageFat.toStringAsFixed(1)}%' : '--'} • चारा/खर्च: ${currencyFmt.format(provider.totalDairyExpense)}',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ],
                       ),
@@ -217,16 +245,28 @@ class _DairyTrackerScreenState extends State<DairyTrackerScreen> with SingleTick
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _showAddMilkSheet(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        ),
                         icon: const Icon(Icons.water_drop, size: 16, color: Color(0xFF0277BD)),
-                        label: const Text('दूध एंट्री लिखें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('दूध एंट्री लिखें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _showAddDairyExpenseSheet(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        ),
                         icon: const Icon(Icons.shopping_bag_outlined, size: 16, color: Colors.orange),
-                        label: const Text('चारा/दवा खर्च', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('चारा/दवा खर्च', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
                       ),
                     ),
                   ],

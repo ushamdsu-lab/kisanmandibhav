@@ -96,56 +96,74 @@ class LocationService {
         debugPrint('Geolocator permission error: $e');
       }
 
-      // 2. If permission granted and service enabled, attempt fresh GPS first!
+      // 2. Hybrid Cell-Tower (Network Provider) + GPS Hardware Resolution:
+      // Instantly detects location from mobile towers/network, then refines via satellite GPS
       if (serviceEnabled &&
           (permission == LocationPermission.always || permission == LocationPermission.whileInUse)) {
-        // Step 2A: High accuracy fresh GPS fix (up to 12 seconds)
+        
+        // Step 2A: Instant Cell Tower / Network Cached Position (10 - 50ms)
+        // Android records the cell tower ID and mobile signal position continuously.
         try {
-          final position = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-              timeLimit: Duration(seconds: 12),
-            ),
-          );
-          lat = position.latitude;
-          lng = position.longitude;
-          isGpsSuccess = true;
-          customError = null;
+          final lastKnown = await Geolocator.getLastKnownPosition();
+          if (lastKnown != null) {
+            lat = lastKnown.latitude;
+            lng = lastKnown.longitude;
+            isGpsSuccess = true;
+            customError = null;
+            debugPrint('[LocationService] Instant fix from cell tower / last known: ($lat, $lng)');
+          }
         } catch (e) {
-          debugPrint('Geolocator high fix timed out or failed: $e');
+          debugPrint('Geolocator lastKnown error: $e');
         }
 
-        // Step 2B: Balanced / medium accuracy fix (Cell tower + WiFi) if satellite GPS timed out (e.g. indoors)
+        // Step 2B: Fresh Cell Tower + Wi-Fi Triangulation (Network Provider, max 3 seconds)
+        // Works indoors, under tin sheds, and in weak satellite areas without waiting for sky view.
         if (lat == null || lng == null) {
           try {
             final position = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.medium,
-                timeLimit: Duration(seconds: 6),
-              ),
+              locationSettings: defaultTargetPlatform == TargetPlatform.android
+                  ? AndroidSettings(
+                      accuracy: LocationAccuracy.medium,
+                      timeLimit: const Duration(seconds: 3),
+                      forceLocationManager: false, // Uses Google FusedLocationProvider (Cell towers + Wi-Fi)
+                    )
+                  : const LocationSettings(
+                      accuracy: LocationAccuracy.medium,
+                      timeLimit: Duration(seconds: 3),
+                    ),
             );
             lat = position.latitude;
             lng = position.longitude;
             isGpsSuccess = true;
             customError = null;
+            debugPrint('[LocationService] Fresh network/cell tower fix: ($lat, $lng)');
           } catch (e) {
-            debugPrint('Geolocator medium fix failed: $e');
+            debugPrint('Cell tower/network fix error: $e');
           }
         }
 
-        // Step 2C: Fallback to last known position
-        if (lat == null || lng == null) {
-          try {
-            final lastKnown = await Geolocator.getLastKnownPosition();
-            if (lastKnown != null) {
-              lat = lastKnown.latitude;
-              lng = lastKnown.longitude;
-              isGpsSuccess = true;
-              customError = null;
-            }
-          } catch (e) {
-            debugPrint('Geolocator lastKnown fallback error: $e');
-          }
+        // Step 2C: High Accuracy Satellite GPS Refinement (up to 4 seconds)
+        // If outdoors or GPS hardware is fast, refine to high precision coordinates
+        try {
+          final gpsPos = await Geolocator.getCurrentPosition(
+            locationSettings: defaultTargetPlatform == TargetPlatform.android
+                ? AndroidSettings(
+                    accuracy: LocationAccuracy.high,
+                    timeLimit: const Duration(seconds: 4),
+                    forceLocationManager: false,
+                  )
+                : const LocationSettings(
+                    accuracy: LocationAccuracy.high,
+                    timeLimit: Duration(seconds: 4),
+                  ),
+          );
+          lat = gpsPos.latitude;
+          lng = gpsPos.longitude;
+          isGpsSuccess = true;
+          customError = null;
+          debugPrint('[LocationService] Refined to high-precision satellite GPS: ($lat, $lng)');
+        } catch (e) {
+          debugPrint('GPS satellite refinement timed out (retaining cell tower/network fix): $e');
         }
       }
 
@@ -238,6 +256,22 @@ class LocationService {
                         .replaceAll(RegExp(r'\s*district\s*', caseSensitive: false), '')
                         .trim();
                     break;
+                  }
+                }
+              }
+
+              // Direct match against known Mandi Directory districts if not found by description
+              if (detectedDistrict == null || detectedDistrict.isEmpty) {
+                for (final item in admin) {
+                  if (item is Map) {
+                    final name = item['name']?.toString().trim() ?? '';
+                    if (name.isNotEmpty) {
+                      final matched = MandiDirectory.getStandardDistrictName(state, name);
+                      if (matched.isNotEmpty && MandiDirectory.hasDistrict(state, matched)) {
+                        detectedDistrict = matched;
+                        break;
+                      }
+                    }
                   }
                 }
               }
