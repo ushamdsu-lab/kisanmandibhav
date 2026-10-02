@@ -17,8 +17,10 @@ import 'package:kisan_mitra/utils/commodity_helper.dart';
 import 'package:kisan_mitra/data/crop_disease_database.dart';
 import 'package:kisan_mitra/models/farm_khata_entry.dart';
 import 'package:kisan_mitra/models/dairy_record.dart';
+import 'package:kisan_mitra/services/data_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('Model & Architecture Tests', () {
     test('Crop model parses correctly', () {
       final json = {
@@ -47,6 +49,14 @@ void main() {
       expect(crop.name, 'गेहूं');
       expect(crop.steps.length, 1);
       expect(crop.pests.length, 1);
+    });
+
+    test('DataService loads 25+ major crops across all seasons', () async {
+      final crops = await DataService.loadCrops();
+      expect(crops.length, greaterThanOrEqualTo(25));
+      expect(crops.any((c) => c.season == 'zaid'), isTrue);
+      expect(crops.any((c) => c.id == 'soyabean'), isTrue);
+      expect(crops.any((c) => c.id == 'gram'), isTrue);
     });
 
     test('Fertilizer model parses correctly and validates dosage per hectare/bigha', () {

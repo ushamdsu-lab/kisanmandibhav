@@ -10,13 +10,16 @@ class DataService {
     try {
       rootBundle.evict('assets/data/crops.json');
     } catch (_) {}
-    final String jsonStr = await rootBundle.loadString('assets/data/crops.json');
+    final String jsonStr = await rootBundle.loadString('assets/data/crops.json', cache: false);
     final List<dynamic> jsonList = json.decode(jsonStr);
     return jsonList.map((e) => Crop.fromJson(e)).toList();
   }
 
   static Future<List<Fertilizer>> loadFertilizers() async {
-    final String jsonStr = await rootBundle.loadString('assets/data/fertilizers.json');
+    try {
+      rootBundle.evict('assets/data/fertilizers.json');
+    } catch (_) {}
+    final String jsonStr = await rootBundle.loadString('assets/data/fertilizers.json', cache: false);
     final List<dynamic> jsonList = json.decode(jsonStr);
     return jsonList.map((e) => Fertilizer.fromJson(e)).toList();
   }

@@ -25,7 +25,7 @@ class _KhetiScreenState extends State<KhetiScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<KhetiProvider>().loadData();
+      context.read<KhetiProvider>().loadData(force: true);
     });
   }
 
