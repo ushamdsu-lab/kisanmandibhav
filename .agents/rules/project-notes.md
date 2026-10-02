@@ -35,7 +35,7 @@
   - ✅ Firebase Core — initialized in `lib/main.dart`
   - ✅ Firebase Analytics — user tracking & behavior analytics
   - ✅ Firebase Crashlytics — automatic crash reporting
-  - ❌ AdMob Linking — NOT yet linked (do from Firebase Console → Monetize)
+  - ✅ AdMob Linking — Linked (Completed via AdMob Console → Linked services)
   - ❌ Push Notifications (FCM) — NOT yet added
   - ❌ Remote Config — NOT yet added
 - **Config Files:**
