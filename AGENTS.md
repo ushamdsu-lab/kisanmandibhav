@@ -11,7 +11,9 @@
    - Never simplify or strip features. Solve overflows using `Expanded`, `Flexible`, `FittedBox`, or scroll views, not by removing content.
 
 2. **CROP CHATBOT & VISION AI ARCHITECTURE (STRICT):**
-   - The master blueprint is located at [INSFORGE_CROP_CHATBOT_SPEC.md](file:///d:/mandi%20weather%20updates/docs/INSFORGE_CROP_CHATBOT_SPEC.md).
+   - The master blueprints are located at:
+     * [CROP_AI_DETECTION_AND_CHATBOT_PLAN.md](file:///d:/mandi%20weather%20updates/docs/CROP_AI_DETECTION_AND_CHATBOT_PLAN.md) (Primary Zero-Cost Vercel/On-Device Execution Plan)
+     * [INSFORGE_CROP_CHATBOT_SPEC.md](file:///d:/mandi%20weather%20updates/docs/INSFORGE_CROP_CHATBOT_SPEC.md) (InsForge Cloud Spec)
    - **Infrastructure**: Must strictly run on **InsForge (InstaCloud)** under project ID `5dc72ac3-ba67-4c4a-906e-c6f439abcd43`.
    - **Vision Model**: Strictly use **Llama 3.2 Vision** via the **InsForge Model Gateway**.
      - ⚠️ **DO NOT** replace with paid third-party APIs (OpenAI GPT-4o, Anthropic Claude, etc.) that would incur extra bills for the user.
