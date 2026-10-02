@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,20 +22,22 @@ import 'providers/farm_khata_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase & AdMob (Skipped on Web, active on Android/iOS)
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+      await AdService.init();
+    } catch (e) {
+      debugPrint('[Firebase] Init skipped/error: $e');
+    }
+  }
 
-  // Enable Crashlytics — catches all Flutter errors automatically
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  // Enable Analytics
-  FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-
-  // Initialize storage & services
+  // Initialize storage
   await StorageService.init();
-  await AdService.init();
 
   // Load crop diseases database & sync from CDN in background
   await CropDiseaseDatabase.loadFromAsset();

@@ -14,6 +14,7 @@ import '../screens/yojna/scheme_detail_screen.dart';
 import '../screens/crop_doctor/crop_doctor_screen.dart';
 import '../screens/kheti/crop_calendar_screen.dart';
 import '../screens/kheti/kisan_directory_screen.dart';
+import '../screens/chat/kisan_chat_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -133,6 +134,11 @@ final GoRouter appRouter = GoRouter(
       path: '/crop-doctor',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const CropDoctorScreen(),
+    ),
+    GoRoute(
+      path: '/chat',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const KisanChatScreen(),
     ),
     GoRoute(
       path: '/farm-khata',

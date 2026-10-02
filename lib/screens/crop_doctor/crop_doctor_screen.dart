@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
 import '../../data/crop_disease_database.dart';
 import '../../providers/locale_provider.dart';
@@ -446,6 +447,11 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_rounded, color: Colors.white),
+            tooltip: isHi ? 'किसान मित्र AI चैट' : 'Kisan AI Chat',
+            onPressed: () => context.push('/chat'),
+          ),
           const LanguageToggleButton(),
           if (_diagnosisResult != null || _selectedImage != null)
             IconButton(
@@ -471,6 +477,71 @@ class _CropDoctorScreenState extends State<CropDoctorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 🤖 Kisan Mitra AI Chatbot Quick Access Banner
+            InkWell(
+              onTap: () => context.push('/chat'),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0F766E), Color(0xFF115E59)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F766E).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.psychology_alt_rounded, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isHi ? '💬 किसान मित्र AI चैटबॉट' : '💬 Kisan Mitra AI Chatbot',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                          ),
+                          Text(
+                            isHi ? 'फसल+रोग या मंडी+फसल लिखकर पूछें' : 'Ask crop disease or mandi price in chat',
+                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.amberAccent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'पूछें 👉',
+                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w900, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
             // Mode Selector: 3 Modes
             Container(
               padding: const EdgeInsets.all(4),

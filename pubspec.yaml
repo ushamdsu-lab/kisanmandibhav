@@ -55,3 +55,4 @@ flutter:
     - assets/images/
     - assets/audio/
     - assets/audio/bulletins/
+    - assets/models/

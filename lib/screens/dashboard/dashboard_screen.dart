@@ -252,6 +252,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 12),
 
+                        // 🤖 Kisan Mitra AI Chatbot Hero Card
+                        InkWell(
+                          onTap: () => context.push('/chat'),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0F766E), Color(0xFF115E59)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF0F766E).withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.psychology_alt_rounded, color: Colors.white, size: 28),
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '💬 किसान मित्र AI चैट',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15),
+                                          ),
+                                          SizedBox(width: 6),
+                                          Badge(
+                                            label: Text('नया AI', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                                            backgroundColor: Colors.amber,
+                                            textColor: Colors.black,
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'मंडी भाव या फसल रोग व दवा लिखकर तुरंत पूछें',
+                                        style: TextStyle(color: Colors.white70, fontSize: 11.5),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amberAccent,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'चैट करें 👉',
+                                    style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w900, fontSize: 11.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                         // 4-Card Modern Grid for Smart Tools
                         GridView.count(
                           crossAxisCount: 2,
