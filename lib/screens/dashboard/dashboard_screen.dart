@@ -253,9 +253,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // 🤖 Kisan Mitra AI Chatbot Hero Card (Ultra-Modern Premium Design)
-                        const KisanAiChatCard(),
-
                         // 4-Card Modern Grid for Smart Tools
                         GridView.count(
                           crossAxisCount: 2,
@@ -316,7 +313,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 14),
+
+                        // 🤖 Kisan Mitra AI Chatbot Card (Below Smart Tools Grid)
+                        const KisanAiChatCard(),
+
+                        const SizedBox(height: 18),
 
                         // 4B. 🏛️ सरकारी सुविधाएं व सहायता (Govt Services & Hub)
                         Text(

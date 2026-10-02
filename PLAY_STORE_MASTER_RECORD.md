@@ -4,13 +4,27 @@
 > **App Title**: किसान मंडी भाव (Kisan Mandi Bhav)  
 > **Package Name (Application ID)**: `com.kisanmitra.kisan_mitra`  
 > **Current Track**: Production (Rollout in Review ⏳)  
-> **Current Version**: `1.0.7` (Version Code: `8`)
+> **Current Version**: `1.0.8` (Version Code: `9`)
 
 ---
 
 ## 📌 1. Release History & Milestones
 
-### 🚀 Release 1.0.7 (Version Code: 8) — 02 October 2026 (Submitted / In Review ⏳)
+### 🚀 Release 1.0.8 (Version Code: 9) — 02 October 2026 (Ready for Upload 📦)
+1. **🤖 Kisan Mitra AI Chatbot Integration ("किसान मित्र AI")**:
+   - Built a high-performance offline & master-data NLP conversational AI engine (`KisanChatService`).
+   - Dual-intent routing:
+     - **Mandi Bhav Intent**: Queries for market rates across 39,000+ national records (e.g., "नीमच में लहसुन भाव", "इंदौर सोयाबीन") return live APMC modal price, min/max range, arrival status, and date.
+     - **Crop Doctor Intent**: Queries for disease symptoms or treatments (e.g., "चने में इल्ली", "गेहूं में पीला रतुआ", "सरसों में माहू") return certified CIBRC chemical remedies, precise spray dosages per 15L pump, and organic neem oil solutions.
+   - Elimination of raw markdown asterisks with structured prescription cards, Hindi TTS audio readouts, and WhatsApp sharing.
+   - Ultra-modern, highlighted, high-contrast AI spotlight card with interactive prompt chips on the Dashboard and Crop Doctor screens.
+2. **🌱 Expanded National Crop Catalog (26+ Crops)**:
+   - Expanded the Kheti crop catalog from 6 crops to 26+ major Indian crops across Kharif, Rabi, and Zaid seasons.
+   - Added complete 6-stage agronomy guides (soil, seed treatment, sowing, irrigation, fertilizer management, and harvesting).
+   - Linked all crops to DAP, Urea, MOP, SSP, Zinc Sulphate, and Vermicompost recommendations.
+   - Replaced cartoon carrot mascot with a clean, professional natural leaf watermark.
+3. **🎯 Active AdMob Production Native Ad ID**:
+   - Updated `_prodAndroidNativeId` and `_prodIosNativeId` in `lib/services/ad_service.dart` to active unit: `ca-app-pub-7650949194753110/5522618474`.
 1. **AdMob Integration & Native Ad Support**:
    - AdMob App ID: `ca-app-pub-7650949194753110~4751917111`
    - Banner Ad Unit: `ca-app-pub-7650949194753110/5674116546`
