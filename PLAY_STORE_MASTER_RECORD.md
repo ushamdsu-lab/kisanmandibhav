@@ -1,15 +1,47 @@
 # 🌾 Kisan Mandi Bhav - Play Store Master Record & Release Guide
 
-> **Document Created**: 20 September 2026  
+> **Last Updated**: 02 October 2026  
 > **App Title**: किसान मंडी भाव (Kisan Mandi Bhav)  
 > **Package Name (Application ID)**: `com.kisanmitra.kisan_mitra`  
-> **Current Track**: Production (In Review ⏳)  
-> **Current Version**: `1.0.6` (Version Code: `7`)
+> **Current Track**: Production (Rollout in Review ⏳)  
+> **Current Version**: `1.0.7` (Version Code: `8`)
 
 ---
 
-## 📌 1. Summary of Work Done Today (20 Sept 2026)
+## 📌 1. Release History & Milestones
 
+### 🚀 Release 1.0.7 (Version Code: 8) — 02 October 2026 (Submitted / In Review ⏳)
+1. **AdMob Integration & Native Ad Support**:
+   - AdMob App ID: `ca-app-pub-7650949194753110~4751917111`
+   - Banner Ad Unit: `ca-app-pub-7650949194753110/5674116546`
+   - Native Ad Unit (`native app bich aala`): `ca-app-pub-7650949194753110/5373252690`
+   - Integrated `NativeTemplateStyle(templateType: TemplateType.small)` in `InlineAdCard` with seamless `BannerAd` fallback.
+   - `AdService.isTestMode = false` configured for live production revenue.
+2. **Cell-Tower + GPS Hybrid Location Detection**:
+   - Solved indoor / weak satellite GPS hangs by implementing instant 3-step hybrid detection:
+     - Step 1: `Geolocator.getLastKnownPosition()` (Cell tower cache, 10-50ms instant)
+     - Step 2: `AndroidSettings(accuracy: LocationAccuracy.medium, forceLocationManager: false)` (Fused Location Provider via cell towers + Wi-Fi, 3s limit)
+     - Step 3: High-accuracy satellite GPS refinement (4s limit)
+   - Enhanced district matching by cross-referencing BigDataCloud reverse-geocoding against `MandiDirectory`'s 260+ popular agricultural cities.
+3. **Comprehensive UI Overflow & Responsiveness Audit**:
+   - **Fertilizer Calculator**: Fixed 38px overflow in area unit dropdown by adjusting flex ratio to 6:5, `isExpanded: true`, and `FittedBox`.
+   - **Mandi Rates Card**: Constrained arrival status with `Expanded` + `ellipsis` to prevent Govt MSP badge overflow.
+   - **Govt Data Modals**: Wrapped MSP, Fertilizer, Soil Testing, and Helpline headers in `Expanded` and converted filter chips to horizontal scroll.
+   - **Dashboard**: Adjusted grid aspect ratios and tile padding to prevent 2-line Hindi text overflow.
+   - **Dairy Tracker & Farm Khata**: Wrapped 6-7 digit currency totals and profit/loss metrics in `FittedBox(fit: BoxFit.scaleDown)`.
+   - **Weather Screen**: Wrapped audio bulletin button in `Flexible FittedBox` and clamped temperature bar range bounds.
+4. **Firebase Integration Verified**:
+   - `google-services.json` (Project: `kisan-mandi-bhav-10973`, App ID: `1:787097310112:android:832cbc9b437af468640ac5`) verified.
+   - Gradle plugins (`com.google.gms.google-services` v4.4.4 & `com.google.firebase.crashlytics` v3.0.7) verified.
+   - `FirebaseCrashlytics.instance.recordFlutterFatalError` & `FirebaseAnalytics` active in `main.dart`.
+5. **NDK & Build Fix**:
+   - Set explicit `ndkVersion = "28.2.13676358"` in `android/app/build.gradle.kts` to resolve NDK symbol stripping during AAB packaging.
+   - Generated signed release bundle: `kisan_mandi_v1.0.7_release.aab` (54.4 MB).
+   - Successfully uploaded to Google Play Console Production Track and started full rollout!
+
+---
+
+### 📦 Release 1.0.6 (Version Code: 7) — 20 September 2026
 1. **Production Keystore Generation**:
    - Generated release keystore (`kisan_release_key.jks`) using Java 21 OpenJDK `keytool`.
    - Configured `android/key.properties` and updated `android/app/build.gradle.kts` with `signingConfigs.create("release")`.
@@ -19,15 +51,11 @@
 3. **Release Build & Upload**:
    - Rebuilt signed Android App Bundle (`AAB`) with `versionCode 7` (`1.0.6`).
    - Successfully uploaded to Google Play Console Production Track (`kisan_mandi_bhav_v1.0.6_build7.aab`).
-   - Status: **In Review** by Google Play Review Team.
 4. **Legal & Compliance Infrastructure**:
    - Created dedicated GitHub repo: [`ushamdsu-lab/kisan-mitra-privacy`](https://github.com/ushamdsu-lab/kisan-mitra-privacy).
    - Hosted live privacy policy, data deletion, terms, and contact pages on GitHub Pages.
-   - Cleaned all confusing mentions of "passwords" or "accounts". The app is officially declared as **100% Free & Open Access (No login, no sign-up, no accounts)**.
 5. **Play Store Listing Assets**:
-   - Generated high-resolution 512x512 App Icon.
-   - Designed 1024x500 Feature Graphic (Agriculture field background + UI showcase).
-   - Created 5 Framed Screenshots (1080x1920) capturing real app UI.
+   - Generated high-resolution 512x512 App Icon, 1024x500 Feature Graphic, and 5 Framed Screenshots (1080x1920).
 
 ---
 
