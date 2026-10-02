@@ -86,12 +86,12 @@ class _KhetiScreenState extends State<KhetiScreen> {
                     child: Stack(
                       children: [
                         Positioned(
-                          right: 12,
-                          bottom: 0,
-                          child: SizedBox(
-                            height: 110,
-                            width: 100,
-                            child: AppImages.carrotMascot,
+                          right: -10,
+                          bottom: -15,
+                          child: Icon(
+                            Icons.eco_rounded,
+                            size: 110,
+                            color: Colors.white.withValues(alpha: 0.12),
                           ),
                         ),
                       ],

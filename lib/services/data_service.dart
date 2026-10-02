@@ -7,6 +7,9 @@ import '../models/helpline.dart';
 
 class DataService {
   static Future<List<Crop>> loadCrops() async {
+    try {
+      rootBundle.evict('assets/data/crops.json');
+    } catch (_) {}
     final String jsonStr = await rootBundle.loadString('assets/data/crops.json');
     final List<dynamic> jsonList = json.decode(jsonStr);
     return jsonList.map((e) => Crop.fromJson(e)).toList();

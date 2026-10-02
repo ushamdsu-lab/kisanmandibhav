@@ -33,8 +33,8 @@ class KhetiProvider extends ChangeNotifier {
     return _fertilizers.where((f) => f.crops.contains(cropId)).toList();
   }
 
-  Future<void> loadData() async {
-    if (_crops.isNotEmpty) return; // Already loaded
+  Future<void> loadData({bool force = false}) async {
+    if (_crops.length > 10 && !force) return; // Full list already loaded
     
     _isLoading = true;
     _error = '';
