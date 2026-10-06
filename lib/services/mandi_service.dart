@@ -63,12 +63,11 @@ class MandiService {
     int offset = 0,
     bool forceRefresh = false,
   }) async {
-    // 1. Ensure base master dataset is loaded
+    // 1. Ensure base master dataset is loaded as immediate offline baseline
     if (_cachedRates == null || _cachedRates!.isEmpty) {
       try {
         final jsonString = await rootBundle.loadString('assets/data/mandi_live_rates.json');
         _cachedRates = await _parseAsync(jsonString);
-        _lastFetchTime = DateTime.now();
       } catch (_) {}
     }
 
