@@ -107,6 +107,35 @@ class MandiRateCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            if (rate.arrivalDate.isNotEmpty) ...[
+                              const SizedBox(width: 5),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50.withValues(alpha: 0.8),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: Colors.blue.shade300,
+                                    width: 0.7,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.calendar_today_rounded, size: 9, color: Colors.blue.shade800),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      rate.arrivalDate,
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.blue.shade900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 1),
@@ -224,8 +253,21 @@ class MandiRateCard extends StatelessWidget {
               // 3. Metadata & MSP comparison row
               Row(
                 children: [
-                  const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
+                  Icon(Icons.event_available_rounded, size: 13, color: Colors.green.shade700),
+                  const SizedBox(width: 3),
+                  Text(
+                    rate.arrivalDate.isNotEmpty ? '${isHi ? "तारीख:" : "Date:"} ${rate.arrivalDate}' : (isHi ? 'आज का भाव' : 'Today'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.green.shade800,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text('•', style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.inventory_2_outlined, size: 12, color: AppColors.textSecondary),
+                  const SizedBox(width: 3),
                   Expanded(
                     child: Text(
                       '${isHi ? 'आवक' : 'Arrival'}: ${rate.arrivalQuantityFormatted} (${rate.arrivalStatus})',
@@ -235,7 +277,7 @@ class MandiRateCard extends StatelessWidget {
                     ),
                   ),
                   if (mspItem != null) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(

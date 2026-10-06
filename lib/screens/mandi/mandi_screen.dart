@@ -258,6 +258,11 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                   child: _buildLocationBar(context, provider),
                 ),
 
+                // Live Market Date Banner
+                SliverToBoxAdapter(
+                  child: _buildLiveDateHeader(context, provider, isHi),
+                ),
+
                 // Selected Market Header (if a specific market is clicked from strip)
                 if (provider.selectedMarket.isNotEmpty)
                   SliverToBoxAdapter(
@@ -881,6 +886,106 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
     );
   }
 
+  Widget _buildLiveDateHeader(BuildContext context, MandiProvider provider, bool isHi) {
+    final now = DateTime.now();
+    final dayStr = now.day.toString().padLeft(2, '0');
+    const monthNamesHi = [
+      '', 'जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून',
+      'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'
+    ];
+    const monthNamesEn = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final monthStr = isHi ? monthNamesHi[now.month] : monthNamesEn[now.month];
+    final dateDisplay = '$dayStr $monthStr ${now.year}';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.event_available_rounded, size: 15, color: Colors.green),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      isHi ? '📅 आज के ताज़ा भाव:' : '📅 Live Market Rates:',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      dateDisplay,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.green.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  isHi
+                      ? 'APMC मंडी नीलामी दरें • ₹/क्विंटल'
+                      : 'APMC Mandi Auction Rates • ₹/Qtl',
+                  style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.green.shade700,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isHi ? 'लाइव' : 'LIVE',
+                  style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSelectedMandiHeader(BuildContext context, MandiProvider provider) {
     final localeProv = context.watch<LocaleProvider>();
