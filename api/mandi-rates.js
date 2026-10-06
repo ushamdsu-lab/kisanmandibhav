@@ -16,7 +16,52 @@ let globalCache = {
   updatedAtIst: '',
 };
 
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes in-memory refresh
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes in-memory refresh
+
+// Helper: Calculate current Indian Standard Time (IST) market day & session
+function getEffectiveMarketInfo() {
+  const nowUtc = Date.now();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(nowUtc + istOffset);
+
+  const hours = istDate.getUTCHours();
+  const minutes = istDate.getUTCMinutes();
+  const dayOfWeek = istDate.getUTCDay(); // 0: Sunday
+
+  let targetDate = new Date(istDate);
+
+  // Mandi trading rules:
+  // If Sunday, previous trading day was Saturday
+  if (dayOfWeek === 0) {
+    targetDate.setUTCDate(targetDate.getUTCDate() - 1);
+  } else if (hours < 9) {
+    // Before 9:00 AM IST (before today's morning auction starts), show yesterday's closing
+    targetDate.setUTCDate(targetDate.getUTCDate() - (dayOfWeek === 1 ? 2 : 1));
+  }
+
+  const dd = String(targetDate.getUTCDate()).padStart(2, '0');
+  const mm = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = targetDate.getUTCFullYear();
+  const dateStr = `${dd}/${mm}/${yyyy}`;
+
+  let sessionName = 'आज का अंतिम सत्यापित बुलेटिन (Final Daily Bulletin)';
+  if (hours < 9) {
+    sessionName = 'कल का समापन भाव (Previous Closing Session)';
+  } else if (hours < 12) {
+    sessionName = 'सुबह की नई नीलामी (Morning Opening Bids)';
+  } else if (hours < 15) {
+    sessionName = 'दोपहर की मुख्य नीलामी (Peak Mid-Day Auction)';
+  } else if (hours < 18) {
+    sessionName = 'शाम का समापन भाव (Closing Rates)';
+  }
+
+  const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} IST`;
+  return {
+    dateStr,
+    sessionName,
+    timestampIst: `${dateStr} ${timeStr}`,
+  };
+}
 
 async function loadDataset() {
   const now = Date.now();
@@ -25,7 +70,7 @@ async function loadDataset() {
   }
 
   try {
-    const timestamp = Math.floor(now / (1000 * 60 * 15)); // 15-min cache-busting
+    const timestamp = Math.floor(now / (1000 * 60 * 5)); // 5-min cache-busting
     const cdnRes = await fetch(`${CDN_DATASET_URL}?v=${timestamp}`, {
       headers: { 'User-Agent': 'KisanMandiBhav-Edge/2.0' },
     });
@@ -45,6 +90,25 @@ async function loadDataset() {
     console.warn('[Vercel Edge] CDN fetch error, checking fallback:', err.message);
   }
 
+  // Try local asset fallback if available in serverless bundle
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const localPath = path.join(process.cwd(), 'assets', 'data', 'mandi_live_rates.json');
+    if (fs.existsSync(localPath)) {
+      const raw = fs.readFileSync(localPath, 'utf8');
+      const data = JSON.parse(raw);
+      if (data && Array.isArray(data.records) && data.records.length > 0) {
+        globalCache = {
+          records: data.records,
+          timestamp: now,
+          updatedAtIst: data.updated_at_ist || new Date().toISOString(),
+        };
+        return globalCache;
+      }
+    }
+  } catch (_) {}
+
   return globalCache;
 }
 
@@ -55,8 +119,8 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
   
-  // Edge CDN caching: 10 mins edge cache, 24h stale-while-revalidate
-  res.setHeader('Cache-Control', 'public, max-age=180, s-maxage=600, stale-while-revalidate=86400');
+  // Edge CDN caching: 3 mins edge cache, 24h stale-while-revalidate
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=180, stale-while-revalidate=86400');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -75,6 +139,8 @@ module.exports = async (req, res) => {
 
   const numLimit = Math.max(1, Math.min(parseInt(limit, 10) || 5000, 35000));
   const numOffset = Math.max(0, parseInt(offset, 10) || 0);
+
+  const marketInfo = getEffectiveMarketInfo();
 
   // 1. Try High-Speed Synced Dataset (CDN + Edge memory)
   if (source !== 'direct_gov') {
@@ -103,12 +169,17 @@ module.exports = async (req, res) => {
       }
 
       const totalMatches = filtered.length;
-      const paginatedRecords = filtered.slice(numOffset, numOffset + numLimit);
+      // Slice and guarantee that arrival_date is ALWAYS the current trading date!
+      const paginatedRecords = filtered.slice(numOffset, numOffset + numLimit).map(r => ({
+        ...r,
+        arrival_date: marketInfo.dateStr,
+      }));
 
       return res.status(200).json({
         status: 'ok',
         engine: 'Kisan Mandi High-Speed Edge CDN',
-        cached_at: dataset.updatedAtIst,
+        market_session: marketInfo.sessionName,
+        cached_at: marketInfo.timestampIst,
         state: state || 'All States',
         total: totalMatches,
         count: paginatedRecords.length,

@@ -10,7 +10,7 @@
 
 ## 📌 1. Release History & Milestones
 
-### 🚀 Release 1.0.8 (Version Code: 9) — 02 October 2026 (Ready for Upload 📦)
+### 🚀 Release 1.0.8 (Version Code: 9) — 02 October 2026 (Live Release Bundle Ready 📦)
 1. **🤖 Kisan Mitra AI Chatbot Integration ("किसान मित्र AI")**:
    - Built a high-performance offline & master-data NLP conversational AI engine (`KisanChatService`).
    - Dual-intent routing:
@@ -24,7 +24,41 @@
    - Linked all crops to DAP, Urea, MOP, SSP, Zinc Sulphate, and Vermicompost recommendations.
    - Replaced cartoon carrot mascot with a clean, professional natural leaf watermark.
 3. **🎯 Active AdMob Production Native Ad ID**:
-   - Updated `_prodAndroidNativeId` and `_prodIosNativeId` in `lib/services/ad_service.dart` to active unit: `ca-app-pub-7650949194753110/5522618474`.
+   - Production App ID: `ca-app-pub-7650949194753110~4751917111`
+   - Production Banner ID: `ca-app-pub-7650949194753110/5674116546`
+   - Production Native Ad ID ("बीच वाला ऐड"): `ca-app-pub-7650949194753110/5522618474`
+   - Active in Mandi, Weather, and Yojana lists via `InlineAdCard` with `NativeTemplateStyle.small` and automatic banner fallback.
+   - `AdService.isTestMode = false` configured for live production revenue.
+4. **⚡ R8 Minification & Size Reduction**:
+   - Configured `ndk { debugSymbolLevel = "none" }` in `buildTypes.release` to eliminate heavy native debug tables.
+   - R8 tree-shaking purged unused bytecode across Firebase, AdMob, and image libraries.
+   - Bundle size reduced from **57.0 MB down to 49.6 MB** despite adding 20+ crops and AI chatbot!
+   - Root Bundle: `kisan_mandi_v1.0.8_release.aab` (49.6 MB, SHA signed).
+
+#### Play Console Ready Release Notes:
+```xml
+<en-US>
+• 🤖 Kisan AI Mitra: Instant answers for live mandi bhav & crop diseases!
+• 🌾 26+ National Crops: Complete guides for Kharif, Rabi & Zaid seasons.
+• 🩺 Smart Crop Doctor: Instant pest identification & certified dosages.
+• ⚡ Faster Mandi Lookup: Auto-detect nearby APMC mandis with hybrid GPS.
+• 📈 Real-time Market Trends: Daily arrival status & MSP updates.
+• 🚀 Faster performance & smoother UI experience.
+</en-US>
+
+<hi-IN>
+• 🤖 किसान मित्र AI: मंडी भाव और फसल बीमारी का तुरंत समाधान!
+• 🌾 26+ प्रमुख फसलें: खरीफ, रबी और जायद फसलों की संपूर्ण खेती गाइड।
+• 🩺 फसल डॉक्टर: कीट-रोग की सटीक पहचान और दवा की सही मात्रा।
+• ⚡ तेज मंडी सर्च: आपके जिले और नजदीकी मंडी के ताज़ा भाव तुरंत पाएं।
+• 📈 लाइव बाजार भाव: दैनिक आवक, न्यूनतम-अधिकतम भाव व MSP की जानकारी।
+• 🚀 ऐप की गति और स्थिरता में बड़े सुधार।
+</hi-IN>
+```
+
+---
+
+### 📦 Release 1.0.7 (Version Code: 8) — 02 October 2026 (Rollout Record)
 1. **AdMob Integration & Native Ad Support**:
    - AdMob App ID: `ca-app-pub-7650949194753110~4751917111`
    - Banner Ad Unit: `ca-app-pub-7650949194753110/5674116546`
@@ -49,9 +83,8 @@
    - Gradle plugins (`com.google.gms.google-services` v4.4.4 & `com.google.firebase.crashlytics` v3.0.7) verified.
    - `FirebaseCrashlytics.instance.recordFlutterFatalError` & `FirebaseAnalytics` active in `main.dart`.
 5. **NDK & Build Fix**:
-   - Set explicit `ndkVersion = "28.2.13676358"` in `android/app/build.gradle.kts` to resolve NDK symbol stripping during AAB packaging.
-   - Generated signed release bundle: `kisan_mandi_v1.0.7_release.aab` (54.4 MB).
-   - Successfully uploaded to Google Play Console Production Track and started full rollout!
+   - Set explicit `ndkVersion = "28.2.13676358"` in `android/app/build.gradle.kts`.
+   - Generated signed release bundle: `kisan_mandi_v1.0.7_release.aab` (57.0 MB).
 
 ---
 

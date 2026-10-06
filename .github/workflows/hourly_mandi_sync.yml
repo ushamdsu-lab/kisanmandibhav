@@ -1,9 +1,13 @@
-name: Fast Mandi Data Sync (Every 15 Mins)
+name: Live Mandi Bhav Sync (4 Times Daily APMC Schedule)
 
 on:
   schedule:
-    # Runs every 15 minutes for real-time live APMC auction updates
-    - cron: '*/15 * * * *'
+    # Runs 4 times a day at active APMC trading sessions (09:00 AM, 12:00 PM, 03:00 PM, 06:00 PM IST):
+    # 03:30 UTC = 09:00 AM IST (Morning Opening Auction)
+    # 06:30 UTC = 12:00 PM IST (Mid-Day Peak Trading)
+    # 09:30 UTC = 03:00 PM IST (Afternoon Closing Session)
+    # 12:30 UTC = 06:00 PM IST (Evening Final Mandi Bulletin)
+    - cron: '30 3,6,9,12 * * *'
   workflow_dispatch: # Allows manual run anytime from GitHub Actions tab
 
 jobs:
