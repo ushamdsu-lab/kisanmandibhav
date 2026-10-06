@@ -26,7 +26,7 @@
 3. **🎯 Active AdMob Production Native Ad ID**:
    - Production App ID: `ca-app-pub-7650949194753110~4751917111`
    - Production Banner ID: `ca-app-pub-7650949194753110/5674116546`
-   - Production Native Ad ID ("बीच वाला ऐड"): `ca-app-pub-7650949194753110/5522618474`
+   - Production Native Ad ID ("बीच वाला ऐड"): `ca-app-pub-7650949194753110/5373252690`
    - Active in Mandi, Weather, and Yojana lists via `InlineAdCard` with `NativeTemplateStyle.small` and automatic banner fallback.
    - `AdService.isTestMode = false` configured for live production revenue.
 4. **⚡ R8 Minification & Size Reduction**:
@@ -62,7 +62,7 @@
 1. **AdMob Integration & Native Ad Support**:
    - AdMob App ID: `ca-app-pub-7650949194753110~4751917111`
    - Banner Ad Unit: `ca-app-pub-7650949194753110/5674116546`
-   - Native Ad Unit (`bich walo ads`): `ca-app-pub-7650949194753110/5522618474`
+   - Native Ad Unit (`bich walo ads`): `ca-app-pub-7650949194753110/5373252690`
    - Integrated `NativeTemplateStyle(templateType: TemplateType.small)` in `InlineAdCard` with seamless `BannerAd` fallback.
    - `AdService.isTestMode = false` configured for live production revenue.
 2. **Cell-Tower + GPS Hybrid Location Detection**:

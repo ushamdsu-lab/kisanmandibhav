@@ -540,6 +540,15 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                     ),
                   ),
 
+                  // Prominent Banner Ad (Top placement for guaranteed visibility)
+                  if (AdService.enableMandiBanner)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        child: BannerAdWidget(enabled: true, showAdBadge: true),
+                      ),
+                    ),
+
                   // Rates List
                   if (provider.isLoading)
                     const SliverToBoxAdapter(
@@ -726,8 +735,8 @@ class _MandiScreenState extends State<MandiScreen> with SingleTickerProviderStat
                             },
                           );
 
-                          // Show Google AdMob inline ad after every 5 items
-                          if (index > 0 && index % 5 == 0) {
+                          // Show Google AdMob native inline ad after item 4, then every 15 items
+                          if (index == 4 || (index > 4 && (index - 4) % 15 == 0)) {
                             return Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [

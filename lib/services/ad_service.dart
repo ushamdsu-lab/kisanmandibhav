@@ -51,12 +51,12 @@ class AdService {
   static const String _prodAndroidBannerId = 'ca-app-pub-7650949194753110/5674116546';
   static const String _prodAndroidInterstitialId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodAndroidRewardedId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
-  static const String _prodAndroidNativeId = 'ca-app-pub-7650949194753110/5522618474';
+  static const String _prodAndroidNativeId = 'ca-app-pub-7650949194753110/5373252690';
 
   static const String _prodIosBannerId = 'ca-app-pub-7650949194753110/5674116546';
   static const String _prodIosInterstitialId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
   static const String _prodIosRewardedId = 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY';
-  static const String _prodIosNativeId = 'ca-app-pub-7650949194753110/5522618474';
+  static const String _prodIosNativeId = 'ca-app-pub-7650949194753110/5373252690';
 
   // ==========================================
   // GOOGLE OFFICIAL TEST AD UNIT IDS

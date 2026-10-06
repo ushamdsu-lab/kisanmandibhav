@@ -137,8 +137,7 @@ class _InlineAdCardState extends State<InlineAdCard> {
             ),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
-        height: 105,
+        height: 120,
         child: AdWidget(ad: _nativeAd!),
       );
     }
@@ -197,13 +196,10 @@ class _InlineAdCardState extends State<InlineAdCard> {
           ),
           const SizedBox(height: 6),
           Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: SizedBox(
-                width: _bannerAd!.size.width.toDouble(),
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              ),
+            child: SizedBox(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
             ),
           ),
         ],
