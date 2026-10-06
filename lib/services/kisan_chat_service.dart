@@ -44,53 +44,49 @@ class KisanChatService {
 
   static List<MandiRate>? _masterNationalRates;
 
-  /// Ensure all 39,200+ national records are loaded in memory for instant multi-mandi search
+  /// Ensure national records are loaded and always prioritized with today's live Vercel rates
   static Future<List<MandiRate>> _getMasterRates(List<MandiRate>? livePool) async {
-    if (_masterNationalRates != null && _masterNationalRates!.isNotEmpty) {
-      return _masterNationalRates!;
+    if (_masterNationalRates == null || _masterNationalRates!.isEmpty) {
+      try {
+        final jsonString = await rootBundle.loadString('assets/data/mandi_live_rates.json');
+        final dynamic decoded = json.decode(jsonString);
+        if (decoded is Map<String, dynamic> && decoded['records'] is List) {
+          final List<dynamic> records = decoded['records'];
+          _masterNationalRates = records.map((e) => MandiRate.fromJson(e)).toList();
+        }
+      } catch (_) {}
+      _masterNationalRates ??= [];
     }
 
-    try {
-      final jsonString = await rootBundle.loadString('assets/data/mandi_live_rates.json');
-      final dynamic decoded = json.decode(jsonString);
-      if (decoded is Map<String, dynamic> && decoded['records'] is List) {
-        final List<dynamic> records = decoded['records'];
-        _masterNationalRates = records.map((e) => MandiRate.fromJson(e)).toList();
-      }
-    } catch (_) {}
-
-    _masterNationalRates ??= [];
-
-    // Merge any live provider rates into national pool
+    // Always merge and prioritize today's fresh live rates from MandiProvider / Vercel API
     if (livePool != null && livePool.isNotEmpty) {
-      final existingKeys = <String>{};
-      for (final r in _masterNationalRates!) {
-        existingKeys.add('${r.market}_${r.commodity}'.toLowerCase());
-      }
+      final liveKeys = <String>{};
       for (final lr in livePool) {
-        final key = '${lr.market}_${lr.commodity}'.toLowerCase();
-        if (!existingKeys.contains(key)) {
-          _masterNationalRates!.insert(0, lr);
-        }
+        liveKeys.add('${lr.market.toLowerCase()}_${lr.commodity.toLowerCase()}');
       }
+      // Purge stale static records so today's live rate wins 100%
+      _masterNationalRates!.removeWhere((r) =>
+          liveKeys.contains('${r.market.toLowerCase()}_${r.commodity.toLowerCase()}'));
+      // Prepend fresh live rates at the top
+      _masterNationalRates!.insertAll(0, livePool);
     }
 
     return _masterNationalRates!;
   }
 
-  /// Comprehensive Hindi / English / Grammar inflection synonyms
+  /// Comprehensive Hindi / English / Hinglish Crop Keywords (covering all 56 crops in database)
   static const Map<String, List<String>> _cropKeywords = {
-    'wheat': ['गेहूं', 'गेहू', 'गंहू', 'wheat', 'gehu'],
-    'paddy': ['धान', 'चावल', 'चांवल', 'paddy', 'rice', 'dhan', 'chawal'],
+    'wheat': ['गेहूं', 'गेहू', 'गंहू', 'wheat', 'gehu', 'kanak'],
+    'paddy': ['धान', 'चावल', 'चांवल', 'paddy', 'rice', 'dhan', 'chawal', 'basmati', 'बासमती'],
     'gram': ['चना', 'चने', 'छोला', 'छोले', 'काबुली', 'gram', 'chana', 'chola', 'chickpea'],
-    'mustard': ['सरसों', 'सरसो', 'राई', 'रायडा', 'लाहा', 'mustard', 'sarso', 'sarson'],
+    'mustard': ['सरसों', 'सरसो', 'राई', 'रायडा', 'लाहा', 'तारामीरा', 'mustard', 'sarso', 'sarson', 'rai'],
     'soybean': ['सोयाबीन', 'सोयाबिन', 'सोया', 'soyabean', 'soybean', 'soya'],
     'cotton': ['कपास', 'नरमा', 'रूई', 'cotton', 'kapas', 'narma'],
     'garlic': ['लहसुन', 'लहसन', 'आलन', 'garlic', 'lehsun', 'lahsun'],
     'onion': ['प्याज', 'प्याज़', 'कांदा', 'कांदे', 'onion', 'pyaj', 'pyaz', 'kanda'],
     'tomato': ['टमाटर', 'टमाटो', 'tomato', 'tamatar'],
     'potato': ['आलू', 'आलु', 'बटाटा', 'potato', 'aloo', 'aalu'],
-    'chilli': ['मिर्च', 'मिर्ची', 'तीखी मिर्च', 'chilli', 'chili', 'mirch', 'mirchi'],
+    'chilli': ['मिर्च', 'मिर्ची', 'तीखी मिर्च', 'लाल मिर्च', 'हरी मिर्च', 'chilli', 'chili', 'mirch', 'mirchi'],
     'jeera': ['जीरा', 'जीरे', 'jeera', 'jira', 'cumin'],
     'coriander': ['धनिया', 'धने', 'coriander', 'dhaniya'],
     'fennel': ['सौंफ', 'सॉफ', 'fennel', 'saunf'],
@@ -101,10 +97,10 @@ class KisanChatService {
     'moong': ['मूंग', 'मूँग', 'moong', 'mung'],
     'urad': ['उड़द', 'उरद', 'urad', 'mash'],
     'arhar': ['अरहर', 'तुअर', 'तूर', 'तुवर', 'arhar', 'tur', 'toor'],
-    'groundnut': ['मूंगफली', 'मूँगफली', 'सींगदाना', 'groundnut', 'peanut', 'mungfali'],
+    'groundnut': ['मूंगफली', 'मूँगफली', 'सींगदाना', 'मूंगफली दाना', 'groundnut', 'peanut', 'mungfali'],
     'guar': ['ग्वार', 'गवार', 'guar', 'gwar'],
     'pomegranate': ['अनार', 'दाड़िम', 'pomegranate', 'anaar'],
-    'citrus': ['संतरा', 'नींबू', 'नींबु', 'किन्नू', 'मौसमी', 'citrus', 'lemon', 'orange', 'nimbu'],
+    'citrus': ['संतरा', 'नींबू', 'नींबु', 'किन्नू', 'मौसमी', 'citrus', 'lemon', 'orange', 'nimbu', 'kinnow'],
     'mango': ['आम', 'केरी', 'mango', 'aam'],
     'brinjal': ['बैंगन', 'बैगंन', 'भटा', 'brinjal', 'eggplant', 'baingan'],
     'okra': ['भिंडी', 'भिन्डी', 'okra', 'bhindi', 'ladies finger'],
@@ -115,6 +111,27 @@ class KisanChatService {
     'apple': ['सेब', 'apple', 'seb'],
     'banana': ['केला', 'banana', 'kela'],
     'watermelon': ['तरबूज', 'मतील', 'खरबूजा', 'watermelon', 'tarbooj'],
+    'isabgol': ['इसबगोल', 'ईसबगोल', 'isabgol', 'psyllium'],
+    'sesame': ['तिल', 'तिल्ली', 'sesame', 'til', 'tilli'],
+    'sunflower': ['सूरजमुखी', 'sunflower', 'surajmukhi'],
+    'castor': ['अरंडी', 'अरण्डी', 'castor', 'arandi'],
+    'barley': ['जौ', 'बारले', 'barley', 'jau'],
+    'lentil': ['मसूर', 'मसुर', 'lentil', 'masoor'],
+    'papaya': ['पपीता', 'papaya', 'papita'],
+    'guava': ['अमरूद', 'जामफल', 'guava', 'amrood'],
+    'grapes': ['अंगूर', 'grapes', 'angoor'],
+    'capsicum': ['शिमला मिर्च', 'capsicum', 'shimla mirch'],
+    'cauliflower': ['फूलगोभी', 'गोभी', 'cauliflower', 'phoolgobhi', 'gobhi'],
+    'carrot': ['गाजर', 'carrot', 'gajar'],
+    'radish': ['मूली', 'radish', 'mooli'],
+    'spinach': ['पालक', 'spinach', 'palak'],
+    'bitter_gourd': ['करेला', 'bitter gourd', 'karela'],
+    'bottle_gourd': ['लौकी', 'घिया', 'bottle gourd', 'lauki'],
+    'chaulai': ['चौलाई', 'chaulai', 'amaranth'],
+    'tea': ['चाय', 'tea', 'chai'],
+    'coffee': ['कॉफ़ी', 'कॉफी', 'coffee'],
+    'date_palm': ['खजूर', 'date palm', 'khajoor'],
+    'ber': ['बेर', 'ber', 'jujube'],
   };
 
   /// Clean user input by removing symbols, punctuation, and emojis
@@ -127,7 +144,7 @@ class KisanChatService {
         .toLowerCase();
   }
 
-  /// Process User Message
+  /// Process User Message with Intelligent Intent Routing
   static Future<ChatMessage> processMessage(
     String rawQuery, {
     List<MandiRate>? liveRates,
@@ -152,7 +169,7 @@ class KisanChatService {
         text: 'राम राम किसान भाई! 🙏 मैं आपका किसान मित्र AI हूँ।\n\n'
             'आप मुझसे सीधे पूछ सकते हैं:\n'
             '1. मंडी भाव: मंडी और फसल का नाम लिखें (उदा: "नीमच में लहसुन भाव" या "इंदौर सोयाबीन")\n'
-            '2. रोग व दवा: फसल और बीमारी का नाम लिखें (उदा: "चने में इल्ली की रोकथाम" या "गेहूं में पीला रतुआ")\n\n'
+            '2. रोग व दवा: फसल और बीमारी या लक्षण लिखें (उदा: "लहसुन में पीलापन क्या डालें" या "चने में इल्ली दवा")\n\n'
             'नीचे दिए गए सुझावों पर भी क्लिक कर सकते हैं:',
         isUser: false,
         timestamp: now,
@@ -160,10 +177,10 @@ class KisanChatService {
         quickActions: [
           'नीमच में लहसुन का भाव',
           'इंदौर में सोयाबीन भाव',
+          'लहसुन में पीलापन क्या डालें',
           'चने में इल्ली की रोकथाम',
           'गेहूं में पीला रतुआ दवा',
-          'टमाटर में झुलसा रोग',
-          'सरसों में माहू (चेपा) स्प्रे',
+          'टमाटर में झुलसा रोग स्प्रे',
         ],
       );
     }
@@ -171,9 +188,9 @@ class KisanChatService {
     // 2. Identify Crop Key from input
     final matchedCropKey = _extractCropKey(query);
 
-    // 3. Check for Disease Intent First (especially if disease keywords present: इल्ली, रतुआ, झुलसा, दवा, रोग, रोकथाम, आदि)
+    // 3. PRIORITY 1: Check for Disease / Symptom / Remedy Intent First
     final isDiseaseIntent = _hasDiseaseKeywords(query);
-    if (isDiseaseIntent || (matchedCropKey != null && (query.contains('दवा') || query.contains('रोग') || query.contains('इलाज') || query.contains('रोकथाम') || query.contains('स्प्रे')))) {
+    if (isDiseaseIntent) {
       final diseaseResult = _handleDiseaseQuery(
         query: query,
         matchedCropKey: matchedCropKey,
@@ -181,10 +198,28 @@ class KisanChatService {
         now: now,
       );
       if (diseaseResult != null) return diseaseResult;
+
+      // If user clearly asked for disease/medicine but specific disease couldn't be pinpointed
+      if (matchedCropKey != null) {
+        final cropHindi = _getCropHindi(matchedCropKey);
+        final cropDiseases = CropDiseaseDatabase.getDiseasesByCrop(matchedCropKey);
+        if (cropDiseases.isNotEmpty) {
+          return ChatMessage(
+            id: msgId,
+            text: 'किसान भाई, $cropHindi में मुख्य रूप से ये बीमारियाँ और कीट लगते हैं। आपकी फसल में कौन सा लक्षण दिख रहा है?',
+            isUser: false,
+            timestamp: now,
+            type: ChatMessageType.suggestions,
+            quickActions: cropDiseases.take(4).map((d) => '$cropHindi में ${d.diseaseNameHindi} दवा').toList(),
+          );
+        }
+      }
     }
 
-    // 4. Check for Mandi Bhav Intent
-    final matchedMarket = _extractMarket(query);
+    // 4. PRIORITY 2: Check for Mandi Bhav Intent
+    final nationalPool = await _getMasterRates(liveRates);
+    final matchedMarket = _extractMarket(query, nationalPool);
+
     final isMandiQuery = query.contains('भाव') ||
         query.contains('रेट') ||
         query.contains('bhav') ||
@@ -195,10 +230,7 @@ class KisanChatService {
         query.contains('बिक') ||
         matchedMarket != null;
 
-    final nationalPool = await _getMasterRates(liveRates);
-
-    // 4. Check for Mandi Bhav Intent (Triggers on market, 'भाव' keyword, or crop name)
-    if (isMandiQuery || matchedMarket != null || matchedCropKey != null) {
+    if (isMandiQuery || matchedMarket != null || (matchedCropKey != null && !isDiseaseIntent)) {
       final mandiResult = _handleMandiQuery(
         query: query,
         matchedMarket: matchedMarket,
@@ -210,23 +242,14 @@ class KisanChatService {
       if (mandiResult != null) return mandiResult;
     }
 
-    // 5. If Crop Disease was not matched above, try again before general fallback
-    final secondDiseaseCheck = _handleDiseaseQuery(
-      query: query,
-      matchedCropKey: matchedCropKey,
-      msgId: msgId,
-      now: now,
-    );
-    if (secondDiseaseCheck != null) return secondDiseaseCheck;
-
-    // 6. If only Crop was provided (e.g. "सोयाबीन" or "गेहूं")
+    // 5. If Crop was detected but neither disease nor mandi matched cleanly
     if (matchedCropKey != null) {
       final cropHindi = _getCropHindi(matchedCropKey);
       final diseases = CropDiseaseDatabase.getDiseasesByCrop(matchedCropKey);
 
       return ChatMessage(
         id: msgId,
-        text: '$cropHindi के बारे में आप क्या जानना चाहते हैं?\n'
+        text: '$cropHindi के बारे में आप क्या जानना चाहते हैं?\n\n'
             '• क्या आप $cropHindi का ताज़ा मंडी भाव जानना चाहते हैं?\n'
             '• या $cropHindi के किसी रोग/कीट की दवा और खुराक जानना चाहते हैं?',
         isUser: false,
@@ -234,18 +257,18 @@ class KisanChatService {
         type: ChatMessageType.suggestions,
         quickActions: [
           '$cropHindi का मंडी भाव',
-          if (diseases.isNotEmpty) '$cropHindi में ${diseases.first.diseaseNameHindi} की दवा',
-          if (diseases.length > 1) '$cropHindi में ${diseases[1].diseaseNameHindi} की दवा',
+          if (diseases.isNotEmpty) '$cropHindi में ${diseases.first.diseaseNameHindi} दवा',
+          if (diseases.length > 1) '$cropHindi में ${diseases[1].diseaseNameHindi} दवा',
         ],
       );
     }
 
-    // 7. General Friendly Fallback
+    // 6. General Friendly Fallback
     return ChatMessage(
       id: msgId,
       text: 'किसान भाई, कृपया फसल का नाम और साथ में रोग या मंडी का नाम लिखें।\n\n'
           '👉 मंडी भाव के लिए: "नीमच लहसुन भाव" या "इंदौर सोयाबीन"\n'
-          '👉 रोग के इलाज के लिए: "चने में इल्ली" या "गेहूं पीला रतुआ दवा"',
+          '👉 रोग व दवा के लिए: "लहसुन में पीलापन" या "चने में इल्ली दवा"',
       isUser: false,
       timestamp: now,
       type: ChatMessageType.suggestions,
@@ -259,23 +282,33 @@ class KisanChatService {
   }
 
   // ==========================================
-  // 🩺 DISEASE MATCHING ENGINE
+  // 🩺 DISEASE MATCHING & PRESCRIPTION ENGINE
   // ==========================================
   static bool _hasDiseaseKeywords(String q) {
     const keywords = [
-      'इल्ली', 'सुंडी', 'लट', 'कीट', 'कीड़ा', 'borer', 'caterpillar',
+      // Insects & Pests
+      'इल्ली', 'सुंडी', 'लट', 'कीट', 'कीड़ा', 'कीड़े', 'borer', 'caterpillar', 'keeda', 'kida', 'sundi', 'illi',
+      'माहू', 'चेपा', 'एफिड', 'मोयिला', 'aphid', 'mahu', 'chepa',
+      'सफेद मक्खी', 'whitefly', 'मक्खी',
+      'थ्रिप्स', 'thrips', 'माइट्स', 'mites', 'मकड़ी', 'दीमक', 'termite',
+      // Fungal & Viral Diseases
       'रतुआ', 'रोली', 'rust', 'पीला रतुआ', 'सफेद रोली',
       'झुलसा', 'ब्लाइट', 'blight', 'अगेती', 'पछेती',
-      'माहू', 'चेपा', 'एफिड', 'मोयिला', 'aphid',
-      'मरोड़', 'पत्ती मरोड़', 'curl', 'curling',
-      'उकठा', 'मुरझान', 'wilt',
-      'सफेद मक्खी', 'whitefly',
+      'मरोड़', 'चुरड़ा', 'चुरडा', 'मरोड़िया', 'जलेबी', 'curl', 'curling', 'marod', 'jalebi',
+      'उकठा', 'मुरझान', 'मुरझा', 'wilt', 'uktha',
       'छाछिया', 'चूर्णी', 'mildew', 'powdery',
       'मोज़ेक', 'पीला मोज़ेक', 'mosaic',
       'गलन', 'सड़न', 'rot', 'stem rot', 'root rot',
-      'टिक्का', 'tikka',
-      'चित्ती', 'धब्बा', 'spot',
-      'दवा', 'इलाज', 'स्प्रे', 'रोकथाम', 'उपाय', 'कीटनाशक', 'फफूंदनाशक',
+      'टिक्का', 'tikka', 'चित्ती', 'धब्बा', 'दाग', 'spot', 'blotch',
+      'फफूंद', 'फफूंदी', 'फंगस', 'fungus', 'fungal',
+      // Everyday Symptoms
+      'पीलापन', 'पीली', 'पीला', 'peelapan', 'peela', 'pila',
+      'सूखना', 'सूख', 'sukha', 'sukhta',
+      'जलना', 'जल', 'jalna', 'काला', 'सफेद',
+      // Remedies & Actions
+      'दवा', 'दवाई', 'इलाज', 'स्प्रे', 'रोकथाम', 'उपाय', 'कीटनाशक', 'फफूंदनाशक',
+      'मात्रा', 'डोज़', 'खुराक', 'बीमारी', 'रोग', 'लक्षण', 'डॉक्टर',
+      'क्या डालें', 'क्या छिड़कें', 'क्या करें', 'dawa', 'dawai', 'ilaj', 'spray', 'roktham', 'bimari', 'rog',
     ];
     for (final kw in keywords) {
       if (q.contains(kw)) return true;
@@ -292,134 +325,102 @@ class KisanChatService {
     final allDiseases = CropDiseaseDatabase.diseases;
     if (allDiseases.isEmpty) return null;
 
-    CropDisease? matchedDisease;
+    final candidatePool = matchedCropKey != null
+        ? CropDiseaseDatabase.getDiseasesByCrop(matchedCropKey)
+        : allDiseases;
 
-    // A. Priority 1: Search within specific crop if detected
-    if (matchedCropKey != null) {
-      final cropDiseases = CropDiseaseDatabase.getDiseasesByCrop(matchedCropKey);
+    if (candidatePool.isEmpty) return null;
 
-      for (final d in cropDiseases) {
-        final hin = d.diseaseNameHindi.toLowerCase();
-        final eng = d.diseaseNameEnglish.toLowerCase();
-        final sym = d.symptoms.join(' ').toLowerCase();
+    CropDisease? bestMatch;
+    int highestScore = 0;
 
-        // 1. Pod Borer / Caterpillars / Spodoptera
-        if ((query.contains('इल्ली') || query.contains('सुंडी') || query.contains('लट') || query.contains('कीट') || query.contains('कीड़ा')) &&
-            (hin.contains('इल्ली') || hin.contains('सुंडी') || hin.contains('छेदक') || sym.contains('इल्ली') || sym.contains('सुंडी') || eng.contains('borer'))) {
-          matchedDisease = d;
-          break;
-        }
+    for (final d in candidatePool) {
+      int score = 0;
+      final hin = d.diseaseNameHindi.toLowerCase();
+      final eng = d.diseaseNameEnglish.toLowerCase();
+      final sym = d.symptoms.join(' ').toLowerCase();
+      final tags = d.symptomTags.join(' ').toLowerCase();
 
-        // 2. Rusts
-        if ((query.contains('रतुआ') || query.contains('रोली') || query.contains('rust')) &&
-            (hin.contains('रतुआ') || hin.contains('रोली') || eng.contains('rust'))) {
-          matchedDisease = d;
-          break;
-        }
+      // 1. Direct Name Match
+      if (query.contains(hin) || hin.contains(query)) score += 10;
+      if (eng.isNotEmpty && (query.contains(eng) || eng.contains(query))) score += 8;
 
-        // 3. Blights
-        if ((query.contains('झुलसा') || query.contains('ब्लाइट') || query.contains('blight')) &&
-            (hin.contains('झुलसा') || hin.contains('ब्लाइट') || eng.contains('blight'))) {
-          matchedDisease = d;
-          break;
-        }
+      // 2. Specific Symptoms & Tags Scoring
+      if ((query.contains('इल्ली') || query.contains('सुंडी') || query.contains('लट') || query.contains('कीड़ा') || query.contains('borer') || query.contains('caterpillar') || query.contains('illi')) &&
+          (hin.contains('इल्ली') || hin.contains('सुंडी') || hin.contains('छेदक') || sym.contains('इल्ली') || tags.contains('इल्ली') || eng.contains('borer') || eng.contains('caterpillar'))) {
+        score += 8;
+      }
 
-        // 4. Aphids / Mahu
-        if ((query.contains('माहू') || query.contains('चेपा') || query.contains('मोयिला') || query.contains('एफिड')) &&
-            (hin.contains('माहू') || hin.contains('चेपा') || hin.contains('एफिड') || sym.contains('रस') || eng.contains('aphid'))) {
-          matchedDisease = d;
-          break;
-        }
+      if ((query.contains('रतुआ') || query.contains('रोली') || query.contains('rust')) &&
+          (hin.contains('रतुआ') || hin.contains('रोली') || tags.contains('रतुआ') || eng.contains('rust'))) {
+        score += 8;
+      }
 
-        // 5. Leaf Curl
-        if ((query.contains('मरोड़') || query.contains('curl')) &&
-            (hin.contains('मरोड़') || eng.contains('curl'))) {
-          matchedDisease = d;
-          break;
-        }
+      if ((query.contains('पीलापन') || query.contains('पीली') || query.contains('पीला') || query.contains('peela') || query.contains('peelapan') || query.contains('pila')) &&
+          (tags.contains('पीला') || sym.contains('पीली') || hin.contains('पीला') || hin.contains('मोज़ेक') || hin.contains('रतुआ'))) {
+        score += 6;
+      }
 
-        // 6. Wilt
-        if ((query.contains('उकठा') || query.contains('wilt')) &&
-            (hin.contains('उकठा') || eng.contains('wilt'))) {
-          matchedDisease = d;
-          break;
-        }
+      if ((query.contains('झुलसा') || query.contains('ब्लाइट') || query.contains('blight') || query.contains('jalna') || query.contains('जल')) &&
+          (hin.contains('झुलसा') || hin.contains('ब्लाइट') || tags.contains('झुलसा') || eng.contains('blight'))) {
+        score += 8;
+      }
 
-        // 7. Mosaic
-        if ((query.contains('मोज़ेक') || query.contains('पीला') || query.contains('mosaic')) &&
-            (hin.contains('मोज़ेक') || eng.contains('mosaic'))) {
-          matchedDisease = d;
-          break;
-        }
+      if ((query.contains('माहू') || query.contains('चेपा') || query.contains('मोयिला') || query.contains('एफिड') || query.contains('aphid') || query.contains('chepa')) &&
+          (hin.contains('माहू') || hin.contains('चेपा') || hin.contains('एफिड') || sym.contains('रस') || tags.contains('माहू') || eng.contains('aphid'))) {
+        score += 8;
+      }
 
-        // 8. Powdery Mildew
-        if ((query.contains('छाछिया') || query.contains('चूर्णी') || query.contains('mildew')) &&
-            (hin.contains('छाछिया') || hin.contains('चूर्णी') || eng.contains('mildew'))) {
-          matchedDisease = d;
-          break;
-        }
+      if ((query.contains('मरोड़') || query.contains('जलेबी') || query.contains('चुरड़ा') || query.contains('मरोड़िया') || query.contains('curl') || query.contains('jalebi') || query.contains('marod')) &&
+          (hin.contains('मरोड़') || hin.contains('चुरड़ा') || hin.contains('थ्रिप्स') || tags.contains('मरोड़') || tags.contains('जलेबी') || eng.contains('curl'))) {
+        score += 8;
+      }
 
-        // General word containment
-        if (query.contains(hin) || hin.contains(query) || (eng.isNotEmpty && query.contains(eng))) {
-          matchedDisease = d;
-          break;
+      if ((query.contains('उकठा') || query.contains('मुरझान') || query.contains('मुरझा') || query.contains('wilt') || query.contains('uktha')) &&
+          (hin.contains('उकठा') || hin.contains('मुरझान') || tags.contains('उकठा') || eng.contains('wilt'))) {
+        score += 8;
+      }
+
+      if ((query.contains('छाछिया') || query.contains('चूर्णी') || query.contains('mildew') || query.contains('सफेद पाउडर')) &&
+          (hin.contains('छाछिया') || hin.contains('चूर्णी') || tags.contains('पाउडर') || eng.contains('mildew'))) {
+        score += 8;
+      }
+
+      if ((query.contains('गलन') || query.contains('सड़न') || query.contains('rot')) &&
+          (hin.contains('गलन') || hin.contains('सड़न') || tags.contains('गलन') || tags.contains('सड़न') || eng.contains('rot'))) {
+        score += 8;
+      }
+
+      if ((query.contains('धब्बा') || query.contains('चित्ती') || query.contains('दाग') || query.contains('spot') || query.contains('blotch')) &&
+          (hin.contains('धब्बा') || hin.contains('चित्ती') || tags.contains('धब्बा') || eng.contains('spot') || eng.contains('blotch'))) {
+        score += 6;
+      }
+
+      // Check against individual symptom tags
+      for (final tag in d.symptomTags) {
+        final t = tag.toLowerCase();
+        if (t.length >= 3 && query.contains(t)) {
+          score += 5;
         }
       }
 
-      // If user named a crop with "दवा" or "रोग" but didn't specify disease name
-      if (matchedDisease == null && cropDiseases.isNotEmpty &&
-          (query.contains('रोग') || query.contains('दवा') || query.contains('इलाज') || query.contains('स्प्रे') || query.contains('रोकथाम'))) {
-        final cropHindi = _getCropHindi(matchedCropKey);
-        return ChatMessage(
-          id: msgId,
-          text: '$cropHindi में मुख्य रूप से ये रोग लगते हैं। आप किस रोग का इलाज जानना चाहते हैं?',
-          isUser: false,
-          timestamp: now,
-          type: ChatMessageType.suggestions,
-          quickActions: cropDiseases.take(4).map((d) => '$cropHindi में ${d.diseaseNameHindi} की दवा').toList(),
-        );
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = d;
       }
     }
 
-    // B. Priority 2: Global Search across all 100+ diseases
-    if (matchedDisease == null) {
-      for (final d in allDiseases) {
-        final hin = d.diseaseNameHindi.toLowerCase();
-        final eng = d.diseaseNameEnglish.toLowerCase();
-
-        if (query.contains('इल्ली') && (hin.contains('इल्ली') || hin.contains('छेदक') || eng.contains('borer'))) {
-          matchedDisease = d;
-          break;
-        }
-        if (query.contains('रतुआ') && hin.contains('रतुआ')) {
-          matchedDisease = d;
-          break;
-        }
-        if (query.contains('झुलसा') && hin.contains('झुलसा')) {
-          matchedDisease = d;
-          break;
-        }
-        if ((query.contains('माहू') || query.contains('चेपा')) && (hin.contains('माहू') || hin.contains('चेपा'))) {
-          matchedDisease = d;
-          break;
-        }
-        if (query.contains(hin) || (eng.isNotEmpty && query.contains(eng))) {
-          matchedDisease = d;
-          break;
-        }
-      }
-    }
-
-    if (matchedDisease != null) {
-      final d = matchedDisease;
+    // Return structured prescription card
+    if (bestMatch != null && highestScore >= 4) {
+      final d = bestMatch;
       return ChatMessage(
         id: msgId,
-        text: 'रोग: ${d.diseaseNameHindi} (${d.diseaseNameEnglish})\n'
-            'फसल: ${d.cropHindi} | प्रकार: ${d.pathogen}\n\n'
-            'रासायनिक दवा (CIBRC प्रमाणित):\n${d.chemicalMedicine}\n\n'
-            'स्प्रे खुराक: ${d.sprayDosage}\n\n'
-            'जैविक व देसी उपाय:\n${d.organicRemedy}\n\n'
-            'सावधानी: ${d.precautions}',
+        text: '🩺 *रोग की पहचान:* ${d.diseaseNameHindi} (${d.diseaseNameEnglish})\n'
+            '🌾 *फसल:* ${d.cropHindi} | *कारण:* ${d.pathogen}\n\n'
+            '💊 *रासायनिक दवा (CIBRC प्रमाणित):*\n${d.chemicalMedicine}\n\n'
+            '💧 *स्प्रे खुराक:* ${d.sprayDosage}\n\n'
+            '🌿 *जैविक व देसी उपाय:*\n${d.organicRemedy}\n\n'
+            '⚠️ *सावधानी:* ${d.precautions}',
         isUser: false,
         timestamp: now,
         type: ChatMessageType.cropDisease,
@@ -435,7 +436,7 @@ class KisanChatService {
   }
 
   // ==========================================
-  // 🌾 MANDI RATE LOOKUP ENGINE
+  // 🌾 LIVE MANDI RATE LOOKUP ENGINE
   // ==========================================
   static ChatMessage? _handleMandiQuery({
     required String query,
@@ -456,11 +457,11 @@ class KisanChatService {
         final cropName = CommodityHelper.getHindiName(rate.commodity);
         return ChatMessage(
           id: msgId,
-          text: '${rate.market} मंडी (${rate.state}) में $cropName का ताज़ा भाव:\n\n'
-              'मॉडल (औसत) भाव: ₹${rate.modalPrice.toInt()} / क्विंटल\n'
-              'न्यूनतम - अधिकतम: ₹${rate.minPrice.toInt()} - ₹${rate.maxPrice.toInt()} / क्विंटल\n'
-              'आवक स्थिति: ${rate.arrivalStatus}\n'
-              'आवक तिथि: ${rate.arrivalDate}',
+          text: '🏛️ *${rate.market} मंडी (${rate.state}) में $cropName का ताज़ा भाव:*\n\n'
+              '💰 *मॉडल (औसत) भाव:* ₹${rate.modalPrice.toInt()} / क्विंटल\n'
+              '📊 *न्यूनतम - अधिकतम:* ₹${rate.minPrice.toInt()} - ₹${rate.maxPrice.toInt()} / क्विंटल\n'
+              '📈 *आवक स्थिति:* ${rate.arrivalStatus}\n'
+              '📅 *आवक तिथि:* ${rate.arrivalDate}',
           isUser: false,
           timestamp: now,
           type: ChatMessageType.mandiRate,
@@ -471,39 +472,45 @@ class KisanChatService {
           ],
         );
       } else {
-        // Market found, but specific crop not traded
+        // Market found, but specific crop not traded today
         final marketRates = pool
-            .where((r) => r.market.toLowerCase().contains(matchedMarket.toLowerCase()))
+            .where((r) =>
+                r.market.toLowerCase().contains(matchedMarket.toLowerCase()) ||
+                r.district.toLowerCase().contains(matchedMarket.toLowerCase()))
             .take(6)
             .toList();
-        if (marketRates.isNotEmpty) {
-          return ChatMessage(
-            id: msgId,
-            text: 'आज $matchedMarket मंडी में $cropHindi की सीधी आवक दर्ज नहीं हुई है।\n'
-                '$matchedMarket मंडी के आज के अन्य मुख्य भाव:',
-            isUser: false,
-            timestamp: now,
-            type: ChatMessageType.mandiRate,
-            alternativeRates: marketRates,
-            quickActions: [
-              '$cropHindi के अन्य मंडियों के भाव',
-            ],
-          );
-        }
+
+        final otherMandiRates = _findRatesByCrop(pool, matchedCropKey, cropHindi).take(4).toList();
+
+        return ChatMessage(
+          id: msgId,
+          text: 'आज $matchedMarket मंडी में $cropHindi की सीधी आवक दर्ज नहीं हुई है।\n\n'
+              '👉 $matchedMarket मंडी के आज के मुख्य भाव नीचे दिए गए हैं:',
+          isUser: false,
+          timestamp: now,
+          type: ChatMessageType.mandiRate,
+          alternativeRates: marketRates.isNotEmpty ? marketRates : otherMandiRates,
+          quickActions: [
+            '$cropHindi के अन्य मंडियों के भाव',
+            if (marketRates.isNotEmpty) '${marketRates.first.market} मंडी के सभी भाव',
+          ],
+        );
       }
     }
 
     // Case 2: Only Specific Mandi (e.g. "नीमच मंडी भाव" or "इंदौर मंडी")
     if (matchedMarket != null && matchedCropKey == null) {
       final marketRates = pool
-          .where((r) => r.market.toLowerCase().contains(matchedMarket.toLowerCase()))
+          .where((r) =>
+              r.market.toLowerCase().contains(matchedMarket.toLowerCase()) ||
+              r.district.toLowerCase().contains(matchedMarket.toLowerCase()))
           .take(6)
           .toList();
 
       if (marketRates.isNotEmpty) {
         return ChatMessage(
           id: msgId,
-          text: '$matchedMarket मंडी के आज के प्रमुख भाव:',
+          text: '🏛️ *$matchedMarket मंडी के आज के प्रमुख भाव:*',
           isUser: false,
           timestamp: now,
           type: ChatMessageType.mandiRate,
@@ -521,7 +528,7 @@ class KisanChatService {
       if (cropRates.isNotEmpty) {
         return ChatMessage(
           id: msgId,
-          text: '$cropHindi के प्रमुख मंडियों में आज के ताज़ा भाव:',
+          text: '🌾 *$cropHindi के प्रमुख मंडियों में आज के ताज़ा भाव:*',
           isUser: false,
           timestamp: now,
           type: ChatMessageType.mandiRate,
@@ -615,16 +622,41 @@ class KisanChatService {
     'vadodara': ['वडोदरा', 'बड़ौदा', 'vadodara'],
     'pune': ['पुणे', 'pune'],
     'mumbai': ['मुंबई', 'mumbai'],
+    'harda': ['हरदा', 'harda'],
+    'chhindwara': ['छिंदवाड़ा', 'chhindwara'],
+    'shajapur': ['शाजापुर', 'shajapur'],
+    'shujalpur': ['शुजालपुर', 'shujalpur'],
+    'biaora': ['ब्यावरा', 'biaora'],
+    'dhar': ['धार', 'dhar'],
+    'khargone': ['खरगोन', 'khargone'],
+    'barwani': ['बड़वानी', 'barwani'],
+    'sikar': ['सीकर', 'sikar'],
+    'bhilwara': ['भीलवाड़ा', 'bhilwara'],
+    'ajmer': ['अजमेर', 'ajmer'],
+    'tonk': ['टोंक', 'tonk'],
+    'udaipur': ['उदयपुर', 'udaipur'],
   };
 
-  static String? _extractMarket(String q) {
+  static String? _extractMarket(String q, [List<MandiRate>? pool]) {
+    // 1. Static known synonyms check
     for (final entry in _marketSynonyms.entries) {
       for (final syn in entry.value) {
         if (q.contains(syn.toLowerCase())) {
-          return entry.key; // English canonical key e.g. 'indore', 'neemuch'
+          return syn;
         }
       }
     }
+
+    // 2. Dynamic check across live/national pool records
+    if (pool != null) {
+      for (final r in pool) {
+        final m = r.market.toLowerCase();
+        final d = r.district.toLowerCase();
+        if (m.length >= 3 && q.contains(m)) return r.market;
+        if (d.length >= 3 && q.contains(d)) return r.district;
+      }
+    }
+
     return null;
   }
 
@@ -640,7 +672,8 @@ class KisanChatService {
     // Priority 1: Exact market name match
     for (final r in pool) {
       final rMarket = r.market.toLowerCase();
-      final matchesMarket = synonyms.any((syn) => rMarket.contains(syn.toLowerCase()) || mLower.contains(rMarket));
+      final matchesMarket = synonyms.any((syn) => rMarket.contains(syn.toLowerCase()) || syn.toLowerCase().contains(rMarket)) ||
+          rMarket.contains(mLower) || mLower.contains(rMarket);
       if (matchesMarket) {
         if (_isCropMatch(r.commodity, cropKey, cropHindi)) {
           return r;
@@ -651,7 +684,8 @@ class KisanChatService {
     // Priority 2: District match
     for (final r in pool) {
       final rDistrict = r.district.toLowerCase();
-      final matchesDistrict = synonyms.any((syn) => rDistrict.contains(syn.toLowerCase()));
+      final matchesDistrict = synonyms.any((syn) => rDistrict.contains(syn.toLowerCase())) ||
+          rDistrict.contains(mLower) || mLower.contains(rDistrict);
       if (matchesDistrict) {
         if (_isCropMatch(r.commodity, cropKey, cropHindi)) {
           return r;
@@ -694,33 +728,13 @@ class KisanChatService {
       return true;
     }
 
-    // Specific crop mapping
-    if (cropKey == 'soybean' && (comm.contains('soya') || comm.contains('soybean') || commHindi.contains('सोया'))) {
-      return true;
-    }
-    if (cropKey == 'gram' && (comm.contains('gram') || comm.contains('chana') || commHindi.contains('चना'))) {
-      return true;
-    }
-    if (cropKey == 'garlic' && (comm.contains('garlic') || commHindi.contains('लहसुन'))) {
-      return true;
-    }
-    if (cropKey == 'wheat' && (comm.contains('wheat') || commHindi.contains('गेहूं') || commHindi.contains('गेहू'))) {
-      return true;
-    }
-    if (cropKey == 'mustard' && (comm.contains('mustard') || commHindi.contains('सरसों') || commHindi.contains('राई'))) {
-      return true;
-    }
-    if (cropKey == 'cotton' && (comm.contains('cotton') || commHindi.contains('कपास') || commHindi.contains('नरमा'))) {
-      return true;
-    }
-    if (cropKey == 'onion' && (comm.contains('onion') || commHindi.contains('प्याज') || commHindi.contains('कांदा'))) {
-      return true;
-    }
-    if (cropKey == 'potato' && (comm.contains('potato') || commHindi.contains('आलू'))) {
-      return true;
-    }
-    if (cropKey == 'tomato' && (comm.contains('tomato') || commHindi.contains('टमाटर'))) {
-      return true;
+    // Synonyms match
+    final synonyms = _cropKeywords[cropKey] ?? [];
+    for (final syn in synonyms) {
+      final s = syn.toLowerCase();
+      if (comm.contains(s) || commHindi.contains(s)) {
+        return true;
+      }
     }
 
     return false;
