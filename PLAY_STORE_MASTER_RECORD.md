@@ -1,16 +1,46 @@
 # 🌾 Kisan Mandi Bhav - Play Store Master Record & Release Guide
 
-> **Last Updated**: 02 October 2026  
+> **Last Updated**: 06 October 2026  
 > **App Title**: किसान मंडी भाव (Kisan Mandi Bhav)  
 > **Package Name (Application ID)**: `com.kisanmitra.kisan_mitra`  
-> **Current Track**: Production (Rollout in Review ⏳)  
-> **Current Version**: `1.0.8` (Version Code: `9`)
+> **Current Track**: Production (Ready for Release Upload 🚀)  
+> **Current Version**: `1.0.9` (Version Code: `10`)
 
 ---
 
 ## 📌 1. Release History & Milestones
 
-### 🚀 Release 1.0.8 (Version Code: 9) — 02 October 2026 (Live Release Bundle Ready 📦)
+### 🚀 Release 1.0.9 (Version Code: 10) — 06 October 2026 (Live Release Bundle Ready 📦)
+1. **🎯 AdMob Production Units & Impression Fix**:
+   - Fixed Native Ad Unit ID: `ca-app-pub-7650949194753110/5373252690` ("बीच वाला ऐड").
+   - Banner Ad Unit ID: `ca-app-pub-7650949194753110/5674116546` placed prominently at the top of Mandi screen.
+   - Throttling prevented: in-feed inline ad spaced to 4th crop, then every 15 crops to eliminate request flooding.
+   - Container height set to 120dp to guarantee complete AdMob attribution and 100% impression eligibility.
+2. **🤖 Smart Kisan Mitra AI Chatbot Overhaul**:
+   - Strict Intent Isolation: Disease/symptom queries ("पीलापन", "कीड़ा", "इल्ली", "दवा", "स्प्रे", "जलेबी रोग") never trigger Mandi rates.
+   - Symptom-tag scoring across all 56 crops and 111 diseases with exact CIBRC chemical prescriptions & 15L pump spray dosages.
+   - Live APMC rate priority: Vercel live market rates given 100% priority over static assets.
+3. **📅 Live Market Date Calibration**:
+   - Real-time IST market dates displayed on header and crop rate cards.
+
+#### Play Console Ready Release Notes (1.0.9):
+```xml
+<en-US>
+• 🤖 Smarter Kisan AI Mitra: Accurate disease identification & spray dosages for 56 crops!
+• 💰 Live Mandi Rates: Real-time auction rates with live market session calibration.
+• 🩺 Crop Doctor: Certified CIBRC chemical & organic remedies per 15L pump.
+• ⚡ Faster performance & improved UI experience.
+</en-US>
+
+<hi-IN>
+• 🤖 और भी स्मार्ट किसान मित्र AI: 56 फसलों के रोग, दवा और स्प्रे की सटीक मात्रा!
+• 💰 आज के ताज़ा मंडी भाव: लाइव नीलामी भाव और सही तारीख की जानकारी।
+• 🩺 फसल डॉक्टर: 15 लीटर पंप के अनुसार सटीक दवा और जैविक घरेलू उपाय।
+• ⚡ तेज गति, सहज अनुभव और बेहतर परफॉर्मेंस।
+</hi-IN>
+```
+
+### 🚀 Release 1.0.8 (Version Code: 9) — 02 October 2026
 1. **🤖 Kisan Mitra AI Chatbot Integration ("किसान मित्र AI")**:
    - Built a high-performance offline & master-data NLP conversational AI engine (`KisanChatService`).
    - Dual-intent routing:
