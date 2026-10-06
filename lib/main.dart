@@ -30,9 +30,14 @@ void main() async {
       );
       FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
       FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-      await AdService.init();
     } catch (e) {
       debugPrint('[Firebase] Init skipped/error: $e');
+    }
+
+    try {
+      await AdService.init();
+    } catch (e) {
+      debugPrint('[AdService] Init error: $e');
     }
   }
 

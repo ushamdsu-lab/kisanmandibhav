@@ -117,25 +117,24 @@ class AdService {
 
     try {
       if (Platform.isAndroid || Platform.isIOS) {
-        // 1. Google UMP Consent Management (Required for EEA / UK / Global Compliance)
-        await _requestUserConsent();
-
-        // 2. Initialize MobileAds SDK
+        // 1. Initialize MobileAds SDK immediately
         await MobileAds.instance.initialize();
-        
-        // 3. Register test devices and set family-friendly content rating (2026 AdMob Policy)
+        _isInitialized = true;
+        debugPrint('[AdService] MobileAds SDK successfully initialized.');
+
+        // 2. Register test devices and allow standard commercial ad inventory
         await MobileAds.instance.updateRequestConfiguration(
           RequestConfiguration(
             testDeviceIds: [
               '7cf83247-f5b2-4386-b1cf-b95d171ee5c2',
             ],
-            // Blocks adult, gambling and inappropriate ads for farmer safety
-            maxAdContentRating: MaxAdContentRating.pg,
+            // Teen rating enables agricultural, banking, e-commerce & utility ad inventory
+            maxAdContentRating: MaxAdContentRating.t,
           ),
         );
 
-        _isInitialized = true;
-        debugPrint('[AdService] MobileAds initialized with UMP consent and Test Device registered.');
+        // 3. User Messaging Platform (UMP) consent in background (non-blocking)
+        _requestUserConsent();
         
         // Preload first interstitial ad
         loadInterstitialAd();
